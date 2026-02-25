@@ -12,9 +12,6 @@ button{background:#2563eb;color:white;cursor:pointer;}
 #app{display:none; max-width:350px;margin:auto;}
 #pitchCount{font-weight:bold;margin-top:5px;}
 </style>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#020617">
-<meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 
 <body>
@@ -24,8 +21,8 @@ button{background:#2563eb;color:white;cursor:pointer;}
 <h2>Login</h2>
 <input id="email" type="email" placeholder="Enter email"><br>
 <input id="password" type="password" placeholder="Password"><br>
-<button onclick="login()">Login</button>
 <button onclick="signup()">Sign Up</button>
+<button onclick="login()">Login</button>
 </div>
 
 <!-- APP -->
@@ -71,7 +68,7 @@ button{background:#2563eb;color:white;cursor:pointer;}
 <button onclick="exportCSV()">Export CSV</button>
 </div>
 
-<!-- Firebase Scripts -->
+<!-- Firebase Compat Scripts -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -87,6 +84,7 @@ const firebaseConfig = {
   appId: "1:370897827412:web:847c7475fe0c8f7b105fc1"
 };
 firebase.initializeApp(firebaseConfig);
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 
@@ -100,15 +98,16 @@ function signup(){
   const email=document.getElementById("email").value;
   const password=document.getElementById("password").value;
   auth.createUserWithEmailAndPassword(email,password)
-  .then(cred=>login())
-  .catch(e=>alert(e.message));
+    .then(cred=>initApp(cred.user))
+    .catch(e=>alert(e.message));
 }
+
 function login(){
   const email=document.getElementById("email").value;
   const password=document.getElementById("password").value;
   auth.signInWithEmailAndPassword(email,password)
-  .then(cred=>initApp(cred.user))
-  .catch(e=>alert(e.message));
+    .then(cred=>initApp(cred.user))
+    .catch(e=>alert(e.message));
 }
 
 // --- INIT APP ---
@@ -132,6 +131,7 @@ function loadData(){
     updateCountDisplay();
   });
 }
+
 function saveData(){
   db.collection("users").doc(user.uid).set({data});
 }
@@ -143,10 +143,12 @@ function addPitcher(){
   if(!data[name]) data[name]=[];
   saveData(); updatePitchers(); document.getElementById("newPitcher").value="";
 }
+
 function deletePitcher(){
   const name=document.getElementById("pitcherSelect").value;
   if(name){ delete data[name]; saveData(); updatePitchers(); resetCount(); drawHeat(); updateStats(); }
 }
+
 function updatePitchers(){
   const select=document.getElementById("pitcherSelect");
   select.innerHTML="";
@@ -157,25 +159,26 @@ function updatePitchers(){
   }
 }
 
-// --- DRAW STRIKE ZONE (WITH 9x9 GRID) ---
+// --- STRIKE ZONE WITH 9x9 GRID ---
 const zone=document.getElementById("zone");
 const ctx=zone.getContext("2d");
 function drawZone(){
   ctx.clearRect(0,0,320,420);
   ctx.strokeStyle="white"; ctx.lineWidth=2;
-  ctx.strokeRect(80,100,160,200); // Strike zone box
+  ctx.strokeRect(80,100,160,200); // Outer box
 
-  // Drawing 9x9 grid
-  const gridSize = 3; // 3x3 rows and columns within the strike zone
-  for (let i = 1; i < gridSize; i++) {
+  // 9x9 grid
+  const rows=9, cols=9;
+  for(let r=1;r<rows;r++){
     ctx.beginPath();
-    ctx.moveTo(80 + i * (160 / gridSize), 100);
-    ctx.lineTo(80 + i * (160 / gridSize), 300);
+    ctx.moveTo(80,100 + r*(200/rows));
+    ctx.lineTo(240,100 + r*(200/rows));
     ctx.stroke();
-    
+  }
+  for(let c=1;c<cols;c++){
     ctx.beginPath();
-    ctx.moveTo(80, 100 + i * (200 / gridSize));
-    ctx.lineTo(240, 100 + i * (200 / gridSize));
+    ctx.moveTo(80 + c*(160/cols),100);
+    ctx.lineTo(80 + c*(160/cols),300);
     ctx.stroke();
   }
 }
@@ -225,3 +228,57 @@ function undoPitch(){
 }
 
 // --- CLEAR SESSION ---
+function clearSession(){
+  const pitcher=document.getElementById("pitcherSelect").value;
+  if(!data[pitcher]||data[pitcher].length===0) return;
+  if(confirm(`Clear all pitches for ${pitcher}?`)){
+    data[pitcher]=[];
+    resetCount(); saveData(); drawZone(); drawHeat(); updateStats(); updateCountDisplay();
+  }
+}
+
+// --- HEATMAP ---
+const heat=document.getElementById("heat"); const heatCtx=heat.getContext("2d");
+function drawHeat(){
+  heatCtx.clearRect(0,0,320,420);
+  heatCtx.strokeStyle="white"; heatCtx.strokeRect(80,100,160,200);
+  const mode=document.getElementById("viewMode").value;
+  const pitcher=document.getElementById("pitcherSelect").value;
+  const pitchType=document.getElementById("pitchType").value;
+  let pitches=[];
+  if(mode==="team"){ for(let p in data)pitches=pitches.concat(data[p]); }
+  else{ pitches=data[pitcher]||[]; if(mode==="pitch") pitches=pitches.filter(p=>p.type===pitchType);}
+  pitches.forEach(p=>{
+    let grd=heatCtx.createRadialGradient(p.x,p.y,2,p.x,p.y,20);
+    grd.addColorStop(0,"rgba(255,0,0,0.6)");
+    grd.addColorStop(1,"rgba(255,0,0,0)");
+    heatCtx.fillStyle=grd; heatCtx.beginPath(); heatCtx.arc(p.x,p.y,20,0,Math.PI*2); heatCtx.fill();
+  });
+}
+
+// --- STATS ---
+function updateStats(){
+  const pitcher=document.getElementById("pitcherSelect").value;
+  if(!pitcher||!data[pitcher]) return;
+  const pitches=data[pitcher];
+  let strikes=0; pitches.forEach(p=>{ if(p.x>=80&&p.x<=240&&p.y>=100&&p.y<=300) strikes++; });
+  let percent=((strikes/pitches.length)*100).toFixed(1);
+  let daily={}; pitches.forEach(p=>{ daily[p.date]=(daily[p.date]||0)+1; });
+  let dailyText=""; for(let d in daily){ dailyText+=`${d}: ${daily[d]}<br>`; }
+  document.getElementById("stats").innerHTML=`Total Pitches: ${pitches.length}<br>Strike %: ${percent}%<br><b>Daily:</b><br>${dailyText}`;
+}
+
+// --- EXPORT CSV ---
+function exportCSV(){
+  let csv="Pitcher,Type,X,Y,Date,SwingMiss\n";
+  for(let p in data){ data[p].forEach(row=>{ csv+=`${p},${row.type},${row.x},${row.y},${row.date},${row.swingMiss}\n`; }); }
+  let a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download="bullpen.csv"; a.click();
+}
+
+// --- LISTENERS ---
+document.getElementById("pitcherSelect").addEventListener("change",()=>{ drawHeat(); updateStats(); });
+document.getElementById("viewMode").addEventListener("change", drawHeat);
+document.getElementById("pitchType").addEventListener("change", drawHeat);
+</script>
+</body>
+</html>
