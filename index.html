@@ -1,63 +1,53 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
-<title>Bullpen Tracker Elite</title>
-<style>
-body {
-font-family: Arial;
-margin: 0;
-background: #eef2f7;
-text-align: center;
-}
+  <title>Bullpen Tracker Elite</title>
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      background: #f5f7fb;
+      text-align: center;
+    }
 
-#menuBtn {
-font-size: 26px;
-position: absolute;
-left: 15px;
-top: 10px;
-cursor: pointer;
-}
+    h1 {
+      margin-top: 20px;
+    }
 
-#sidebar {
-position: fixed;
-left: -220px;
-top: 0;
-width: 200px;
-height: 100%;
-background: #222;
-color: white;
-padding: 15px;
-transition: 0.3s;
-}
+    select, input, button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
 
-h1 { margin-top: 40px; }
+    #menuBtn {
+      font-size: 26px;
+      position: absolute;
+      left: 15px;
+      top: 10px;
+      cursor: pointer;
+    }
 
-select, input, button {
-padding: 8px;
-margin: 5px;
-}
+    #sidebar {
+      position: fixed;
+      left: -220px;
+      top: 0;
+      width: 200px;
+      height: 100%;
+      background: #1e1e1e;
+      color: white;
+      padding: 15px;
+      transition: 0.3s;
+    }
 
-#zone {
-display: grid;
-grid-template-columns: repeat(5, 60px);
-gap: 3px;
-justify-content: center;
-margin: 15px;
-}
-
-.cell {
-background: white;
-border: 1px solid black;
-height: 60px;
-cursor: pointer;
-}
-
-canvas {
-margin-top: 10px;
-border: 2px solid black;
-background: white;
-}
-</style>
+    canvas {
+      margin-top: 20px;
+      border-radius: 10px;
+      background: white;
+      box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 
 <body>
@@ -65,155 +55,154 @@ background: white;
 <div id="menuBtn" onclick="toggleMenu()">☰</div>
 
 <div id="sidebar">
-<h3>Pitchers</h3>
-<select id="pitcherSelect"></select>
-<input id="newPitcher" placeholder="Add pitcher">
-<button onclick="addPitcher()">Add</button>
+  <h3>Pitchers</h3>
+  <select id="pitcherSelect"></select>
+  <input id="newPitcher" placeholder="Add pitcher">
+  <button onclick="addPitcher()">Add</button>
 </div>
 
 <h1>⚾ Bullpen Tracker Elite</h1>
 
 <select id="pitchType">
-<option>4-Seam</option>
-<option>2-Seam</option>
-<option>Slider</option>
-<option>Curveball</option>
-<option>Changeup</option>
+  <option>4-Seam</option>
+  <option>2-Seam</option>
+  <option>Slider</option>
+  <option>Curveball</option>
+  <option>Changeup</option>
 </select>
 
-<input id="velo" placeholder="Velo" type="number">
+<input id="velo" type="number" placeholder="Velo">
 
-<div id="zone"></div>
+<br>
 
-<button onclick="drawHeatmap()">Heat Map</button>
+<canvas id="zone" width="320" height="320"></canvas>
+
+<br>
+
+<button onclick="drawHeatmap()">Heatmap</button>
 <button onclick="showStats()">Stats</button>
-<button onclick="exportCSV()">Export CSV</button>
-
-<canvas id="chart" width="320" height="320"></canvas>
+<button onclick="exportCSV()">Export</button>
 
 <script>
 let pitches = JSON.parse(localStorage.getItem("bullpen")) || [];
 let pitchers = JSON.parse(localStorage.getItem("pitchers")) || [];
 
-const zone = document.getElementById("zone");
+const canvas = document.getElementById("zone");
+const ctx = canvas.getContext("2d");
 const pitcherSelect = document.getElementById("pitcherSelect");
-
-/* COLORS */
-const colors = {
-"4-Seam": "red",
-"2-Seam": "blue",
-"Slider": "green",
-"Curveball": "purple",
-"Changeup": "orange"
-};
 
 /* MENU */
 function toggleMenu() {
-const bar = document.getElementById("sidebar");
-bar.style.left = bar.style.left === "0px" ? "-220px" : "0px";
+  const bar = document.getElementById("sidebar");
+  bar.style.left = bar.style.left === "0px" ? "-220px" : "0px";
 }
 
 /* PITCHERS */
 function loadPitchers() {
-pitcherSelect.innerHTML = "";
-pitchers.forEach(p => {
-const opt = document.createElement("option");
-opt.text = p;
-pitcherSelect.add(opt);
-});
+  pitcherSelect.innerHTML = "";
+  pitchers.forEach(p => {
+    let opt = document.createElement("option");
+    opt.text = p;
+    pitcherSelect.add(opt);
+  });
 }
 loadPitchers();
 
 function addPitcher() {
-const name = document.getElementById("newPitcher").value;
-if (!name) return;
-pitchers.push(name);
-localStorage.setItem("pitchers", JSON.stringify(pitchers));
-loadPitchers();
+  let name = document.getElementById("newPitcher").value;
+  if (!name) return;
+  pitchers.push(name);
+  localStorage.setItem("pitchers", JSON.stringify(pitchers));
+  loadPitchers();
 }
 
-/* ZONE */
-for (let i = 0; i < 25; i++) {
-const cell = document.createElement("div");
-cell.classList.add("cell");
-cell.onclick = () => savePitch(i);
-zone.appendChild(cell);
+/* DRAW STRIKE ZONE */
+function drawZone() {
+  ctx.clearRect(0,0,320,320);
+
+  // outer area
+  ctx.strokeStyle = "#ccc";
+  ctx.strokeRect(40,40,240,240);
+
+  // strike zone
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(100,80,120,160);
+}
+drawZone();
+
+/* CLICK TRACKING */
+canvas.addEventListener("click", function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  savePitch(x,y);
+
+  // draw dot immediately
+  ctx.fillStyle = "black";
+  ctx.beginPath();
+  ctx.arc(x,y,4,0,Math.PI*2);
+  ctx.fill();
+});
+
+function savePitch(x,y) {
+  pitches.push({
+    pitcher: pitcherSelect.value,
+    type: document.getElementById("pitchType").value,
+    velo: document.getElementById("velo").value,
+    x: x,
+    y: y
+  });
+
+  localStorage.setItem("bullpen", JSON.stringify(pitches));
 }
 
-function savePitch(loc) {
-const pitch = {
-pitcher: pitcherSelect.value,
-type: document.getElementById("pitchType").value,
-velo: document.getElementById("velo").value,
-location: loc
-};
-
-pitches.push(pitch);
-localStorage.setItem("bullpen", JSON.stringify(pitches));
-}
-
-/* HEATMAP */
+/* HEATMAP PER PITCHER */
 function drawHeatmap() {
-const canvas = document.getElementById("chart");
-const ctx = canvas.getContext("2d");
+  drawZone();
 
-ctx.clearRect(0,0,320,320);
+  let selected = pitcherSelect.value;
 
-let grid = Array(25).fill(0);
+  pitches.forEach(p => {
+    if (p.pitcher !== selected) return;
 
-pitches.forEach(p => {
-if (typeof p.location === "number") {
-grid[p.location]++;
-}
-});
-
-grid.forEach((val, i) => {
-let col = i % 5;
-let row = Math.floor(i/5);
-
-let intensity = val * 20;
-ctx.fillStyle = `rgba(255,0,0,${intensity/100})`;
-
-ctx.fillRect(col*60, row*60, 60, 60);
-});
+    ctx.fillStyle = "rgba(255,0,0,0.2)";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 12, 0, Math.PI*2);
+    ctx.fill();
+  });
 }
 
 /* STATS */
 function showStats() {
-let total = pitches.length;
-let strikes = pitches.filter(p => typeof p.location === "number").length;
+  let selected = pitcherSelect.value;
+  let data = pitches.filter(p => p.pitcher === selected);
 
-let percent = total ? ((strikes/total)*100).toFixed(1) : 0;
+  let total = data.length;
 
-let breakdown = {};
+  let strikes = data.filter(p =>
+    p.x > 100 && p.x < 220 && p.y > 80 && p.y < 240
+  ).length;
 
-pitches.forEach(p => {
-breakdown[p.type] = (breakdown[p.type] || 0) + 1;
-});
+  let percent = total ? ((strikes/total)*100).toFixed(1) : 0;
 
-let text = `Total: ${total}\nStrike %: ${percent}%\n\n`;
-
-for (let t in breakdown) {
-text += `${t}: ${breakdown[t]}\n`;
-}
-
-alert(text);
+  alert(`Pitcher: ${selected}\nTotal: ${total}\nStrike %: ${percent}%`);
 }
 
 /* EXPORT */
 function exportCSV() {
-let csv = "Pitcher,Type,Velo,Location\n";
+  let csv = "Pitcher,Type,Velo,X,Y\n";
 
-pitches.forEach(p => {
-csv += `${p.pitcher},${p.type},${p.velo},${p.location}\n`;
-});
+  pitches.forEach(p => {
+    csv += `${p.pitcher},${p.type},${p.velo},${p.x},${p.y}\n`;
+  });
 
-let blob = new Blob([csv], { type: 'text/csv' });
-let a = document.createElement("a");
-
-a.href = URL.createObjectURL(blob);
-a.download = "bullpen.csv";
-a.click();
+  let blob = new Blob([csv], { type: 'text/csv' });
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "bullpen.csv";
+  a.click();
 }
 </script>
 
