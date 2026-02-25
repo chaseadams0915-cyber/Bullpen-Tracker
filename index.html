@@ -1,4 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bullpen Tracker Pro</title>
+<style>
+body { font-family: Arial; background:#020617; color:white; text-align:center; margin:0; padding:0;}
+h1,h2,h3{margin:5px;}
+canvas{border-radius:12px; background:#0f172a; margin:10px auto; display:block;}
+button, select, input{padding:8px;margin:5px;border-radius:8px;border:none;font-size:14px;}
+button{background:#2563eb;color:white;cursor:pointer;}
+#app{display:none; max-width:350px;margin:auto;}
+#pitchCount{font-weight:bold;margin-top:5px;}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+<h2>Login</h2>
+<input id="email" type="email" placeholder="Enter email"><br>
+<input id="password" type="password" placeholder="Password"><br>
+<button onclick="signup()">Sign Up</button>
+<button onclick="login()">Login</button>
+</div>
+
+<!-- APP -->
+<div id="app">
+<h1>Bullpen Tracker Pro</h1>
+<div id="userDisplay"></div>
+
+<input id="newPitcher" placeholder="Add pitcher">
+<button onclick="addPitcher()">Add</button>
+<select id="pitcherSelect"></select>
+<button onclick="deletePitcher()">Delete</button>
+
+<br>
+
+<select id="pitchType">
+<option>Four-Seam</option>
+<option>Two-Seam</option>
+<option>Changeup</option>
+<option>Slider</option>
+<option>Curveball</option>
+</select>
+
+<select id="viewMode">
+<option value="all">All Pitches</option>
+<option value="pitch">Selected Pitch</option>
+<option value="team">Entire Staff</option>
+</select>
+
+<br>
+<label><input type="checkbox" id="swingMiss"> Swing & Miss</label>
+<button onclick="undoPitch()">Undo Last Pitch</button>
+<button onclick="clearSession()">Clear Session</button>
+<div id="pitchCount">Balls: 0 | Strikes: 0</div>
+
+<h2>Tap to Record Pitch</h2>
+<canvas id="zone" width="320" height="420"></canvas>
+
+<h2>Heat Map</h2>
+<canvas id="heat" width="320" height="420"></canvas>
+
+<h3>Stats</h3>
+<div id="stats"></div>
+<button onclick="exportCSV()">Export CSV</button>
+</div>
+
+<!-- Firebase Scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+// --- FIREBASE CONFIG ---
+const firebaseConfig = {
+  apiKey: "AIzaSyATMceL9OwutTlZYbBzeXa02KCUJawaoUw",
+  authDomain: "bullpen-tracker.firebaseapp.com",
+  projectId: "bullpen-tracker",
+  storageBucket: "bullpen-tracker.firebasestorage.app",
+  messagingSenderId: "370897827412",
+  appId: "1:370897827412:web:847c7475fe0c8f7b105fc1"
+};
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// --- GLOBALS ---
+let user = null;
+let data = {};
+let pitchCount = {balls:0,strikes:0};
+
+// --- LOGIN/SIGNUP ---
+function signup(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  auth.createUserWithEmailAndPassword(email,password)
+    .then(cred=>login())
+    .catch(e=>alert(e.message));
+}
+
+function login(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  auth.signInWithEmailAndPassword(email,password)
+    .then(cred=>initApp(cred.user))
+    .catch(e=>alert(e.message));
+}
+
+// --- INIT APP ---
+function initApp(u){
+  user=u;
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  document.getElementById("userDisplay").innerText="User: "+u.email;
+  loadData();
+}
+
+// --- LOAD / SAVE DATA ---
+function loadData(){
+  db.collection("users").doc(user.uid).get().then(doc=>{
+    if(doc.exists){ data=doc.data().data||{}; }
+    else{ data={}; }
+    updatePitchers();
+    drawZone();
+    drawHeat();
+    updateStats();
+    updateCountDisplay();
+  });
+}
+
+function saveData(){
+  db.collection("users").doc(user.uid).set({data});
+}
+
+// --- PITCHERS ---
+function addPitcher(){
+  const name=document.getElementById("newPitcher").value.trim();
+  if(!name) return;
+  if(!data[name]) data[name]=[];
+  saveData(); updatePitchers(); document.getElementById("newPitcher").value="";
+}
+
+function deletePitcher(){
+  const name=document.getElementById("pitcherSelect").value;
+  if(name){ delete data[name]; saveData(); updatePitchers(); resetCount(); drawHeat(); updateStats(); }
+}
+
+function updatePitchers(){
+  const select=document.getElementById("pitcherSelect");
+  select.innerHTML="";
+  for(let p in data){
+    let opt=document.createElement("option");
+    opt.value=p; opt.textContent=p;
+    select.appendChild(opt);
+  }
+}
+
 // --- DRAW STRIKE ZONE WITH 3x3 GRID ---
+const zone=document.getElementById("zone");
+const ctx=zone.getContext("2d");
 function drawZone(){
   ctx.clearRect(0,0,320,420);
   ctx.strokeStyle="white"; 
@@ -20,6 +183,12 @@ function drawZone(){
     ctx.stroke();
   }
 }
+
+// --- PITCH COUNTS ---
+function updateCountDisplay(){
+  document.getElementById("pitchCount").innerText=`Balls: ${pitchCount.balls} | Strikes: ${pitchCount.strikes}`;
+}
+function resetCount(){ pitchCount={balls:0,strikes:0}; updateCountDisplay(); }
 
 // --- RECORD PITCH ---
 zone.addEventListener("click",function(e){
@@ -44,37 +213,24 @@ zone.addEventListener("click",function(e){
 
   saveData();
   drawZone();
-  drawPitchDot(x, y);   // Draw baseball dot
+  drawPitchDot(x, y);   // Draw the larger dot
   drawHeat(); 
   updateStats(); 
   updateCountDisplay();
 });
 
-// --- DRAW PITCH DOT AS BASEBALL ---
+// --- DRAW PITCH DOT (LARGER SOLID CIRCLE) ---
 function drawPitchDot(x, y){
-  const radius = 8; // slightly bigger
-  // outer circle
-  ctx.fillStyle = "white";
+  const radius = 8; // Larger dot size
+  ctx.fillStyle = "yellow"; // Color for the pitch dot
   ctx.beginPath();
-  ctx.arc(x,y,radius,0,Math.PI*2);
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
   ctx.fill();
-
-  // red stitching lines
-  ctx.strokeStyle="red";
-  ctx.lineWidth=1;
-  ctx.beginPath();
-  ctx.arc(x,y,radius*0.8,0,Math.PI*2);
-  ctx.stroke();
-  
-  // optional: add short stitching lines
-  for(let angle=-Math.PI/4; angle<=Math.PI/4; angle+=Math.PI/8){
-    const x1 = x + Math.cos(angle)*(radius*0.8);
-    const y1 = y + Math.sin(angle)*(radius*0.8);
-    const x2 = x + Math.cos(angle)*(radius*0.5);
-    const y2 = y + Math.sin(angle)*(radius*0.5);
-    ctx.beginPath();
-    ctx.moveTo(x1,y1);
-    ctx.lineTo(x2,y2);
-    ctx.stroke();
-  }
 }
+
+// --- UNDO LAST PITCH ---
+function undoPitch(){
+  const pitcher=document.getElementById("pitcherSelect").value;
+  if(!data[pitcher] || data[pitcher].length === 0) return;
+  const last = data[pitcher].pop();
+  if(last.x >= 80 && last.x <= 240 && last.y >= 100 &&
