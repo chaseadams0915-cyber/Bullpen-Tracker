@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bullpen Tracker Pro</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #eef2f7;
+    }
+
+    h1 {
+      margin: 10px;
+    }
+
+    select, input, button {
+      padding: 8px;
+      margin: 5px;
+      font-size: 14px;
+    }
+
+    #zone {
+      display: grid;
+      grid-template-columns: repeat(3, 90px);
+      grid-template-rows: repeat(3, 90px);
+      gap: 5px;
+      justify-content: center;
+      margin: 15px;
+    }
+
+    .cell {
+      background: white;
+      border: 2px solid black;
+      cursor: pointer;
+    }
+
+    canvas {
+      margin-top: 20px;
+      background: white;
+      border: 2px solid black;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>⚾ Bullpen Tracker Pro</h1>
+
+<input id="pitcher" placeholder="Pitcher Name">
+
+<br>
+
+<select id="pitchType">
+  <option>Fastball</option>
+  <option>Curveball</option>
+  <option>Slider</option>
+  <option>Changeup</option>
+</select>
+
+<input id="velo" placeholder="Velocity (mph)" type="number">
+<input id="notes" placeholder="Notes">
+
+<div id="zone"></div>
+
+<div>
+  <button onclick="logOutside('High')">High</button>
+  <button onclick="logOutside('Low')">Low</button>
+  <button onclick="logOutside('Inside')">Inside</button>
+  <button onclick="logOutside('Outside')">Outside</button>
+</div>
+
+<br>
+
+<select id="filter">
+  <option value="All">All Pitches</option>
+  <option>Fastball</option>
+  <option>Curveball</option>
+  <option>Slider</option>
+  <option>Changeup</option>
+</select>
+
+<button onclick="drawChart()">Show Chart</button>
+<button onclick="clearData()">Clear Session</button>
+
+<canvas id="chart" width="320" height="320"></canvas>
+
+<script>
+  const zone = document.getElementById("zone");
+
+  let pitches = JSON.parse(localStorage.getItem("bullpen")) || [];
+
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+
+    cell.onclick = () => logPitch(i);
+
+    zone.appendChild(cell);
+  }
+
+  function logPitch(location) {
+    savePitch(location);
+  }
+
+  function logOutside(direction) {
+    savePitch(direction);
+  }
+
+  function savePitch(location) {
+    const pitch = {
+      pitcher: document.getElementById("pitcher").value || "Unknown",
+      type: document.getElementById("pitchType").value,
+      velo: document.getElementById("velo").value,
+      notes: document.getElementById("notes").value,
+      location: location
+    };
+
+    pitches.push(pitch);
+    localStorage.setItem("bullpen", JSON.stringify(pitches));
+
+    alert("Pitch saved");
+  }
+
+  function drawChart() {
+    const filter = document.getElementById("filter").value;
+    const canvas = document.getElementById("chart");
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, 320, 320);
+
+    const gridMap = [
+      [50, 50],[160, 50],[270, 50],
+      [50,160],[160,160],[270,160],
+      [50,270],[160,270],[270,270]
+    ];
+
+    pitches.forEach(p => {
+      if (filter !== "All" && p.type !== filter) return;
+
+      let x, y;
+
+      if (typeof p.location === "number") {
+        [x, y] = gridMap[p.location];
+      } else {
+        if (p.location === "High") { x = 160; y = 10; }
+        if (p.location === "Low") { x = 160; y = 310; }
+        if (p.location === "Inside") { x = 10; y = 160; }
+        if (p.location === "Outside") { x = 310; y = 160; }
+      }
+
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  function clearData() {
+    localStorage.removeItem("bullpen");
+    pitches = [];
+    alert("Session cleared");
+  }
+</script>
+
+</body>
+</html>
