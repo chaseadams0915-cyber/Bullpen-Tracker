@@ -2,40 +2,15 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Bullpen Tracker App</title>
-
-<!-- App styling -->
+<title>Bullpen Tracker Pro</title>
 <style>
-body {
-  font-family: Arial;
-  background: #020617;
-  color: white;
-  text-align: center;
-  margin:0; padding:0;
-}
-h1,h2,h3 { margin: 5px; }
-
-canvas {
-  border-radius: 12px;
-  background: #0f172a;
-  margin: 10px auto;
-  display:block;
-}
-
-button, select, input {
-  padding: 8px;
-  margin: 5px;
-  border-radius: 8px;
-  border: none;
-  font-size: 14px;
-}
-
-button { background: #2563eb; color:white; cursor:pointer; }
-
-#app { display:none; max-width:350px; margin:auto; }
+body { font-family: Arial; background:#020617; color:white; text-align:center; margin:0; padding:0;}
+h1,h2,h3{margin:5px;}
+canvas{border-radius:12px; background:#0f172a; margin:10px auto; display:block;}
+button, select, input{padding:8px;margin:5px;border-radius:8px;border:none;font-size:14px;}
+button{background:#2563eb;color:white;cursor:pointer;}
+#app{display:none; max-width:350px;margin:auto;}
 </style>
-
-<!-- PWA manifest -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -45,10 +20,13 @@ button { background: #2563eb; color:white; cursor:pointer; }
 
 <!-- LOGIN -->
 <div id="login">
-  <h2>Login</h2>
-  <input id="username" placeholder="Enter name/email">
-  <br>
-  <button onclick="login()">Enter</button>
+<h2>Login</h2>
+<input id="email" type="email" placeholder="Enter email">
+<br>
+<input id="password" type="password" placeholder="Password">
+<br>
+<button onclick="login()">Login</button>
+<button onclick="signup()">Sign Up</button>
 </div>
 
 <!-- APP -->
@@ -56,28 +34,25 @@ button { background: #2563eb; color:white; cursor:pointer; }
 <h1>Bullpen Tracker Pro</h1>
 <div id="userDisplay"></div>
 
-<!-- Pitchers -->
 <input id="newPitcher" placeholder="Add pitcher">
 <button onclick="addPitcher()">Add</button>
-
 <select id="pitcherSelect"></select>
 <button onclick="deletePitcher()">Delete</button>
 
 <br>
 
-<!-- Options -->
 <select id="pitchType">
-  <option>Four-Seam</option>
-  <option>Two-Seam</option>
-  <option>Changeup</option>
-  <option>Slider</option>
-  <option>Curveball</option>
+<option>Four-Seam</option>
+<option>Two-Seam</option>
+<option>Changeup</option>
+<option>Slider</option>
+<option>Curveball</option>
 </select>
 
 <select id="viewMode">
-  <option value="all">All Pitches</option>
-  <option value="pitch">Selected Pitch</option>
-  <option value="team">Entire Staff</option>
+<option value="all">All Pitches</option>
+<option value="pitch">Selected Pitch</option>
+<option value="team">Entire Staff</option>
 </select>
 
 <h2>Tap to Record Pitch</h2>
@@ -88,47 +63,75 @@ button { background: #2563eb; color:white; cursor:pointer; }
 
 <h3>Stats</h3>
 <div id="stats"></div>
-
 <button onclick="exportCSV()">Export CSV</button>
 </div>
 
+<!-- Firebase Scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
 <script>
-// --- User and data ---
-let user = "";
+// --- FIREBASE CONFIG ---
+const firebaseConfig = {
+  apiKey: "AIzaSyATMceL9OwutTlZYbBzeXa02KCUJawaoUw",
+  authDomain: "bullpen-tracker.firebaseapp.com",
+  projectId: "bullpen-tracker",
+  storageBucket: "bullpen-tracker.firebasestorage.app",
+  messagingSenderId: "370897827412",
+  appId: "1:370897827412:web:847c7475fe0c8f7b105fc1"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// --- GLOBALS ---
+let user = null;
 let data = {};
 
-const zone = document.getElementById("zone");
-const ctx = zone.getContext("2d");
-
-const heat = document.getElementById("heat");
-const heatCtx = heat.getContext("2d");
-
-// --- LOGIN ---
-function login() {
-  user = document.getElementById("username").value.trim();
-  if(!user) return alert("Enter name");
-
-  document.getElementById("login").style.display = "none";
-  document.getElementById("app").style.display = "block";
-  document.getElementById("userDisplay").innerText = "User: "+user;
-
-  loadData();
-  updatePitchers();
-  drawZone();
-  drawHeat();
-  updateStats();
+// --- LOGIN/SIGNUP ---
+function signup(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  auth.createUserWithEmailAndPassword(email,password)
+  .then(cred=>login())
+  .catch(e=>alert(e.message));
+}
+function login(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  auth.signInWithEmailAndPassword(email,password)
+  .then(cred=>initApp(cred.user))
+  .catch(e=>alert(e.message));
 }
 
-// --- STORAGE ---
-function saveData(){ localStorage.setItem("bullpen_"+user, JSON.stringify(data)); }
-function loadData(){ 
-  const saved = localStorage.getItem("bullpen_"+user);
-  data = saved ? JSON.parse(saved) : {};
+// --- INIT APP ---
+function initApp(u){
+  user=u;
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  document.getElementById("userDisplay").innerText="User: "+u.email;
+  loadData();
+}
+
+// --- LOAD / SAVE DATA ---
+function loadData(){
+  db.collection("users").doc(user.uid).get().then(doc=>{
+    if(doc.exists){ data=doc.data().data||{}; }
+    else{ data={}; }
+    updatePitchers();
+    drawZone();
+    drawHeat();
+    updateStats();
+  });
+}
+function saveData(){
+  db.collection("users").doc(user.uid).set({data});
 }
 
 // --- PITCHERS ---
 function addPitcher(){
-  const name = document.getElementById("newPitcher").value.trim();
+  const name=document.getElementById("newPitcher").value.trim();
   if(!name) return;
   if(!data[name]) data[name]=[];
   saveData();
@@ -136,89 +139,67 @@ function addPitcher(){
   document.getElementById("newPitcher").value="";
 }
 function deletePitcher(){
-  const name = document.getElementById("pitcherSelect").value;
+  const name=document.getElementById("pitcherSelect").value;
   delete data[name];
   saveData();
   updatePitchers();
 }
 function updatePitchers(){
-  const select = document.getElementById("pitcherSelect");
+  const select=document.getElementById("pitcherSelect");
   select.innerHTML="";
   for(let p in data){
     let opt=document.createElement("option");
-    opt.value=p;
-    opt.textContent=p;
+    opt.value=p; opt.textContent=p;
     select.appendChild(opt);
   }
 }
 
-// --- DRAW STRIKE ZONE GRID ---
+// --- DRAW STRIKE ZONE ---
+const zone=document.getElementById("zone");
+const ctx=zone.getContext("2d");
 function drawZone(){
   ctx.clearRect(0,0,320,420);
-  ctx.strokeStyle="white";
-  ctx.lineWidth=2;
+  ctx.strokeStyle="white"; ctx.lineWidth=2;
   ctx.strokeRect(80,100,160,200);
-  // 3x3 grid
   for(let i=1;i<3;i++){
     ctx.beginPath();
-    ctx.moveTo(80+i*53,100);
-    ctx.lineTo(80+i*53,300);
-    ctx.stroke();
+    ctx.moveTo(80+i*53,100); ctx.lineTo(80+i*53,300); ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(80,100+i*66);
-    ctx.lineTo(240,100+i*66);
-    ctx.stroke();
+    ctx.moveTo(80,100+i*66); ctx.lineTo(240,100+i*66); ctx.stroke();
   }
 }
 
 // --- RECORD PITCH ---
-zone.addEventListener("click", function(e){
-  const pitcher = document.getElementById("pitcherSelect").value;
+zone.addEventListener("click",function(e){
+  const pitcher=document.getElementById("pitcherSelect").value;
   if(!pitcher) return alert("Select pitcher");
-  const rect = zone.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  const pitch = {x,y,type:document.getElementById("pitchType").value,date:new Date().toLocaleDateString()};
+  const rect=zone.getBoundingClientRect();
+  const x=e.clientX-rect.left;
+  const y=e.clientY-rect.top;
+  const pitch={x,y,type:document.getElementById("pitchType").value,date:new Date().toLocaleDateString()};
   data[pitcher].push(pitch);
   saveData();
-
   drawZone();
-  ctx.fillStyle="yellow";
-  ctx.beginPath();
-  ctx.arc(x,y,4,0,Math.PI*2);
-  ctx.fill();
-
-  drawHeat();
-  updateStats();
+  ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
+  drawHeat(); updateStats();
 });
 
 // --- HEATMAP ---
+const heat=document.getElementById("heat"); const heatCtx=heat.getContext("2d");
 function drawHeat(){
   heatCtx.clearRect(0,0,320,420);
-  heatCtx.strokeStyle="white";
-  heatCtx.strokeRect(80,100,160,200);
-
+  heatCtx.strokeStyle="white"; heatCtx.strokeRect(80,100,160,200);
   const mode=document.getElementById("viewMode").value;
   const pitcher=document.getElementById("pitcherSelect").value;
   const pitchType=document.getElementById("pitchType").value;
-
   let pitches=[];
-  if(mode==="team"){
-    for(let p in data) pitches=pitches.concat(data[p]);
-  } else {
-    pitches=data[pitcher]||[];
-    if(mode==="pitch") pitches=pitches.filter(p=>p.type===pitchType);
-  }
-
+  if(mode==="team"){ for(let p in data)pitches=pitches.concat(data[p]); }
+  else{ pitches=data[pitcher]||[]; if(mode==="pitch") pitches=pitches.filter(p=>p.type===pitchType);}
   pitches.forEach(p=>{
     let grd=heatCtx.createRadialGradient(p.x,p.y,2,p.x,p.y,20);
     grd.addColorStop(0,"rgba(255,0,0,0.6)");
     grd.addColorStop(1,"rgba(255,0,0,0)");
-    heatCtx.fillStyle=grd;
-    heatCtx.beginPath();
-    heatCtx.arc(p.x,p.y,20,0,Math.PI*2);
-    heatCtx.fill();
+    heatCtx.fillStyle=grd; heatCtx.beginPath(); heatCtx.arc(p.x,p.y,20,0,Math.PI*2); heatCtx.fill();
   });
 }
 
@@ -227,39 +208,22 @@ function updateStats(){
   const pitcher=document.getElementById("pitcherSelect").value;
   if(!pitcher||!data[pitcher]) return;
   const pitches=data[pitcher];
-  let strikes=0;
-  pitches.forEach(p=>{ if(p.x>=80&&p.x<=240&&p.y>=100&&p.y<=300) strikes++; });
+  let strikes=0; pitches.forEach(p=>{ if(p.x>=80&&p.x<=240&&p.y>=100&&p.y<=300) strikes++; });
   let percent=((strikes/pitches.length)*100).toFixed(1);
-  // Daily counts
-  let daily={};
-  pitches.forEach(p=>{ daily[p.date]=(daily[p.date]||0)+1; });
-  let dailyText="";
-  for(let d in daily){ dailyText+=`${d}: ${daily[d]}<br>`; }
-
-  document.getElementById("stats").innerHTML=
-    `Total Pitches: ${pitches.length}<br>Strike %: ${percent}%<br><b>Daily:</b><br>${dailyText}`;
+  let daily={}; pitches.forEach(p=>{ daily[p.date]=(daily[p.date]||0)+1; });
+  let dailyText=""; for(let d in daily){ dailyText+=`${d}: ${daily[d]}<br>`; }
+  document.getElementById("stats").innerHTML=`Total Pitches: ${pitches.length}<br>Strike %: ${percent}%<br><b>Daily:</b><br>${dailyText}`;
 }
 
 // --- EXPORT CSV ---
 function exportCSV(){
   let csv="Pitcher,Type,X,Y,Date\n";
-  for(let p in data){
-    data[p].forEach(row=>{
-      csv+=`${p},${row.type},${row.x},${row.y},${row.date}\n`;
-    });
-  }
-  let blob=new Blob([csv],{type:'text/csv'});
-  let a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="bullpen.csv";
-  a.click();
+  for(let p in data){ data[p].forEach(row=>{ csv+=`${p},${row.type},${row.x},${row.y},${row.date}\n`; }); }
+  let blob=new Blob([csv],{type:'text/csv'}); let a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="bullpen.csv"; a.click();
 }
 
-// --- EVENT LISTENERS ---
-document.getElementById("pitcherSelect").addEventListener("change", ()=>{
-  drawHeat();
-  updateStats();
-});
+// --- LISTENERS ---
+document.getElementById("pitcherSelect").addEventListener("change",()=>{ drawHeat(); updateStats();});
 document.getElementById("viewMode").addEventListener("change", drawHeat);
 document.getElementById("pitchType").addEventListener("change", drawHeat);
 </script>
