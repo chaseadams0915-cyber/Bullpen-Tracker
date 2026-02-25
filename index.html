@@ -11,6 +11,8 @@ button, select, input{padding:8px;margin:5px;border-radius:8px;border:none;font-
 button{background:#2563eb;color:white;cursor:pointer;}
 #app{display:none; max-width:350px;margin:auto;}
 #pitchCount{font-weight:bold;margin-top:5px;}
+#sessionStats{margin-top:20px;}
+#pastSessions{margin-top:20px; max-height: 300px; overflow-y: scroll;}
 </style>
 </head>
 <body>
@@ -54,6 +56,7 @@ button{background:#2563eb;color:white;cursor:pointer;}
 <label><input type="checkbox" id="swingMiss"> Swing & Miss</label>
 <button onclick="undoPitch()">Undo Last Pitch</button>
 <button onclick="clearSession()">Clear Session</button>
+<button onclick="endBullpen()">End Bullpen</button>
 <div id="pitchCount">Balls: 0 | Strikes: 0</div>
 
 <h2>Tap to Record Pitch</h2>
@@ -64,6 +67,13 @@ button{background:#2563eb;color:white;cursor:pointer;}
 
 <h3>Stats</h3>
 <div id="stats"></div>
+
+<h3>Session Stats</h3>
+<div id="sessionStats"></div>
+
+<h3>Past Sessions</h3>
+<div id="pastSessions"></div>
+
 <button onclick="exportCSV()">Export CSV</button>
 </div>
 
@@ -92,6 +102,7 @@ let user = null;
 let data = {};
 let pitchCount = {balls:0,strikes:0};
 let currentAtBatPitches = [];  // Stores current at-bat pitches
+let bullpenSessions = {};  // Store past bullpen sessions per pitcher
 
 // --- LOGIN/SIGNUP ---
 function signup(){
@@ -124,8 +135,8 @@ function initApp(u){
 // --- LOAD / SAVE DATA ---
 function loadData(){
   db.collection("users").doc(user.uid).get().then(doc=>{
-    if(doc.exists){ data=doc.data().data||{}; }
-    else{ data={}; }
+    if(doc.exists){ data=doc.data().data||{}; bullpenSessions = doc.data().bullpenSessions || {}; }
+    else{ data={}; bullpenSessions = {}; }
     updatePitchers();
     drawZone();
     drawHeat();
@@ -135,7 +146,10 @@ function loadData(){
 }
 
 function saveData(){
-  db.collection("users").doc(user.uid).set({data});
+  db.collection("users").doc(user.uid).set({
+    data,
+    bullpenSessions
+  });
 }
 
 // --- PITCHERS ---
@@ -208,22 +222,4 @@ zone.addEventListener("click",function(e){
   let isBall = !isStrike;
 
   // Add to current at-bat pitches
-  currentAtBatPitches.push({ x, y, isStrike, pitchNumber: currentAtBatPitches.length + 1 });
-
-  // Update pitch count
-  if(isStrike) pitchCount.strikes++;
-  else if(isBall) pitchCount.balls++;
-
-  if(pitchCount.strikes >= 3){ alert("Strikeout!"); resetCount(); }
-  if(pitchCount.balls >= 4){ alert("Walk!"); resetCount(); }
-
-  saveData();
-  drawZone();
-  drawPitchDots();
-  drawHeat(); updateStats(); updateCountDisplay();
-});
-
-// --- DRAW PITCH DOTS (with Pitch Number and Color) ---
-function drawPitchDots() {
-  ctx.fillStyle = "yellow"; // Default color for the pitch dots
-  currentAtBatPitches.forEach(pitch =>
+  currentAtBatPitches.push({ x, y, is
