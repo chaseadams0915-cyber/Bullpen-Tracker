@@ -1,217 +1,200 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bullpen Tracker Pro - Multiuser</title>
+  <meta charset="UTF-8">
+  <title>Bullpen Tracker</title>
   <style>
-    body { font-family: Arial; margin: 0; background: #f5f7fb; text-align: center; }
-    h1 { margin-top: 20px; }
-    select, input, button { padding: 8px; margin: 5px; border-radius: 6px; border: 1px solid #ccc; }
-    #menuBtn { font-size: 26px; position: absolute; left: 15px; top: 10px; cursor: pointer; }
-    #sidebar { position: fixed; left: -240px; top: 0; width: 220px; height: 100%; background: #1e1e1e; color: white; padding: 15px; transition: 0.3s; }
-    #sidebar button { width: 100%; margin: 3px 0; padding: 8px; }
-    canvas { margin-top: 20px; border-radius: 10px; background: white; box-shadow: 0px 2px 10px rgba(0,0,0,0.1); }
-    hr { margin: 10px 0; border-color: #444; }
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+    }
+
+    h1 {
+      margin: 10px;
+    }
+
+    canvas {
+      border: 2px solid white;
+      background: #1e293b;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+
+    select, button, input {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    #loginBox {
+      margin-top: 100px;
+    }
+
+    #app {
+      display: none;
+    }
+
+    #userInfo {
+      margin: 10px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
   </style>
 </head>
 <body>
 
-<!-- Menu -->
-<div id="menuBtn" onclick="toggleMenu()">☰</div>
-
-<div id="sidebar">
-  <h3>Pitchers</h3>
-  <select id="pitcherSelect"></select>
-  <input id="newPitcher" placeholder="Add pitcher">
-  <button onclick="addPitcher()">Add</button>
-  <button onclick="deletePitcher()">Delete Selected</button>
-  <hr>
-  <input type="date" id="sessionDate">
-  <button onclick="setToday()">Today</button>
+<!-- LOGIN -->
+<div id="loginBox">
+  <h1>Login</h1>
+  <input id="nameInput" placeholder="Enter name or email">
+  <br>
+  <button onclick="login()">Enter</button>
 </div>
 
-<h1>⚾ Bullpen Tracker Pro</h1>
+<!-- MAIN APP -->
+<div id="app">
+  <h1>Bullpen Tracker</h1>
+  <div id="userInfo"></div>
 
-<select id="pitchType">
-  <option>4-Seam</option>
-  <option>2-Seam</option>
-  <option>Slider</option>
-  <option>Curveball</option>
-  <option>Changeup</option>
-</select>
-<input id="velo" type="number" placeholder="Velo">
-<br>
-<canvas id="zone" width="320" height="320"></canvas>
-<br>
-<button onclick="drawHeatmap()">Show Heatmap</button>
-<button onclick="showStats()">Show Stats</button>
-<button onclick="exportCSV()">Export CSV</button>
+  <select id="pitchType">
+    <option>Four-Seam</option>
+    <option>Two-Seam</option>
+    <option>Changeup</option>
+    <option>Slider</option>
+    <option>Curveball</option>
+  </select>
+
+  <select id="viewMode">
+    <option value="all">All Pitches Heatmap</option>
+    <option value="pitch">Selected Pitch Heatmap</option>
+  </select>
+
+  <br>
+
+  <canvas id="zone" width="300" height="400"></canvas>
+  <canvas id="heat" width="300" height="400"></canvas>
+
+  <br>
+
+  <button onclick="clearData()">Clear My Data</button>
+</div>
 
 <script>
-/* ------------------- MULTI-USER SETUP ------------------- */
-let currentUser = prompt("Enter your name or email to track your data:");
-if(!currentUser) currentUser = "guest";
-const userKey = "bullpenData_" + currentUser;
+let currentUser = "";
+let pitches = [];
 
-let bullpenData = JSON.parse(localStorage.getItem(userKey)) || {};
-let pitchers = bullpenData.pitchers || [];
+const zone = document.getElementById("zone");
+const ctx = zone.getContext("2d");
 
-const canvas = document.getElementById("zone");
-const ctx = canvas.getContext("2d");
-const pitcherSelect = document.getElementById("pitcherSelect");
-const dateInput = document.getElementById("sessionDate");
+const heat = document.getElementById("heat");
+const heatCtx = heat.getContext("2d");
 
-/* ------------------- MENU ------------------- */
-function toggleMenu() {
-  const bar = document.getElementById("sidebar");
-  bar.style.left = bar.style.left === "0px" ? "-240px" : "0px";
+// LOGIN SYSTEM
+function login() {
+  const name = document.getElementById("nameInput").value.trim();
+  if (!name) return alert("Enter a name");
+
+  currentUser = name;
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("app").style.display = "block";
+
+  document.getElementById("userInfo").innerText =
+    "Logged in as: " + currentUser;
+
+  loadData();
+  drawZone();
+  drawHeat();
 }
 
-/* ------------------- PITCHERS ------------------- */
-function loadPitchers() {
-  pitcherSelect.innerHTML = "";
-  pitchers.forEach(p => {
-    let opt = document.createElement("option");
-    opt.text = p;
-    pitcherSelect.add(opt);
-  });
-}
-loadPitchers();
-
-function addPitcher() {
-  let name = document.getElementById("newPitcher").value.trim();
-  if(!name) return;
-  if(!pitchers.includes(name)) pitchers.push(name);
-  bullpenData.pitchers = pitchers;
-  saveData();
-  loadPitchers();
-  document.getElementById("newPitcher").value = "";
+// SAVE / LOAD (per user)
+function saveData() {
+  localStorage.setItem("bullpen_" + currentUser, JSON.stringify(pitches));
 }
 
-function deletePitcher() {
-  const name = pitcherSelect.value;
-  if(!name) return;
-  pitchers = pitchers.filter(p => p !== name);
-  bullpenData.pitchers = pitchers;
-
-  for(let d in bullpenData) {
-    if(d !== "pitchers" && bullpenData[d][name]) delete bullpenData[d][name];
-  }
-  saveData();
-  loadPitchers();
+function loadData() {
+  const data = localStorage.getItem("bullpen_" + currentUser);
+  pitches = data ? JSON.parse(data) : [];
 }
 
-/* ------------------- DATE ------------------- */
-function setToday() {
-  dateInput.value = new Date().toISOString().split("T")[0];
-}
-
-/* ------------------- STRIKE ZONE ------------------- */
+// DRAW STRIKE ZONE
 function drawZone() {
-  ctx.clearRect(0,0,320,320);
-  ctx.strokeStyle = "#ccc";
-  ctx.strokeRect(40,40,240,240);
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(100,80,120,160);
-}
-drawZone();
+  ctx.clearRect(0, 0, 300, 400);
 
-/* ------------------- CLICK TRACKING ------------------- */
-canvas.addEventListener("click", function(e){
-  const rect = canvas.getBoundingClientRect();
+  ctx.strokeStyle = "white";
+  ctx.strokeRect(75, 100, 150, 200);
+}
+
+// TAP INPUT
+zone.addEventListener("click", function(e) {
+  const rect = zone.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  savePitch(x,y);
+  const pitch = {
+    x: x,
+    y: y,
+    type: document.getElementById("pitchType").value,
+    date: new Date().toLocaleDateString()
+  };
 
-  ctx.fillStyle = "black";
-  ctx.beginPath();
-  ctx.arc(x,y,4,0,Math.PI*2);
-  ctx.fill();
+  pitches.push(pitch);
+  saveData();
+
+  drawHeat();
 });
 
-function savePitch(x,y) {
-  const pitcher = pitcherSelect.value;
-  const date = dateInput.value;
-  if(!pitcher || !date) {
-    alert("Select pitcher and date first!");
-    return;
+// DRAW HEAT MAP
+function drawHeat() {
+  heatCtx.clearRect(0, 0, 300, 400);
+
+  const mode = document.getElementById("viewMode").value;
+  const selectedPitch = document.getElementById("pitchType").value;
+
+  let filtered = pitches;
+
+  if (mode === "pitch") {
+    filtered = pitches.filter(p => p.type === selectedPitch);
   }
 
-  if(!bullpenData[date]) bullpenData[date] = {};
-  if(!bullpenData[date][pitcher]) bullpenData[date][pitcher] = [];
-
-  bullpenData[date][pitcher].push({
-    type: document.getElementById("pitchType").value,
-    velo: document.getElementById("velo").value,
-    x:x,
-    y:y
+  filtered.forEach(p => {
+    heatCtx.fillStyle = "rgba(255,0,0,0.4)";
+    heatCtx.beginPath();
+    heatCtx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+    heatCtx.fill();
   });
+}
 
+// CLEAR DATA
+function clearData() {
+  if (!confirm("Delete all your data?")) return;
+
+  pitches = [];
   saveData();
+  drawHeat();
 }
 
-function saveData() {
-  localStorage.setItem(userKey, JSON.stringify(bullpenData));
-}
+// AUTO UPDATE HEATMAP WHEN SWITCHING VIEW
+document.getElementById("viewMode").addEventListener("change", drawHeat);
+document.getElementById("pitchType").addEventListener("change", drawHeat);
 
-/* ------------------- HEATMAP ------------------- */
-function drawHeatmap() {
-  drawZone();
-  const pitcher = pitcherSelect.value;
-  const date = dateInput.value;
-  if(!bullpenData[date] || !bullpenData[date][pitcher]) return;
-
-  bullpenData[date][pitcher].forEach(p => {
-    ctx.fillStyle = "rgba(255,0,0,0.3)";
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,10,0,Math.PI*2);
-    ctx.fill();
-  });
-}
-
-/* ------------------- STATS ------------------- */
-function showStats() {
-  const pitcher = pitcherSelect.value;
-  const date = dateInput.value;
-  if(!bullpenData[date] || !bullpenData[date][pitcher]) {
-    alert("No data for this pitcher/date.");
-    return;
-  }
-
-  const data = bullpenData[date][pitcher];
-  const total = data.length;
-  const strikes = data.filter(p=>p.x>100 && p.x<220 && p.y>80 && p.y<240).length;
-  const percent = ((strikes/total)*100).toFixed(1);
-
-  let breakdown = {};
-  data.forEach(p => { breakdown[p.type] = (breakdown[p.type]||0)+1; });
-
-  let text = `Pitcher: ${pitcher}\nDate: ${date}\nTotal: ${total}\nStrike %: ${percent}%\n\n`;
-  for(let t in breakdown) text += `${t}: ${breakdown[t]}\n`;
-
-  alert(text);
-}
-
-/* ------------------- EXPORT CSV ------------------- */
-function exportCSV() {
-  let csv = "Date,Pitcher,Type,Velo,X,Y\n";
-
-  for(let d in bullpenData){
-    if(d==="pitchers") continue;
-    for(let p in bullpenData[d]){
-      bullpenData[d][p].forEach(pitch=>{
-        csv += `${d},${p},${pitch.type},${pitch.velo},${pitch.x},${pitch.y}\n`;
-      });
-    }
-  }
-
-  let blob = new Blob([csv], {type:'text/csv'});
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "bullpen_data_" + currentUser + ".csv";
-  a.click();
-}
+// AUTO LOGIN IF USER EXISTS
+window.onload = () => {
+  // optional: auto remember last user
+};
 </script>
 
 </body>
