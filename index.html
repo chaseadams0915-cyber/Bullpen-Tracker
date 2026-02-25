@@ -2,32 +2,30 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Bullpen Tracker Elite</title>
+<title>Bullpen Tracker Pro</title>
 
 <style>
 body {
   font-family: Arial;
-  background: #0f172a;
+  background: #020617;
   color: white;
   text-align: center;
 }
 
-h2 {
-  margin: 5px;
-}
+h2 { margin: 5px; }
 
 canvas {
-  border: 2px solid white;
-  border-radius: 10px;
-  background: #1e293b;
+  border-radius: 12px;
+  background: #0f172a;
   margin: 10px;
 }
 
-button, select, input {
-  padding: 6px;
-  margin: 5px;
-  border-radius: 6px;
+select, button, input {
+  padding: 10px;
+  margin: 6px;
+  border-radius: 8px;
   border: none;
+  font-size: 14px;
 }
 
 button {
@@ -44,7 +42,7 @@ button {
 <!-- LOGIN -->
 <div id="login">
   <h2>Login</h2>
-  <input id="username" placeholder="Enter name">
+  <input id="username" placeholder="Enter name/email">
   <br>
   <button onclick="login()">Enter</button>
 </div>
@@ -52,7 +50,7 @@ button {
 <!-- APP -->
 <div id="app">
 
-<h1>Bullpen Tracker</h1>
+<h1>Bullpen Tracker Pro</h1>
 <div id="userDisplay"></div>
 
 <!-- PITCHERS -->
@@ -79,15 +77,12 @@ button {
   <option value="team">Entire Staff</option>
 </select>
 
-<br>
-
 <h2>Tap to Record Pitch</h2>
-<canvas id="zone" width="300" height="400"></canvas>
+<canvas id="zone" width="320" height="420"></canvas>
 
 <h2>Heat Map</h2>
-<canvas id="heat" width="300" height="400"></canvas>
+<canvas id="heat" width="320" height="420"></canvas>
 
-<!-- STATS -->
 <h3>Stats</h3>
 <div id="stats"></div>
 
@@ -104,14 +99,13 @@ const heat = document.getElementById("heat");
 const heatCtx = heat.getContext("2d");
 
 // LOGIN
-function login() {
+function login(){
   user = document.getElementById("username").value;
-  if (!user) return alert("Enter name");
+  if(!user) return alert("Enter name");
 
-  document.getElementById("login").style.display = "none";
-  document.getElementById("app").style.display = "block";
-
-  document.getElementById("userDisplay").innerText = "User: " + user;
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  document.getElementById("userDisplay").innerText="User: "+user;
 
   loadData();
   updatePitchers();
@@ -121,71 +115,78 @@ function login() {
 }
 
 // STORAGE
-function saveData() {
-  localStorage.setItem("bullpen_" + user, JSON.stringify(data));
+function saveData(){
+  localStorage.setItem("bullpen_"+user, JSON.stringify(data));
 }
 
-function loadData() {
-  const saved = localStorage.getItem("bullpen_" + user);
+function loadData(){
+  const saved = localStorage.getItem("bullpen_"+user);
   data = saved ? JSON.parse(saved) : {};
 }
 
 // PITCHERS
-function addPitcher() {
+function addPitcher(){
   const name = document.getElementById("newPitcher").value.trim();
-  if (!name) return;
+  if(!name) return;
 
-  if (!data[name]) data[name] = [];
-
+  if(!data[name]) data[name]=[];
   saveData();
   updatePitchers();
-
-  document.getElementById("newPitcher").value = "";
 }
 
-function deletePitcher() {
+function deletePitcher(){
   const name = document.getElementById("pitcherSelect").value;
   delete data[name];
-
   saveData();
   updatePitchers();
 }
 
-// UPDATE DROPDOWN
-function updatePitchers() {
+function updatePitchers(){
   const select = document.getElementById("pitcherSelect");
-  select.innerHTML = "";
-
-  for (let p in data) {
-    let opt = document.createElement("option");
-    opt.value = p;
-    opt.textContent = p;
+  select.innerHTML="";
+  for(let p in data){
+    let opt=document.createElement("option");
+    opt.value=p;
+    opt.textContent=p;
     select.appendChild(opt);
   }
 }
 
-// DRAW STRIKE ZONE
-function drawZone() {
-  ctx.clearRect(0,0,300,400);
-  ctx.strokeStyle = "white";
-  ctx.lineWidth = 2;
+// DRAW STRIKE ZONE GRID
+function drawZone(){
+  ctx.clearRect(0,0,320,420);
 
-  // Strike zone
-  ctx.strokeRect(75,100,150,200);
+  ctx.strokeStyle="white";
+  ctx.lineWidth=2;
+
+  // outer
+  ctx.strokeRect(80,100,160,200);
+
+  // grid lines (3x3)
+  for(let i=1;i<3;i++){
+    ctx.beginPath();
+    ctx.moveTo(80+i*53,100);
+    ctx.lineTo(80+i*53,300);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(80,100+i*66);
+    ctx.lineTo(240,100+i*66);
+    ctx.stroke();
+  }
 }
 
-// CLICK TRACKING (FIXED)
-zone.addEventListener("click", function(e) {
+// CLICK INPUT
+zone.addEventListener("click", function(e){
   const pitcher = document.getElementById("pitcherSelect").value;
-  if (!pitcher) return alert("Select pitcher");
+  if(!pitcher) return alert("Select pitcher");
 
   const rect = zone.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
   const pitch = {
-    x,
-    y,
+    x,y,
     type: document.getElementById("pitchType").value,
     date: new Date().toLocaleDateString()
   };
@@ -193,8 +194,9 @@ zone.addEventListener("click", function(e) {
   data[pitcher].push(pitch);
   saveData();
 
-  // Draw dot instantly
-  ctx.fillStyle = "yellow";
+  drawZone();
+
+  ctx.fillStyle="yellow";
   ctx.beginPath();
   ctx.arc(x,y,4,0,Math.PI*2);
   ctx.fill();
@@ -203,60 +205,60 @@ zone.addEventListener("click", function(e) {
   updateStats();
 });
 
-// HEATMAP
-function drawHeat() {
-  heatCtx.clearRect(0,0,300,400);
+// HEATMAP (DENSITY STYLE)
+function drawHeat(){
+  heatCtx.clearRect(0,0,320,420);
 
   // strike zone overlay
-  heatCtx.strokeStyle = "white";
-  heatCtx.strokeRect(75,100,150,200);
+  heatCtx.strokeStyle="white";
+  heatCtx.strokeRect(80,100,160,200);
 
-  const mode = document.getElementById("viewMode").value;
-  const pitcher = document.getElementById("pitcherSelect").value;
-  const pitchType = document.getElementById("pitchType").value;
+  const mode=document.getElementById("viewMode").value;
+  const pitcher=document.getElementById("pitcherSelect").value;
+  const pitchType=document.getElementById("pitchType").value;
 
-  let pitches = [];
+  let pitches=[];
 
-  if (mode === "team") {
-    for (let p in data) pitches = pitches.concat(data[p]);
+  if(mode==="team"){
+    for(let p in data) pitches=pitches.concat(data[p]);
   } else {
-    pitches = data[pitcher] || [];
-
-    if (mode === "pitch") {
-      pitches = pitches.filter(p => p.type === pitchType);
+    pitches=data[pitcher]||[];
+    if(mode==="pitch"){
+      pitches=pitches.filter(p=>p.type===pitchType);
     }
   }
 
-  pitches.forEach(p => {
-    heatCtx.fillStyle = "rgba(255,0,0,0.35)";
+  pitches.forEach(p=>{
+    let grd=heatCtx.createRadialGradient(p.x,p.y,2,p.x,p.y,20);
+    grd.addColorStop(0,"rgba(255,0,0,0.6)");
+    grd.addColorStop(1,"rgba(255,0,0,0)");
+
+    heatCtx.fillStyle=grd;
     heatCtx.beginPath();
-    heatCtx.arc(p.x,p.y,6,0,Math.PI*2);
+    heatCtx.arc(p.x,p.y,20,0,Math.PI*2);
     heatCtx.fill();
   });
 }
 
 // STATS
-function updateStats() {
-  const pitcher = document.getElementById("pitcherSelect").value;
-  if (!pitcher || !data[pitcher]) return;
+function updateStats(){
+  const pitcher=document.getElementById("pitcherSelect").value;
+  if(!pitcher||!data[pitcher]) return;
 
-  const pitches = data[pitcher];
+  const pitches=data[pitcher];
 
-  let strikes = 0;
-
-  pitches.forEach(p => {
-    if (p.x>=75 && p.x<=225 && p.y>=100 && p.y<=300) strikes++;
+  let strikes=0;
+  pitches.forEach(p=>{
+    if(p.x>=80&&p.x<=240&&p.y>=100&&p.y<=300) strikes++;
   });
 
-  const percent = ((strikes/pitches.length)*100).toFixed(1);
+  let percent=((strikes/pitches.length)*100).toFixed(1);
 
-  document.getElementById("stats").innerHTML = `
-    Total Pitches: ${pitches.length}<br>
-    Strike %: ${percent}%
-  `;
+  document.getElementById("stats").innerHTML=
+    `Total: ${pitches.length}<br>Strike %: ${percent}%`;
 }
 
-// UPDATE ON CHANGE
+// LISTENERS
 document.getElementById("pitcherSelect").addEventListener("change", ()=>{
   drawHeat();
   updateStats();
