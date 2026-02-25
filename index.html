@@ -1,75 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Bullpen Tracker</title>
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: #0f172a;
-      color: white;
-      margin: 0;
-    }
+<meta charset="UTF-8">
+<title>Bullpen Tracker Elite</title>
 
-    h1 {
-      margin: 10px;
-    }
+<style>
+body {
+  font-family: Arial;
+  background: #0f172a;
+  color: white;
+  text-align: center;
+}
 
-    canvas {
-      border: 2px solid white;
-      background: #1e293b;
-      margin-top: 10px;
-      border-radius: 10px;
-    }
+h1 { margin-top: 10px; }
 
-    select, button, input {
-      padding: 8px;
-      margin: 5px;
-      border-radius: 6px;
-      border: none;
-    }
+canvas {
+  border: 2px solid white;
+  border-radius: 10px;
+  background: #1e293b;
+  margin: 10px;
+}
 
-    button {
-      background: #2563eb;
-      color: white;
-      cursor: pointer;
-    }
+button, select, input {
+  padding: 6px;
+  margin: 5px;
+  border-radius: 6px;
+  border: none;
+}
 
-    button:hover {
-      background: #1d4ed8;
-    }
+button { background: #2563eb; color: white; }
 
-    #loginBox {
-      margin-top: 100px;
-    }
+.panel { margin-top: 10px; }
 
-    #app {
-      display: none;
-    }
-
-    #userInfo {
-      margin: 10px;
-      font-size: 14px;
-      color: #94a3b8;
-    }
-  </style>
+#app { display:none; }
+</style>
 </head>
+
 <body>
 
 <!-- LOGIN -->
-<div id="loginBox">
-  <h1>Login</h1>
-  <input id="nameInput" placeholder="Enter name or email">
+<div id="login">
+  <h2>Login</h2>
+  <input id="username" placeholder="Enter name">
   <br>
   <button onclick="login()">Enter</button>
 </div>
 
-<!-- MAIN APP -->
+<!-- APP -->
 <div id="app">
-  <h1>Bullpen Tracker</h1>
-  <div id="userInfo"></div>
 
+<h1>Bullpen Tracker Elite</h1>
+<div id="userDisplay"></div>
+
+<!-- PITCHERS -->
+<div class="panel">
+  <input id="newPitcher" placeholder="Add pitcher">
+  <button onclick="addPitcher()">Add</button>
+
+  <select id="pitcherSelect"></select>
+  <button onclick="deletePitcher()">Delete</button>
+</div>
+
+<!-- OPTIONS -->
+<div class="panel">
   <select id="pitchType">
     <option>Four-Seam</option>
     <option>Two-Seam</option>
@@ -79,23 +72,36 @@
   </select>
 
   <select id="viewMode">
-    <option value="all">All Pitches Heatmap</option>
-    <option value="pitch">Selected Pitch Heatmap</option>
+    <option value="all">All Pitches</option>
+    <option value="pitch">Selected Pitch</option>
+    <option value="team">Entire Staff</option>
   </select>
+</div>
 
-  <br>
+<!-- CANVAS -->
+<canvas id="zone" width="300" height="400"></canvas>
+<canvas id="heat" width="300" height="400"></canvas>
 
-  <canvas id="zone" width="300" height="400"></canvas>
-  <canvas id="heat" width="300" height="400"></canvas>
+<!-- STATS -->
+<div class="panel">
+  <h3>Statistics</h3>
+  <div id="stats"></div>
+</div>
 
-  <br>
+<!-- CHARTS -->
+<div class="panel">
+  <h3>Charts</h3>
+  <canvas id="chart" width="300" height="200"></canvas>
+</div>
 
-  <button onclick="clearData()">Clear My Data</button>
+<!-- EXPORT -->
+<button onclick="exportCSV()">Export CSV</button>
+
 </div>
 
 <script>
-let currentUser = "";
-let pitches = [];
+let user = "";
+let data = {};
 
 const zone = document.getElementById("zone");
 const ctx = zone.getContext("2d");
@@ -103,98 +109,206 @@ const ctx = zone.getContext("2d");
 const heat = document.getElementById("heat");
 const heatCtx = heat.getContext("2d");
 
+const chart = document.getElementById("chart");
+const chartCtx = chart.getContext("2d");
+
 // LOGIN SYSTEM
 function login() {
-  const name = document.getElementById("nameInput").value.trim();
-  if (!name) return alert("Enter a name");
+  user = document.getElementById("username").value;
+  if (!user) return alert("Enter name");
 
-  currentUser = name;
-  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("login").style.display = "none";
   document.getElementById("app").style.display = "block";
-
-  document.getElementById("userInfo").innerText =
-    "Logged in as: " + currentUser;
+  document.getElementById("userDisplay").innerText = "User: " + user;
 
   loadData();
+  updatePitchers();
   drawZone();
   drawHeat();
+  updateStats();
+  drawChart();
 }
 
-// SAVE / LOAD (per user)
+// STORAGE PER USER
 function saveData() {
-  localStorage.setItem("bullpen_" + currentUser, JSON.stringify(pitches));
+  localStorage.setItem("bullpen_" + user, JSON.stringify(data));
 }
 
 function loadData() {
-  const data = localStorage.getItem("bullpen_" + currentUser);
-  pitches = data ? JSON.parse(data) : [];
+  const saved = localStorage.getItem("bullpen_" + user);
+  data = saved ? JSON.parse(saved) : {};
 }
 
-// DRAW STRIKE ZONE
+// PITCHERS
+function addPitcher() {
+  const name = document.getElementById("newPitcher").value;
+  if (!name) return;
+
+  if (!data[name]) data[name] = [];
+  saveData();
+  updatePitchers();
+}
+
+function deletePitcher() {
+  const name = document.getElementById("pitcherSelect").value;
+  delete data[name];
+  saveData();
+  updatePitchers();
+}
+
+function updatePitchers() {
+  const select = document.getElementById("pitcherSelect");
+  select.innerHTML = "";
+
+  for (let p in data) {
+    let opt = document.createElement("option");
+    opt.value = p;
+    opt.textContent = p;
+    select.appendChild(opt);
+  }
+}
+
+// DRAW ZONE
 function drawZone() {
-  ctx.clearRect(0, 0, 300, 400);
-
+  ctx.clearRect(0,0,300,400);
   ctx.strokeStyle = "white";
-  ctx.strokeRect(75, 100, 150, 200);
+  ctx.strokeRect(75,100,150,200);
 }
 
-// TAP INPUT
-zone.addEventListener("click", function(e) {
+// INPUT
+zone.addEventListener("click", function(e){
+  const pitcher = document.getElementById("pitcherSelect").value;
+  if (!pitcher) return alert("Select pitcher");
+
   const rect = zone.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
   const pitch = {
-    x: x,
-    y: y,
+    x,y,
     type: document.getElementById("pitchType").value,
     date: new Date().toLocaleDateString()
   };
 
-  pitches.push(pitch);
+  data[pitcher].push(pitch);
   saveData();
 
   drawHeat();
+  updateStats();
+  drawChart();
 });
 
-// DRAW HEAT MAP
+// HEATMAP
 function drawHeat() {
-  heatCtx.clearRect(0, 0, 300, 400);
+  heatCtx.clearRect(0,0,300,400);
+  heatCtx.strokeStyle = "white";
+  heatCtx.strokeRect(75,100,150,200);
 
   const mode = document.getElementById("viewMode").value;
-  const selectedPitch = document.getElementById("pitchType").value;
+  const pitcher = document.getElementById("pitcherSelect").value;
+  const pitchType = document.getElementById("pitchType").value;
 
-  let filtered = pitches;
+  let pitches = [];
 
-  if (mode === "pitch") {
-    filtered = pitches.filter(p => p.type === selectedPitch);
+  if (mode === "team") {
+    for (let p in data) pitches = pitches.concat(data[p]);
+  } else {
+    pitches = data[pitcher] || [];
+    if (mode === "pitch") {
+      pitches = pitches.filter(p => p.type === pitchType);
+    }
   }
 
-  filtered.forEach(p => {
-    heatCtx.fillStyle = "rgba(255,0,0,0.4)";
+  pitches.forEach(p => {
+    heatCtx.fillStyle = "rgba(255,0,0,0.35)";
     heatCtx.beginPath();
-    heatCtx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+    heatCtx.arc(p.x,p.y,6,0,Math.PI*2);
     heatCtx.fill();
   });
 }
 
-// CLEAR DATA
-function clearData() {
-  if (!confirm("Delete all your data?")) return;
+// STATS
+function updateStats() {
+  const pitcher = document.getElementById("pitcherSelect").value;
+  if (!pitcher || !data[pitcher]) return;
 
-  pitches = [];
-  saveData();
-  drawHeat();
+  const pitches = data[pitcher];
+
+  let strikes = 0;
+  let daily = {};
+
+  pitches.forEach(p => {
+    if (p.x>=75 && p.x<=225 && p.y>=100 && p.y<=300) strikes++;
+
+    daily[p.date] = (daily[p.date] || 0) + 1;
+  });
+
+  const percent = ((strikes/pitches.length)*100).toFixed(1);
+
+  let text = `
+  Total: ${pitches.length} <br>
+  Strike %: ${percent}% <br><br>
+  <b>Daily Pitch Count</b><br>
+  `;
+
+  for (let d in daily) {
+    text += `${d}: ${daily[d]}<br>`;
+  }
+
+  document.getElementById("stats").innerHTML = text;
 }
 
-// AUTO UPDATE HEATMAP WHEN SWITCHING VIEW
+// CHART
+function drawChart() {
+  chartCtx.clearRect(0,0,300,200);
+
+  const pitcher = document.getElementById("pitcherSelect").value;
+  if (!pitcher) return;
+
+  let counts = {};
+
+  data[pitcher].forEach(p => {
+    counts[p.type] = (counts[p.type] || 0) + 1;
+  });
+
+  let i = 0;
+  for (let type in counts) {
+    const height = counts[type] * 5;
+    chartCtx.fillStyle = "cyan";
+    chartCtx.fillRect(20 + i*50, 200-height, 30, height);
+
+    chartCtx.fillStyle = "white";
+    chartCtx.fillText(type, 20 + i*50, 190);
+
+    i++;
+  }
+}
+
+// EXPORT
+function exportCSV() {
+  let csv = "Pitcher,Type,X,Y,Date\n";
+
+  for (let p in data) {
+    data[p].forEach(row => {
+      csv += `${p},${row.type},${row.x},${row.y},${row.date}\n`;
+    });
+  }
+
+  let blob = new Blob([csv], {type:'text/csv'});
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "bullpen.csv";
+  a.click();
+}
+
+// LISTENERS
 document.getElementById("viewMode").addEventListener("change", drawHeat);
 document.getElementById("pitchType").addEventListener("change", drawHeat);
-
-// AUTO LOGIN IF USER EXISTS
-window.onload = () => {
-  // optional: auto remember last user
-};
+document.getElementById("pitcherSelect").addEventListener("change", ()=>{
+  drawHeat();
+  updateStats();
+  drawChart();
+});
 </script>
 
 </body>
