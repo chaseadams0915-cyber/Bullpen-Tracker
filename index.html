@@ -120,7 +120,7 @@ function signup(){
   auth.createUserWithEmailAndPassword(email, password)
     .then(cred => login())
     .catch(e => {
-      document.getElementById("loginError").textContent = "Sign up failed: " + e.message;
+      document.getElementById("loginError").textContent = `Sign up failed: ${e.message}`;
     });
 }
 
@@ -139,7 +139,21 @@ function login(){
   auth.signInWithEmailAndPassword(email, password)
     .then(cred => initApp(cred.user))
     .catch(e => {
-      document.getElementById("loginError").textContent = "Login failed: " + e.message;
+      // Firebase specific error handling for login failure
+      switch (e.code) {
+        case 'auth/wrong-password':
+          document.getElementById("loginError").textContent = "Incorrect password. Please try again.";
+          break;
+        case 'auth/user-not-found':
+          document.getElementById("loginError").textContent = "No user found with that email. Please sign up.";
+          break;
+        case 'auth/invalid-email':
+          document.getElementById("loginError").textContent = "Invalid email format. Please enter a valid email.";
+          break;
+        default:
+          document.getElementById("loginError").textContent = `Login failed: ${e.message}`;
+          break;
+      }
     });
 }
 
@@ -237,13 +251,4 @@ function drawZone(){
 
 // --- PITCH COUNTS ---
 function updateCountDisplay(){
-  document.getElementById("pitchCount").innerText = `Balls: ${pitchCount.balls} | Strikes: ${pitchCount.strikes}`;
-}
-
-function resetCount(){ 
-  pitchCount = {balls: 0, strikes: 0}; 
-  currentAtBatPitches = [];
-  updateCountDisplay();
-}
-
-// ---
+  document.getElementById
