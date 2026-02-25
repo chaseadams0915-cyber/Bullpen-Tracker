@@ -157,13 +157,27 @@ function updatePitchers(){
   }
 }
 
-// --- STRIKE ZONE ---
+// --- DRAW STRIKE ZONE (WITH 9x9 GRID) ---
 const zone=document.getElementById("zone");
 const ctx=zone.getContext("2d");
 function drawZone(){
   ctx.clearRect(0,0,320,420);
   ctx.strokeStyle="white"; ctx.lineWidth=2;
-  ctx.strokeRect(80,100,160,200);
+  ctx.strokeRect(80,100,160,200); // Strike zone box
+
+  // Drawing 9x9 grid
+  const gridSize = 3; // 3x3 rows and columns within the strike zone
+  for (let i = 1; i < gridSize; i++) {
+    ctx.beginPath();
+    ctx.moveTo(80 + i * (160 / gridSize), 100);
+    ctx.lineTo(80 + i * (160 / gridSize), 300);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(80, 100 + i * (200 / gridSize));
+    ctx.lineTo(240, 100 + i * (200 / gridSize));
+    ctx.stroke();
+  }
 }
 
 // --- PITCH COUNTS ---
@@ -211,57 +225,3 @@ function undoPitch(){
 }
 
 // --- CLEAR SESSION ---
-function clearSession(){
-  const pitcher=document.getElementById("pitcherSelect").value;
-  if(!data[pitcher]||data[pitcher].length===0) return;
-  if(confirm(`Clear all pitches for ${pitcher}?`)){
-    data[pitcher]=[];
-    resetCount(); saveData(); drawZone(); drawHeat(); updateStats(); updateCountDisplay();
-  }
-}
-
-// --- HEATMAP ---
-const heat=document.getElementById("heat"); const heatCtx=heat.getContext("2d");
-function drawHeat(){
-  heatCtx.clearRect(0,0,320,420);
-  heatCtx.strokeStyle="white"; heatCtx.strokeRect(80,100,160,200);
-  const mode=document.getElementById("viewMode").value;
-  const pitcher=document.getElementById("pitcherSelect").value;
-  const pitchType=document.getElementById("pitchType").value;
-  let pitches=[];
-  if(mode==="team"){ for(let p in data)pitches=pitches.concat(data[p]); }
-  else{ pitches=data[pitcher]||[]; if(mode==="pitch") pitches=pitches.filter(p=>p.type===pitchType);}
-  pitches.forEach(p=>{
-    let grd=heatCtx.createRadialGradient(p.x,p.y,2,p.x,p.y,20);
-    grd.addColorStop(0,"rgba(255,0,0,0.6)");
-    grd.addColorStop(1,"rgba(255,0,0,0)");
-    heatCtx.fillStyle=grd; heatCtx.beginPath(); heatCtx.arc(p.x,p.y,20,0,Math.PI*2); heatCtx.fill();
-  });
-}
-
-// --- STATS ---
-function updateStats(){
-  const pitcher=document.getElementById("pitcherSelect").value;
-  if(!pitcher||!data[pitcher]) return;
-  const pitches=data[pitcher];
-  let strikes=0; pitches.forEach(p=>{ if(p.x>=80&&p.x<=240&&p.y>=100&&p.y<=300) strikes++; });
-  let percent=((strikes/pitches.length)*100).toFixed(1);
-  let daily={}; pitches.forEach(p=>{ daily[p.date]=(daily[p.date]||0)+1; });
-  let dailyText=""; for(let d in daily){ dailyText+=`${d}: ${daily[d]}<br>`; }
-  document.getElementById("stats").innerHTML=`Total Pitches: ${pitches.length}<br>Strike %: ${percent}%<br><b>Daily:</b><br>${dailyText}`;
-}
-
-// --- EXPORT CSV ---
-function exportCSV(){
-  let csv="Pitcher,Type,X,Y,Date,SwingMiss\n";
-  for(let p in data){ data[p].forEach(row=>{ csv+=`${p},${row.type},${row.x},${row.y},${row.date},${row.swingMiss}\n`; }); }
-  let a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download="bullpen.csv"; a.click();
-}
-
-// --- LISTENERS ---
-document.getElementById("pitcherSelect").addEventListener("change",()=>{ drawHeat(); updateStats(); });
-document.getElementById("viewMode").addEventListener("change", drawHeat);
-document.getElementById("pitchType").addEventListener("change", drawHeat);
-</script>
-</body>
-</html>
