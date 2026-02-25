@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bullpen Tracker Elite</title>
+  <title>Bullpen Tracker Pro</title>
   <style>
     body {
       font-family: Arial;
@@ -10,9 +10,7 @@
       text-align: center;
     }
 
-    h1 {
-      margin-top: 20px;
-    }
+    h1 { margin-top: 20px; }
 
     select, input, button {
       padding: 8px;
@@ -31,9 +29,9 @@
 
     #sidebar {
       position: fixed;
-      left: -220px;
+      left: -240px;
       top: 0;
-      width: 200px;
+      width: 220px;
       height: 100%;
       background: #1e1e1e;
       color: white;
@@ -41,11 +39,22 @@
       transition: 0.3s;
     }
 
+    #sidebar button {
+      width: 100%;
+      margin: 3px 0;
+      padding: 8px;
+    }
+
     canvas {
       margin-top: 20px;
       border-radius: 10px;
       background: white;
       box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
+    }
+
+    hr {
+      margin: 10px 0;
+      border-color: #444;
     }
   </style>
 </head>
@@ -59,9 +68,13 @@
   <select id="pitcherSelect"></select>
   <input id="newPitcher" placeholder="Add pitcher">
   <button onclick="addPitcher()">Add</button>
+  <button onclick="deletePitcher()">Delete Selected</button>
+  <hr>
+  <input type="date" id="sessionDate">
+  <button onclick="setToday()">Today</button>
 </div>
 
-<h1>⚾ Bullpen Tracker Elite</h1>
+<h1>⚾ Bullpen Tracker Pro</h1>
 
 <select id="pitchType">
   <option>4-Seam</option>
@@ -79,25 +92,27 @@
 
 <br>
 
-<button onclick="drawHeatmap()">Heatmap</button>
-<button onclick="showStats()">Stats</button>
-<button onclick="exportCSV()">Export</button>
+<button onclick="drawHeatmap()">Show Heatmap</button>
+<button onclick="showStats()">Show Stats</button>
+<button onclick="exportCSV()">Export CSV</button>
 
 <script>
-let pitches = JSON.parse(localStorage.getItem("bullpen")) || [];
+/* ------------------- DATA STORAGE ------------------- */
 let pitchers = JSON.parse(localStorage.getItem("pitchers")) || [];
+let bullpenData = JSON.parse(localStorage.getItem("bullpenData")) || {}; // {date: {pitcherName: [pitches]}}
 
 const canvas = document.getElementById("zone");
 const ctx = canvas.getContext("2d");
 const pitcherSelect = document.getElementById("pitcherSelect");
+const dateInput = document.getElementById("sessionDate");
 
-/* MENU */
+/* ------------------- MENU ------------------- */
 function toggleMenu() {
   const bar = document.getElementById("sidebar");
-  bar.style.left = bar.style.left === "0px" ? "-220px" : "0px";
+  bar.style.left = bar.style.left === "0px" ? "-240px" : "0px";
 }
 
-/* PITCHERS */
+/* ------------------- PITCHERS ------------------- */
 function loadPitchers() {
   pitcherSelect.innerHTML = "";
   pitchers.forEach(p => {
@@ -111,16 +126,37 @@ loadPitchers();
 function addPitcher() {
   let name = document.getElementById("newPitcher").value;
   if (!name) return;
-  pitchers.push(name);
+  if (!pitchers.includes(name)) pitchers.push(name);
   localStorage.setItem("pitchers", JSON.stringify(pitchers));
   loadPitchers();
+  document.getElementById("newPitcher").value = "";
 }
 
-/* DRAW STRIKE ZONE */
+function deletePitcher() {
+  const name = pitcherSelect.value;
+  if (!name) return;
+  pitchers = pitchers.filter(p => p !== name);
+  localStorage.setItem("pitchers", JSON.stringify(pitchers));
+  loadPitchers();
+
+  // Remove from bullpenData
+  for (let d in bullpenData) {
+    if (bullpenData[d][name]) delete bullpenData[d][name];
+  }
+  localStorage.setItem("bullpenData", JSON.stringify(bullpenData));
+}
+
+/* ------------------- DATE ------------------- */
+function setToday() {
+  const today = new Date().toISOString().split("T")[0];
+  dateInput.value = today;
+}
+
+/* ------------------- DRAW STRIKE ZONE ------------------- */
 function drawZone() {
   ctx.clearRect(0,0,320,320);
 
-  // outer area
+  // outer plate area
   ctx.strokeStyle = "#ccc";
   ctx.strokeRect(40,40,240,240);
 
@@ -131,7 +167,7 @@ function drawZone() {
 }
 drawZone();
 
-/* CLICK TRACKING */
+/* ------------------- CLICK TRACKING ------------------- */
 canvas.addEventListener("click", function(e) {
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
@@ -139,7 +175,7 @@ canvas.addEventListener("click", function(e) {
 
   savePitch(x,y);
 
-  // draw dot immediately
+  // dot immediately
   ctx.fillStyle = "black";
   ctx.beginPath();
   ctx.arc(x,y,4,0,Math.PI*2);
@@ -147,61 +183,81 @@ canvas.addEventListener("click", function(e) {
 });
 
 function savePitch(x,y) {
-  pitches.push({
-    pitcher: pitcherSelect.value,
+  const pitcher = pitcherSelect.value;
+  const date = dateInput.value;
+  if (!pitcher || !date) {
+    alert("Select pitcher and date first!");
+    return;
+  }
+
+  if (!bullpenData[date]) bullpenData[date] = {};
+  if (!bullpenData[date][pitcher]) bullpenData[date][pitcher] = [];
+
+  bullpenData[date][pitcher].push({
     type: document.getElementById("pitchType").value,
     velo: document.getElementById("velo").value,
-    x: x,
-    y: y
+    x:x,
+    y:y
   });
 
-  localStorage.setItem("bullpen", JSON.stringify(pitches));
+  localStorage.setItem("bullpenData", JSON.stringify(bullpenData));
 }
 
-/* HEATMAP PER PITCHER */
+/* ------------------- HEATMAP ------------------- */
 function drawHeatmap() {
   drawZone();
+  const pitcher = pitcherSelect.value;
+  const date = dateInput.value;
 
-  let selected = pitcherSelect.value;
+  if (!bullpenData[date] || !bullpenData[date][pitcher]) return;
 
-  pitches.forEach(p => {
-    if (p.pitcher !== selected) return;
-
-    ctx.fillStyle = "rgba(255,0,0,0.2)";
+  bullpenData[date][pitcher].forEach(p => {
+    ctx.fillStyle = "rgba(255,0,0,0.3)";
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 12, 0, Math.PI*2);
+    ctx.arc(p.x,p.y,10,0,Math.PI*2);
     ctx.fill();
   });
 }
 
-/* STATS */
+/* ------------------- STATS ------------------- */
 function showStats() {
-  let selected = pitcherSelect.value;
-  let data = pitches.filter(p => p.pitcher === selected);
+  const pitcher = pitcherSelect.value;
+  const date = dateInput.value;
+  if (!bullpenData[date] || !bullpenData[date][pitcher]) {
+    alert("No data for this pitcher/date.");
+    return;
+  }
 
-  let total = data.length;
+  const data = bullpenData[date][pitcher];
+  const total = data.length;
+  const strikes = data.filter(p => p.x>100 && p.x<220 && p.y>80 && p.y<240).length;
+  const percent = ((strikes/total)*100).toFixed(1);
 
-  let strikes = data.filter(p =>
-    p.x > 100 && p.x < 220 && p.y > 80 && p.y < 240
-  ).length;
+  let breakdown = {};
+  data.forEach(p => { breakdown[p.type] = (breakdown[p.type]||0)+1; });
 
-  let percent = total ? ((strikes/total)*100).toFixed(1) : 0;
+  let text = `Pitcher: ${pitcher}\nDate: ${date}\nTotal: ${total}\nStrike %: ${percent}%\n\n`;
+  for (let t in breakdown) text += `${t}: ${breakdown[t]}\n`;
 
-  alert(`Pitcher: ${selected}\nTotal: ${total}\nStrike %: ${percent}%`);
+  alert(text);
 }
 
-/* EXPORT */
+/* ------------------- EXPORT CSV ------------------- */
 function exportCSV() {
-  let csv = "Pitcher,Type,Velo,X,Y\n";
+  let csv = "Date,Pitcher,Type,Velo,X,Y\n";
 
-  pitches.forEach(p => {
-    csv += `${p.pitcher},${p.type},${p.velo},${p.x},${p.y}\n`;
-  });
+  for (let d in bullpenData) {
+    for (let p in bullpenData[d]) {
+      bullpenData[d][p].forEach(pitch => {
+        csv += `${d},${p},${pitch.type},${pitch.velo},${pitch.x},${pitch.y}\n`;
+      });
+    }
+  }
 
-  let blob = new Blob([csv], { type: 'text/csv' });
+  let blob = new Blob([csv], {type:'text/csv'});
   let a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "bullpen.csv";
+  a.download = "bullpen_data.csv";
   a.click();
 }
 </script>
