@@ -12,7 +12,9 @@ body {
   text-align: center;
 }
 
-h1 { margin-top: 10px; }
+h2 {
+  margin: 5px;
+}
 
 canvas {
   border: 2px solid white;
@@ -28,9 +30,10 @@ button, select, input {
   border: none;
 }
 
-button { background: #2563eb; color: white; }
-
-.panel { margin-top: 10px; }
+button {
+  background: #2563eb;
+  color: white;
+}
 
 #app { display:none; }
 </style>
@@ -49,53 +52,44 @@ button { background: #2563eb; color: white; }
 <!-- APP -->
 <div id="app">
 
-<h1>Bullpen Tracker Elite</h1>
+<h1>Bullpen Tracker</h1>
 <div id="userDisplay"></div>
 
 <!-- PITCHERS -->
-<div class="panel">
-  <input id="newPitcher" placeholder="Add pitcher">
-  <button onclick="addPitcher()">Add</button>
+<input id="newPitcher" placeholder="Add pitcher">
+<button onclick="addPitcher()">Add</button>
 
-  <select id="pitcherSelect"></select>
-  <button onclick="deletePitcher()">Delete</button>
-</div>
+<select id="pitcherSelect"></select>
+<button onclick="deletePitcher()">Delete</button>
+
+<br>
 
 <!-- OPTIONS -->
-<div class="panel">
-  <select id="pitchType">
-    <option>Four-Seam</option>
-    <option>Two-Seam</option>
-    <option>Changeup</option>
-    <option>Slider</option>
-    <option>Curveball</option>
-  </select>
+<select id="pitchType">
+  <option>Four-Seam</option>
+  <option>Two-Seam</option>
+  <option>Changeup</option>
+  <option>Slider</option>
+  <option>Curveball</option>
+</select>
 
-  <select id="viewMode">
-    <option value="all">All Pitches</option>
-    <option value="pitch">Selected Pitch</option>
-    <option value="team">Entire Staff</option>
-  </select>
-</div>
+<select id="viewMode">
+  <option value="all">All Pitches</option>
+  <option value="pitch">Selected Pitch</option>
+  <option value="team">Entire Staff</option>
+</select>
 
-<!-- CANVAS -->
+<br>
+
+<h2>Tap to Record Pitch</h2>
 <canvas id="zone" width="300" height="400"></canvas>
+
+<h2>Heat Map</h2>
 <canvas id="heat" width="300" height="400"></canvas>
 
 <!-- STATS -->
-<div class="panel">
-  <h3>Statistics</h3>
-  <div id="stats"></div>
-</div>
-
-<!-- CHARTS -->
-<div class="panel">
-  <h3>Charts</h3>
-  <canvas id="chart" width="300" height="200"></canvas>
-</div>
-
-<!-- EXPORT -->
-<button onclick="exportCSV()">Export CSV</button>
+<h3>Stats</h3>
+<div id="stats"></div>
 
 </div>
 
@@ -109,16 +103,14 @@ const ctx = zone.getContext("2d");
 const heat = document.getElementById("heat");
 const heatCtx = heat.getContext("2d");
 
-const chart = document.getElementById("chart");
-const chartCtx = chart.getContext("2d");
-
-// LOGIN SYSTEM
+// LOGIN
 function login() {
   user = document.getElementById("username").value;
   if (!user) return alert("Enter name");
 
   document.getElementById("login").style.display = "none";
   document.getElementById("app").style.display = "block";
+
   document.getElementById("userDisplay").innerText = "User: " + user;
 
   loadData();
@@ -126,10 +118,9 @@ function login() {
   drawZone();
   drawHeat();
   updateStats();
-  drawChart();
 }
 
-// STORAGE PER USER
+// STORAGE
 function saveData() {
   localStorage.setItem("bullpen_" + user, JSON.stringify(data));
 }
@@ -141,21 +132,26 @@ function loadData() {
 
 // PITCHERS
 function addPitcher() {
-  const name = document.getElementById("newPitcher").value;
+  const name = document.getElementById("newPitcher").value.trim();
   if (!name) return;
 
   if (!data[name]) data[name] = [];
+
   saveData();
   updatePitchers();
+
+  document.getElementById("newPitcher").value = "";
 }
 
 function deletePitcher() {
   const name = document.getElementById("pitcherSelect").value;
   delete data[name];
+
   saveData();
   updatePitchers();
 }
 
+// UPDATE DROPDOWN
 function updatePitchers() {
   const select = document.getElementById("pitcherSelect");
   select.innerHTML = "";
@@ -168,15 +164,18 @@ function updatePitchers() {
   }
 }
 
-// DRAW ZONE
+// DRAW STRIKE ZONE
 function drawZone() {
   ctx.clearRect(0,0,300,400);
   ctx.strokeStyle = "white";
+  ctx.lineWidth = 2;
+
+  // Strike zone
   ctx.strokeRect(75,100,150,200);
 }
 
-// INPUT
-zone.addEventListener("click", function(e){
+// CLICK TRACKING (FIXED)
+zone.addEventListener("click", function(e) {
   const pitcher = document.getElementById("pitcherSelect").value;
   if (!pitcher) return alert("Select pitcher");
 
@@ -185,7 +184,8 @@ zone.addEventListener("click", function(e){
   const y = e.clientY - rect.top;
 
   const pitch = {
-    x,y,
+    x,
+    y,
     type: document.getElementById("pitchType").value,
     date: new Date().toLocaleDateString()
   };
@@ -193,14 +193,21 @@ zone.addEventListener("click", function(e){
   data[pitcher].push(pitch);
   saveData();
 
+  // Draw dot instantly
+  ctx.fillStyle = "yellow";
+  ctx.beginPath();
+  ctx.arc(x,y,4,0,Math.PI*2);
+  ctx.fill();
+
   drawHeat();
   updateStats();
-  drawChart();
 });
 
 // HEATMAP
 function drawHeat() {
   heatCtx.clearRect(0,0,300,400);
+
+  // strike zone overlay
   heatCtx.strokeStyle = "white";
   heatCtx.strokeRect(75,100,150,200);
 
@@ -214,6 +221,7 @@ function drawHeat() {
     for (let p in data) pitches = pitches.concat(data[p]);
   } else {
     pitches = data[pitcher] || [];
+
     if (mode === "pitch") {
       pitches = pitches.filter(p => p.type === pitchType);
     }
@@ -235,80 +243,28 @@ function updateStats() {
   const pitches = data[pitcher];
 
   let strikes = 0;
-  let daily = {};
 
   pitches.forEach(p => {
     if (p.x>=75 && p.x<=225 && p.y>=100 && p.y<=300) strikes++;
-
-    daily[p.date] = (daily[p.date] || 0) + 1;
   });
 
   const percent = ((strikes/pitches.length)*100).toFixed(1);
 
-  let text = `
-  Total: ${pitches.length} <br>
-  Strike %: ${percent}% <br><br>
-  <b>Daily Pitch Count</b><br>
+  document.getElementById("stats").innerHTML = `
+    Total Pitches: ${pitches.length}<br>
+    Strike %: ${percent}%
   `;
-
-  for (let d in daily) {
-    text += `${d}: ${daily[d]}<br>`;
-  }
-
-  document.getElementById("stats").innerHTML = text;
 }
 
-// CHART
-function drawChart() {
-  chartCtx.clearRect(0,0,300,200);
-
-  const pitcher = document.getElementById("pitcherSelect").value;
-  if (!pitcher) return;
-
-  let counts = {};
-
-  data[pitcher].forEach(p => {
-    counts[p.type] = (counts[p.type] || 0) + 1;
-  });
-
-  let i = 0;
-  for (let type in counts) {
-    const height = counts[type] * 5;
-    chartCtx.fillStyle = "cyan";
-    chartCtx.fillRect(20 + i*50, 200-height, 30, height);
-
-    chartCtx.fillStyle = "white";
-    chartCtx.fillText(type, 20 + i*50, 190);
-
-    i++;
-  }
-}
-
-// EXPORT
-function exportCSV() {
-  let csv = "Pitcher,Type,X,Y,Date\n";
-
-  for (let p in data) {
-    data[p].forEach(row => {
-      csv += `${p},${row.type},${row.x},${row.y},${row.date}\n`;
-    });
-  }
-
-  let blob = new Blob([csv], {type:'text/csv'});
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "bullpen.csv";
-  a.click();
-}
-
-// LISTENERS
-document.getElementById("viewMode").addEventListener("change", drawHeat);
-document.getElementById("pitchType").addEventListener("change", drawHeat);
+// UPDATE ON CHANGE
 document.getElementById("pitcherSelect").addEventListener("change", ()=>{
   drawHeat();
   updateStats();
-  drawChart();
 });
+
+document.getElementById("viewMode").addEventListener("change", drawHeat);
+document.getElementById("pitchType").addEventListener("change", drawHeat);
+
 </script>
 
 </body>
