@@ -120,7 +120,7 @@ function signup(){
   auth.createUserWithEmailAndPassword(email, password)
     .then(cred => login())
     .catch(e => {
-      document.getElementById("loginError").textContent = e.message;
+      document.getElementById("loginError").textContent = "Sign up failed: " + e.message;
     });
 }
 
@@ -139,7 +139,7 @@ function login(){
   auth.signInWithEmailAndPassword(email, password)
     .then(cred => initApp(cred.user))
     .catch(e => {
-      document.getElementById("loginError").textContent = e.message;
+      document.getElementById("loginError").textContent = "Login failed: " + e.message;
     });
 }
 
@@ -246,7 +246,4 @@ function resetCount(){
   updateCountDisplay();
 }
 
-// --- RECORD PITCH ---
-zone.addEventListener("click", function(e) {
-  const pitcher = document.getElementById("pitcherSelect").value;
-  if (!pitcher)
+// ---
