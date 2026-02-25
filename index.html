@@ -1,73 +1,63 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html>
 <head>
-  <title>Bullpen Tracker Pro</title>
-  <style>
-    body {
-      font-family: Arial;
-      margin: 0;
-      background: #eef2f7;
-      text-align: center;
-    }
+<title>Bullpen Tracker Elite</title>
+<style>
+body {
+font-family: Arial;
+margin: 0;
+background: #eef2f7;
+text-align: center;
+}
 
-    /* MENU */
-    #menuBtn {
-      font-size: 24px;
-      position: absolute;
-      left: 15px;
-      top: 10px;
-      cursor: pointer;
-    }
+#menuBtn {
+font-size: 26px;
+position: absolute;
+left: 15px;
+top: 10px;
+cursor: pointer;
+}
 
-    #sidebar {
-      position: fixed;
-      left: -220px;
-      top: 0;
-      width: 200px;
-      height: 100%;
-      background: #222;
-      color: white;
-      padding: 15px;
-      transition: 0.3s;
-    }
+#sidebar {
+position: fixed;
+left: -220px;
+top: 0;
+width: 200px;
+height: 100%;
+background: #222;
+color: white;
+padding: 15px;
+transition: 0.3s;
+}
 
-    #sidebar button {
-      width: 100%;
-      margin: 5px 0;
-      padding: 10px;
-    }
+h1 { margin-top: 40px; }
 
-    h1 {
-      margin-top: 40px;
-    }
+select, input, button {
+padding: 8px;
+margin: 5px;
+}
 
-    select, input {
-      padding: 8px;
-      margin: 5px;
-    }
+#zone {
+display: grid;
+grid-template-columns: repeat(5, 60px);
+gap: 3px;
+justify-content: center;
+margin: 15px;
+}
 
-    /* STRIKE ZONE */
-    #zone {
-      display: grid;
-      grid-template-columns: repeat(5, 60px);
-      grid-template-rows: repeat(5, 60px);
-      gap: 3px;
-      justify-content: center;
-      margin: 15px;
-    }
+.cell {
+background: white;
+border: 1px solid black;
+height: 60px;
+cursor: pointer;
+}
 
-    .cell {
-      background: white;
-      border: 1px solid black;
-      cursor: pointer;
-    }
-
-    canvas {
-      margin-top: 15px;
-      border: 2px solid black;
-      background: white;
-    }
-  </style>
+canvas {
+margin-top: 10px;
+border: 2px solid black;
+background: white;
+}
+</style>
 </head>
 
 <body>
@@ -75,46 +65,29 @@
 <div id="menuBtn" onclick="toggleMenu()">☰</div>
 
 <div id="sidebar">
-  <h3>Pitchers</h3>
-  <select id="pitcherSelect"></select>
-  <input id="newPitcher" placeholder="Add pitcher">
-  <button onclick="addPitcher()">Add</button>
+<h3>Pitchers</h3>
+<select id="pitcherSelect"></select>
+<input id="newPitcher" placeholder="Add pitcher">
+<button onclick="addPitcher()">Add</button>
 </div>
 
-<h1>⚾ Bullpen Tracker</h1>
+<h1>⚾ Bullpen Tracker Elite</h1>
 
 <select id="pitchType">
-  <option>4-Seam</option>
-  <option>2-Seam</option>
-  <option>Slider</option>
-  <option>Curveball</option>
-  <option>Changeup</option>
+<option>4-Seam</option>
+<option>2-Seam</option>
+<option>Slider</option>
+<option>Curveball</option>
+<option>Changeup</option>
 </select>
 
 <input id="velo" placeholder="Velo" type="number">
-<input id="notes" placeholder="Notes">
 
 <div id="zone"></div>
 
-<div>
-  <button onclick="logOutside('High')">High</button>
-  <button onclick="logOutside('Low')">Low</button>
-  <button onclick="logOutside('Inside')">Inside</button>
-  <button onclick="logOutside('Outside')">Outside</button>
-</div>
-
-<br>
-
-<select id="filter">
-  <option value="All">All</option>
-  <option>4-Seam</option>
-  <option>2-Seam</option>
-  <option>Slider</option>
-  <option>Curveball</option>
-  <option>Changeup</option>
-</select>
-
-<button onclick="drawChart()">Show Chart</button>
+<button onclick="drawHeatmap()">Heat Map</button>
+<button onclick="showStats()">Stats</button>
+<button onclick="exportCSV()">Export CSV</button>
 
 <canvas id="chart" width="320" height="320"></canvas>
 
@@ -125,95 +98,122 @@ let pitchers = JSON.parse(localStorage.getItem("pitchers")) || [];
 const zone = document.getElementById("zone");
 const pitcherSelect = document.getElementById("pitcherSelect");
 
+/* COLORS */
+const colors = {
+"4-Seam": "red",
+"2-Seam": "blue",
+"Slider": "green",
+"Curveball": "purple",
+"Changeup": "orange"
+};
+
 /* MENU */
 function toggleMenu() {
-  const bar = document.getElementById("sidebar");
-  bar.style.left = bar.style.left === "0px" ? "-220px" : "0px";
+const bar = document.getElementById("sidebar");
+bar.style.left = bar.style.left === "0px" ? "-220px" : "0px";
 }
 
 /* PITCHERS */
 function loadPitchers() {
-  pitcherSelect.innerHTML = "";
-  pitchers.forEach(p => {
-    const opt = document.createElement("option");
-    opt.text = p;
-    pitcherSelect.add(opt);
-  });
+pitcherSelect.innerHTML = "";
+pitchers.forEach(p => {
+const opt = document.createElement("option");
+opt.text = p;
+pitcherSelect.add(opt);
+});
 }
 loadPitchers();
 
 function addPitcher() {
-  const name = document.getElementById("newPitcher").value;
-  if (!name) return;
-
-  pitchers.push(name);
-  localStorage.setItem("pitchers", JSON.stringify(pitchers));
-  loadPitchers();
+const name = document.getElementById("newPitcher").value;
+if (!name) return;
+pitchers.push(name);
+localStorage.setItem("pitchers", JSON.stringify(pitchers));
+loadPitchers();
 }
 
-/* STRIKE ZONE (5x5) */
+/* ZONE */
 for (let i = 0; i < 25; i++) {
-  const cell = document.createElement("div");
-  cell.classList.add("cell");
-
-  cell.onclick = () => logPitch(i);
-
-  zone.appendChild(cell);
+const cell = document.createElement("div");
+cell.classList.add("cell");
+cell.onclick = () => savePitch(i);
+zone.appendChild(cell);
 }
 
-function logPitch(location) {
-  savePitch(location);
+function savePitch(loc) {
+const pitch = {
+pitcher: pitcherSelect.value,
+type: document.getElementById("pitchType").value,
+velo: document.getElementById("velo").value,
+location: loc
+};
+
+pitches.push(pitch);
+localStorage.setItem("bullpen", JSON.stringify(pitches));
 }
 
-function logOutside(dir) {
-  savePitch(dir);
+/* HEATMAP */
+function drawHeatmap() {
+const canvas = document.getElementById("chart");
+const ctx = canvas.getContext("2d");
+
+ctx.clearRect(0,0,320,320);
+
+let grid = Array(25).fill(0);
+
+pitches.forEach(p => {
+if (typeof p.location === "number") {
+grid[p.location]++;
+}
+});
+
+grid.forEach((val, i) => {
+let col = i % 5;
+let row = Math.floor(i/5);
+
+let intensity = val * 20;
+ctx.fillStyle = `rgba(255,0,0,${intensity/100})`;
+
+ctx.fillRect(col*60, row*60, 60, 60);
+});
 }
 
-function savePitch(location) {
-  const pitch = {
-    pitcher: pitcherSelect.value,
-    type: document.getElementById("pitchType").value,
-    velo: document.getElementById("velo").value,
-    notes: document.getElementById("notes").value,
-    location: location
-  };
+/* STATS */
+function showStats() {
+let total = pitches.length;
+let strikes = pitches.filter(p => typeof p.location === "number").length;
 
-  pitches.push(pitch);
-  localStorage.setItem("bullpen", JSON.stringify(pitches));
+let percent = total ? ((strikes/total)*100).toFixed(1) : 0;
 
-  alert("Saved");
+let breakdown = {};
+
+pitches.forEach(p => {
+breakdown[p.type] = (breakdown[p.type] || 0) + 1;
+});
+
+let text = `Total: ${total}\nStrike %: ${percent}%\n\n`;
+
+for (let t in breakdown) {
+text += `${t}: ${breakdown[t]}\n`;
 }
 
-/* CHART */
-function drawChart() {
-  const filter = document.getElementById("filter").value;
-  const canvas = document.getElementById("chart");
-  const ctx = canvas.getContext("2d");
+alert(text);
+}
 
-  ctx.clearRect(0, 0, 320, 320);
+/* EXPORT */
+function exportCSV() {
+let csv = "Pitcher,Type,Velo,Location\n";
 
-  pitches.forEach(p => {
-    if (filter !== "All" && p.type !== filter) return;
+pitches.forEach(p => {
+csv += `${p.pitcher},${p.type},${p.velo},${p.location}\n`;
+});
 
-    let x, y;
+let blob = new Blob([csv], { type: 'text/csv' });
+let a = document.createElement("a");
 
-    if (typeof p.location === "number") {
-      let col = p.location % 5;
-      let row = Math.floor(p.location / 5);
-
-      x = col * 60 + 30;
-      y = row * 60 + 30;
-    } else {
-      if (p.location === "High") { x = 160; y = 10; }
-      if (p.location === "Low") { x = 160; y = 310; }
-      if (p.location === "Inside") { x = 10; y = 160; }
-      if (p.location === "Outside") { x = 310; y = 160; }
-    }
-
-    ctx.beginPath();
-    ctx.arc(x, y, 5, 0, Math.PI * 2);
-    ctx.fill();
-  });
+a.href = URL.createObjectURL(blob);
+a.download = "bullpen.csv";
+a.click();
 }
 </script>
 
