@@ -9,13 +9,13 @@ h1,h2,h3{margin:5px;}
 canvas{border-radius:12px; background:#0f172a; margin:10px auto; display:block;}
 button, select, input{padding:8px;margin:5px;border-radius:8px;border:none;font-size:14px;}
 button{background:#2563eb;color:white;cursor:pointer;}
-#app{display:none; max-width:380px;margin:auto;}
-#pitchCount{margin:5px;font-weight:bold;}
+#app{display:none; max-width:350px;margin:auto;}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <meta name="apple-mobile-web-app-capable" content="yes">
 </head>
+
 <body>
 
 <!-- LOGIN -->
@@ -38,17 +38,9 @@ button{background:#2563eb;color:white;cursor:pointer;}
 <button onclick="addPitcher()">Add</button>
 <select id="pitcherSelect"></select>
 <button onclick="deletePitcher()">Delete</button>
-<br>
-
-<label>
-<input type="checkbox" id="swingMiss"> Swing & Miss
-</label>
-<button onclick="undoPitch()">Undo Last Pitch</button>
-<button onclick="clearSession()">Clear Session</button>
-
-<div id="pitchCount">Balls: 0 | Strikes: 0</div>
 
 <br>
+
 <select id="pitchType">
 <option>Four-Seam</option>
 <option>Two-Seam</option>
@@ -96,14 +88,13 @@ const db = firebase.firestore();
 // --- GLOBALS ---
 let user = null;
 let data = {};
-let pitchCount = {balls:0, strikes:0};
 
 // --- LOGIN/SIGNUP ---
 function signup(){
   const email=document.getElementById("email").value;
   const password=document.getElementById("password").value;
   auth.createUserWithEmailAndPassword(email,password)
-  .then(()=>login())
+  .then(cred=>login())
   .catch(e=>alert(e.message));
 }
 function login(){
@@ -132,7 +123,6 @@ function loadData(){
     drawZone();
     drawHeat();
     updateStats();
-    resetCount();
   });
 }
 function saveData(){
@@ -179,16 +169,6 @@ function drawZone(){
   }
 }
 
-// --- PITCH COUNTS ---
-function updateCountDisplay(){
-  document.getElementById("pitchCount").innerHTML = 
-    `Balls: ${pitchCount.balls} | Strikes: ${pitchCount.strikes}`;
-}
-function resetCount(){
-  pitchCount={balls:0, strikes:0};
-  updateCountDisplay();
-}
-
 // --- RECORD PITCH ---
 zone.addEventListener("click",function(e){
   const pitcher=document.getElementById("pitcherSelect").value;
@@ -196,64 +176,13 @@ zone.addEventListener("click",function(e){
   const rect=zone.getBoundingClientRect();
   const x=e.clientX-rect.left;
   const y=e.clientY-rect.top;
-  const type=document.getElementById("pitchType").value;
-  const swingMiss=document.getElementById("swingMiss").checked;
-  const date = new Date().toLocaleDateString();
-
-  const pitch={x,y,type,date,swingMiss};
-  if(!data[pitcher]) data[pitcher]=[];
+  const pitch={x,y,type:document.getElementById("pitchType").value,date:new Date().toLocaleDateString()};
   data[pitcher].push(pitch);
-
-  // Update balls/strikes
-  if(x>=80 && x<=240 && y>=100 && y<=300){ // strike zone
-    pitchCount.strikes++;
-  } else {
-    if(swingMiss) pitchCount.strikes++;
-    else pitchCount.balls++;
-  }
-
-  // Walk/Strikeout
-  if(pitchCount.strikes>=3){ alert("Strikeout!"); resetCount();}
-  if(pitchCount.balls>=4){ alert("Walk!"); resetCount();}
-
   saveData();
   drawZone();
   ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
   drawHeat(); updateStats();
-  updateCountDisplay();
 });
-
-// --- UNDO LAST PITCH ---
-function undoPitch(){
-  const pitcher=document.getElementById("pitcherSelect").value;
-  if(!pitcher || !data[pitcher] || data[pitcher].length===0) return;
-  const last = data[pitcher].pop();
-
-  // Adjust counts
-  if(last.x>=80 && last.x<=240 && last.y>=100 && last.y<=300) pitchCount.strikes--;
-  else if(last.swingMiss) pitchCount.strikes--;
-  else pitchCount.balls--;
-
-  saveData();
-  drawZone();
-  drawHeat();
-  updateStats();
-  updateCountDisplay();
-}
-
-// --- CLEAR SESSION ---
-function clearSession(){
-  const pitcher=document.getElementById("pitcherSelect").value;
-  if(!pitcher) return;
-  if(confirm(`Clear all pitches for ${pitcher} today?`)){
-    data[pitcher]=data[pitcher].filter(p=>p.date!==new Date().toLocaleDateString());
-    resetCount();
-    saveData();
-    drawZone();
-    drawHeat();
-    updateStats();
-  }
-}
 
 // --- HEATMAP ---
 const heat=document.getElementById("heat"); const heatCtx=heat.getContext("2d");
@@ -288,16 +217,15 @@ function updateStats(){
 
 // --- EXPORT CSV ---
 function exportCSV(){
-  let csv="Pitcher,Type,X,Y,Date,SwingMiss\n";
-  for(let p in data){ data[p].forEach(row=>{ csv+=`${p},${row.type},${row.x},${row.y},${row.date},${row.swingMiss}\n`; }); }
+  let csv="Pitcher,Type,X,Y,Date\n";
+  for(let p in data){ data[p].forEach(row=>{ csv+=`${p},${row.type},${row.x},${row.y},${row.date}\n`; }); }
   let blob=new Blob([csv],{type:'text/csv'}); let a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="bullpen.csv"; a.click();
 }
 
 // --- LISTENERS ---
-document.getElementById("pitcherSelect").addEventListener("change",()=>{ drawHeat(); updateStats(); resetCount();});
+document.getElementById("pitcherSelect").addEventListener("change",()=>{ drawHeat(); updateStats();});
 document.getElementById("viewMode").addEventListener("change", drawHeat);
 document.getElementById("pitchType").addEventListener("change", drawHeat);
-
 </script>
 </body>
 </html>
