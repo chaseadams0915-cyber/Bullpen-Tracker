@@ -10,6 +10,7 @@ canvas{border-radius:12px; background:#0f172a; margin:10px auto; display:block;}
 button, select, input{padding:8px;margin:5px;border-radius:8px;border:none;font-size:14px;}
 button{background:#2563eb;color:white;cursor:pointer;}
 #app{display:none; max-width:350px;margin:auto;}
+#pitchCount{font-weight:bold;margin-top:5px;}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
@@ -21,10 +22,8 @@ button{background:#2563eb;color:white;cursor:pointer;}
 <!-- LOGIN -->
 <div id="login">
 <h2>Login</h2>
-<input id="email" type="email" placeholder="Enter email">
-<br>
-<input id="password" type="password" placeholder="Password">
-<br>
+<input id="email" type="email" placeholder="Enter email"><br>
+<input id="password" type="password" placeholder="Password"><br>
 <button onclick="login()">Login</button>
 <button onclick="signup()">Sign Up</button>
 </div>
@@ -54,6 +53,12 @@ button{background:#2563eb;color:white;cursor:pointer;}
 <option value="pitch">Selected Pitch</option>
 <option value="team">Entire Staff</option>
 </select>
+
+<br>
+<label><input type="checkbox" id="swingMiss"> Swing & Miss</label>
+<button onclick="undoPitch()">Undo Last Pitch</button>
+<button onclick="clearSession()">Clear Session</button>
+<div id="pitchCount">Balls: 0 | Strikes: 0</div>
 
 <h2>Tap to Record Pitch</h2>
 <canvas id="zone" width="320" height="420"></canvas>
@@ -88,6 +93,7 @@ const db = firebase.firestore();
 // --- GLOBALS ---
 let user = null;
 let data = {};
+let pitchCount = {balls:0,strikes:0};
 
 // --- LOGIN/SIGNUP ---
 function signup(){
@@ -123,6 +129,7 @@ function loadData(){
     drawZone();
     drawHeat();
     updateStats();
+    updateCountDisplay();
   });
 }
 function saveData(){
@@ -134,15 +141,11 @@ function addPitcher(){
   const name=document.getElementById("newPitcher").value.trim();
   if(!name) return;
   if(!data[name]) data[name]=[];
-  saveData();
-  updatePitchers();
-  document.getElementById("newPitcher").value="";
+  saveData(); updatePitchers(); document.getElementById("newPitcher").value="";
 }
 function deletePitcher(){
   const name=document.getElementById("pitcherSelect").value;
-  delete data[name];
-  saveData();
-  updatePitchers();
+  if(name){ delete data[name]; saveData(); updatePitchers(); resetCount(); drawHeat(); updateStats(); }
 }
 function updatePitchers(){
   const select=document.getElementById("pitcherSelect");
@@ -154,20 +157,20 @@ function updatePitchers(){
   }
 }
 
-// --- DRAW STRIKE ZONE ---
+// --- STRIKE ZONE ---
 const zone=document.getElementById("zone");
 const ctx=zone.getContext("2d");
 function drawZone(){
   ctx.clearRect(0,0,320,420);
   ctx.strokeStyle="white"; ctx.lineWidth=2;
   ctx.strokeRect(80,100,160,200);
-  for(let i=1;i<3;i++){
-    ctx.beginPath();
-    ctx.moveTo(80+i*53,100); ctx.lineTo(80+i*53,300); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(80,100+i*66); ctx.lineTo(240,100+i*66); ctx.stroke();
-  }
 }
+
+// --- PITCH COUNTS ---
+function updateCountDisplay(){
+  document.getElementById("pitchCount").innerText=`Balls: ${pitchCount.balls} | Strikes: ${pitchCount.strikes}`;
+}
+function resetCount(){ pitchCount={balls:0,strikes:0}; updateCountDisplay(); }
 
 // --- RECORD PITCH ---
 zone.addEventListener("click",function(e){
@@ -176,13 +179,46 @@ zone.addEventListener("click",function(e){
   const rect=zone.getBoundingClientRect();
   const x=e.clientX-rect.left;
   const y=e.clientY-rect.top;
-  const pitch={x,y,type:document.getElementById("pitchType").value,date:new Date().toLocaleDateString()};
+  const swingMiss=document.getElementById("swingMiss").checked;
+
+  const pitch={x,y,type:document.getElementById("pitchType").value,date:new Date().toLocaleDateString(),swingMiss};
+  if(!data[pitcher]) data[pitcher]=[];
   data[pitcher].push(pitch);
+
+  // Update balls/strikes
+  if(x>=80 && x<=240 && y>=100 && y<=300) pitchCount.strikes++;
+  else if(swingMiss) pitchCount.strikes++;
+  else pitchCount.balls++;
+
+  if(pitchCount.strikes>=3){ alert("Strikeout!"); resetCount(); }
+  if(pitchCount.balls>=4){ alert("Walk!"); resetCount(); }
+
   saveData();
   drawZone();
   ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
-  drawHeat(); updateStats();
+  drawHeat(); updateStats(); updateCountDisplay();
 });
+
+// --- UNDO LAST PITCH ---
+function undoPitch(){
+  const pitcher=document.getElementById("pitcherSelect").value;
+  if(!data[pitcher]||data[pitcher].length===0) return;
+  const last=data[pitcher].pop();
+  if(last.x>=80 && last.x<=240 && last.y>=100 && last.y<=300) pitchCount.strikes--;
+  else if(last.swingMiss) pitchCount.strikes--;
+  else pitchCount.balls--;
+  saveData(); drawZone(); drawHeat(); updateStats(); updateCountDisplay();
+}
+
+// --- CLEAR SESSION ---
+function clearSession(){
+  const pitcher=document.getElementById("pitcherSelect").value;
+  if(!data[pitcher]||data[pitcher].length===0) return;
+  if(confirm(`Clear all pitches for ${pitcher}?`)){
+    data[pitcher]=[];
+    resetCount(); saveData(); drawZone(); drawHeat(); updateStats(); updateCountDisplay();
+  }
+}
 
 // --- HEATMAP ---
 const heat=document.getElementById("heat"); const heatCtx=heat.getContext("2d");
@@ -217,13 +253,13 @@ function updateStats(){
 
 // --- EXPORT CSV ---
 function exportCSV(){
-  let csv="Pitcher,Type,X,Y,Date\n";
-  for(let p in data){ data[p].forEach(row=>{ csv+=`${p},${row.type},${row.x},${row.y},${row.date}\n`; }); }
-  let blob=new Blob([csv],{type:'text/csv'}); let a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="bullpen.csv"; a.click();
+  let csv="Pitcher,Type,X,Y,Date,SwingMiss\n";
+  for(let p in data){ data[p].forEach(row=>{ csv+=`${p},${row.type},${row.x},${row.y},${row.date},${row.swingMiss}\n`; }); }
+  let a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download="bullpen.csv"; a.click();
 }
 
 // --- LISTENERS ---
-document.getElementById("pitcherSelect").addEventListener("change",()=>{ drawHeat(); updateStats();});
+document.getElementById("pitcherSelect").addEventListener("change",()=>{ drawHeat(); updateStats(); });
 document.getElementById("viewMode").addEventListener("change", drawHeat);
 document.getElementById("pitchType").addEventListener("change", drawHeat);
 </script>
