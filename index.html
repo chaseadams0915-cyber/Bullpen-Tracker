@@ -5,59 +5,93 @@
   <style>
     body {
       font-family: Arial;
-      text-align: center;
+      margin: 0;
       background: #eef2f7;
+      text-align: center;
+    }
+
+    /* MENU */
+    #menuBtn {
+      font-size: 24px;
+      position: absolute;
+      left: 15px;
+      top: 10px;
+      cursor: pointer;
+    }
+
+    #sidebar {
+      position: fixed;
+      left: -220px;
+      top: 0;
+      width: 200px;
+      height: 100%;
+      background: #222;
+      color: white;
+      padding: 15px;
+      transition: 0.3s;
+    }
+
+    #sidebar button {
+      width: 100%;
+      margin: 5px 0;
+      padding: 10px;
     }
 
     h1 {
-      margin: 10px;
+      margin-top: 40px;
     }
 
-    select, input, button {
+    select, input {
       padding: 8px;
       margin: 5px;
-      font-size: 14px;
     }
 
+    /* STRIKE ZONE */
     #zone {
       display: grid;
-      grid-template-columns: repeat(3, 90px);
-      grid-template-rows: repeat(3, 90px);
-      gap: 5px;
+      grid-template-columns: repeat(5, 60px);
+      grid-template-rows: repeat(5, 60px);
+      gap: 3px;
       justify-content: center;
       margin: 15px;
     }
 
     .cell {
       background: white;
-      border: 2px solid black;
+      border: 1px solid black;
       cursor: pointer;
     }
 
     canvas {
-      margin-top: 20px;
-      background: white;
+      margin-top: 15px;
       border: 2px solid black;
+      background: white;
     }
   </style>
 </head>
 
 <body>
 
-<h1>⚾ Bullpen Tracker Pro</h1>
+<div id="menuBtn" onclick="toggleMenu()">☰</div>
 
-<input id="pitcher" placeholder="Pitcher Name">
+<div id="sidebar">
+  <h3>Pitchers</h3>
+  <select id="pitcherSelect"></select>
+  <input id="newPitcher" placeholder="Add pitcher">
+  <button onclick="addPitcher()">Add</button>
+</div>
 
-<br>
+<h1>⚾ Bullpen Tracker</h1>
 
 <select id="pitchType">
-  <option>Fastball</option>
-  <option>Curveball</option>
+  <option>4-Seam</option>
+  <option>2-Seam</option>
   <option>Slider</option>
+  <option>Curveball</option>
   <option>Changeup</option>
 </select>
 
-<input id="velo" placeholder="Velocity (mph)" type="number">
+<input id="velo" placeholder="Velo" type="number">
 <input id="notes" placeholder="Notes">
 
 <div id="zone"></div>
@@ -72,93 +106,115 @@
 <br>
 
 <select id="filter">
-  <option value="All">All Pitches</option>
-  <option>Fastball</option>
-  <option>Curveball</option>
+  <option value="All">All</option>
+  <option>4-Seam</option>
+  <option>2-Seam</option>
   <option>Slider</option>
+  <option>Curveball</option>
   <option>Changeup</option>
 </select>
 
 <button onclick="drawChart()">Show Chart</button>
-<button onclick="clearData()">Clear Session</button>
 
 <canvas id="chart" width="320" height="320"></canvas>
 
 <script>
-  const zone = document.getElementById("zone");
+let pitches = JSON.parse(localStorage.getItem("bullpen")) || [];
+let pitchers = JSON.parse(localStorage.getItem("pitchers")) || [];
 
-  let pitches = JSON.parse(localStorage.getItem("bullpen")) || [];
+const zone = document.getElementById("zone");
+const pitcherSelect = document.getElementById("pitcherSelect");
 
-  for (let i = 0; i < 9; i++) {
-    const cell = document.createElement("div");
-    cell.classList.add("cell");
+/* MENU */
+function toggleMenu() {
+  const bar = document.getElementById("sidebar");
+  bar.style.left = bar.style.left === "0px" ? "-220px" : "0px";
+}
 
-    cell.onclick = () => logPitch(i);
+/* PITCHERS */
+function loadPitchers() {
+  pitcherSelect.innerHTML = "";
+  pitchers.forEach(p => {
+    const opt = document.createElement("option");
+    opt.text = p;
+    pitcherSelect.add(opt);
+  });
+}
+loadPitchers();
 
-    zone.appendChild(cell);
-  }
+function addPitcher() {
+  const name = document.getElementById("newPitcher").value;
+  if (!name) return;
 
-  function logPitch(location) {
-    savePitch(location);
-  }
+  pitchers.push(name);
+  localStorage.setItem("pitchers", JSON.stringify(pitchers));
+  loadPitchers();
+}
 
-  function logOutside(direction) {
-    savePitch(direction);
-  }
+/* STRIKE ZONE (5x5) */
+for (let i = 0; i < 25; i++) {
+  const cell = document.createElement("div");
+  cell.classList.add("cell");
 
-  function savePitch(location) {
-    const pitch = {
-      pitcher: document.getElementById("pitcher").value || "Unknown",
-      type: document.getElementById("pitchType").value,
-      velo: document.getElementById("velo").value,
-      notes: document.getElementById("notes").value,
-      location: location
-    };
+  cell.onclick = () => logPitch(i);
 
-    pitches.push(pitch);
-    localStorage.setItem("bullpen", JSON.stringify(pitches));
+  zone.appendChild(cell);
+}
 
-    alert("Pitch saved");
-  }
+function logPitch(location) {
+  savePitch(location);
+}
 
-  function drawChart() {
-    const filter = document.getElementById("filter").value;
-    const canvas = document.getElementById("chart");
-    const ctx = canvas.getContext("2d");
+function logOutside(dir) {
+  savePitch(dir);
+}
 
-    ctx.clearRect(0, 0, 320, 320);
+function savePitch(location) {
+  const pitch = {
+    pitcher: pitcherSelect.value,
+    type: document.getElementById("pitchType").value,
+    velo: document.getElementById("velo").value,
+    notes: document.getElementById("notes").value,
+    location: location
+  };
 
-    const gridMap = [
-      [50, 50],[160, 50],[270, 50],
-      [50,160],[160,160],[270,160],
-      [50,270],[160,270],[270,270]
-    ];
+  pitches.push(pitch);
+  localStorage.setItem("bullpen", JSON.stringify(pitches));
 
-    pitches.forEach(p => {
-      if (filter !== "All" && p.type !== filter) return;
+  alert("Saved");
+}
 
-      let x, y;
+/* CHART */
+function drawChart() {
+  const filter = document.getElementById("filter").value;
+  const canvas = document.getElementById("chart");
+  const ctx = canvas.getContext("2d");
 
-      if (typeof p.location === "number") {
-        [x, y] = gridMap[p.location];
-      } else {
-        if (p.location === "High") { x = 160; y = 10; }
-        if (p.location === "Low") { x = 160; y = 310; }
-        if (p.location === "Inside") { x = 10; y = 160; }
-        if (p.location === "Outside") { x = 310; y = 160; }
-      }
+  ctx.clearRect(0, 0, 320, 320);
 
-      ctx.beginPath();
-      ctx.arc(x, y, 6, 0, Math.PI * 2);
-      ctx.fill();
-    });
-  }
+  pitches.forEach(p => {
+    if (filter !== "All" && p.type !== filter) return;
 
-  function clearData() {
-    localStorage.removeItem("bullpen");
-    pitches = [];
-    alert("Session cleared");
-  }
+    let x, y;
+
+    if (typeof p.location === "number") {
+      let col = p.location % 5;
+      let row = Math.floor(p.location / 5);
+
+      x = col * 60 + 30;
+      y = row * 60 + 30;
+    } else {
+      if (p.location === "High") { x = 160; y = 10; }
+      if (p.location === "Low") { x = 160; y = 310; }
+      if (p.location === "Inside") { x = 10; y = 160; }
+      if (p.location === "Outside") { x = 310; y = 160; }
+    }
+
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
 </script>
 
 </body>
