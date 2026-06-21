@@ -1,292 +1,785 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Bullpen Tracker Pro</title>
 <style>
-body { font-family: Arial; background:#020617; color:white; text-align:center; margin:0; padding:0;}
-h1,h2,h3{margin:5px;}
-canvas{border-radius:12px; background:#0f172a; margin:10px auto; display:block;}
-button, select, input{padding:8px;margin:5px;border-radius:8px;border:none;font-size:14px;}
-button{background:#2563eb;color:white;cursor:pointer;}
-#app{display:none; max-width:350px;margin:auto;}
-#pitchCount{font-weight:bold;margin-top:5px;}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --navy:#08101F;--panel:#0F1A2E;--card:#1A2640;--border:#253352;
+    --teal:#00C896;--teal-dim:#007A5A;--red:#FF4D4D;--red-dim:#8B1A1A;
+    --blue:#4A9EFF;--amber:#FFAA33;--purple:#A78BFA;--green:#4ADE80;
+    --text:#F0F4FF;--muted:#7B8DB0;--dim:#3A4A6B;
+    --fs:13px;--fb:600
+  }
+  html,body{height:100%;background:var(--navy);color:var(--text);font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:var(--fs);overflow:hidden}
+  #root{height:100vh;display:flex;flex-direction:column;max-width:420px;margin:0 auto}
+  .hdr{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .hdr-title{font-size:15px;font-weight:700;letter-spacing:.5px}
+  .hdr-title span{color:var(--teal)}
+  .hdr-badge{background:var(--teal-dim);color:var(--teal);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.5px}
+  .pitcher-bar{background:var(--panel);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;align-items:center;flex-shrink:0}
+  .pitcher-select{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600;flex:1;outline:none;appearance:none;cursor:pointer}
+  .btn-sm{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap;font-weight:600}
+  .btn-sm:active{opacity:.7}
+  .btn-teal{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+  .btn-red{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+  .count-bar{background:var(--navy);display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0}
+  .count-seg{flex:1;padding:7px 4px;text-align:center;border-right:1px solid var(--border)}
+  .count-seg:last-child{border-right:none}
+  .count-lbl{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+  .count-val{font-size:22px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;line-height:1.1}
+  .cv-b{color:var(--blue)}.cv-s{color:var(--red)}.cv-p{color:var(--teal)}.cv-v{color:var(--amber)}
+  .tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+  .tab{flex:1;padding:10px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;letter-spacing:.3px;position:relative;border-bottom:2px solid transparent}
+  .tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+  .scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+  .scroll::-webkit-scrollbar{width:3px}
+  .scroll::-webkit-scrollbar-track{background:transparent}
+  .scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .zone-wrap{padding:10px 12px 6px;display:flex;flex-direction:column;align-items:center}
+  #zoneCanvas{border-radius:10px;cursor:crosshair;touch-action:none;display:block;width:100%;max-width:340px}
+  .pitch-ctrl{padding:8px 12px;display:flex;flex-direction:column;gap:8px}
+  .ctrl-row{display:flex;gap:8px;align-items:center}
+  .ctrl-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;min-width:40px}
+  .pitch-type-grid{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+  .pt-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .pt-btn.active{border-color:currentColor}
+  .pt-fb{color:#FF4D4D}.pt-si{color:#FFB347}.pt-cu{color:#7EB5FF}.pt-ch{color:#98FF98}.pt-sl{color:#DA70D6}.pt-sp{color:#F0E68C}.pt-kn{color:#C0C0C0}
+  .vel-inp{background:var(--card);border:1px solid var(--border);color:var(--teal);border-radius:8px;padding:6px 10px;font-size:16px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;width:80px;outline:none;text-align:center}
+  .vel-unit{color:var(--muted);font-size:11px;font-weight:700}
+  .swing-tog{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+  .tog-box{width:32px;height:18px;border-radius:9px;background:var(--card);border:1px solid var(--border);position:relative;transition:background .15s}
+  .tog-box.on{background:var(--teal-dim);border-color:var(--teal)}
+  .tog-dot{width:12px;height:12px;border-radius:50%;background:var(--muted);position:absolute;top:2px;left:2px;transition:left .15s,background .15s}
+  .tog-box.on .tog-dot{left:16px;background:var(--teal)}
+  .tog-lbl{font-size:11px;font-weight:700;color:var(--muted)}
+  .tog-box.on + .tog-lbl{color:var(--teal)}
+  .action-row{display:flex;gap:6px;padding:6px 12px;flex-shrink:0}
+  .action-row button{flex:1;padding:9px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;letter-spacing:.3px}
+  .btn-undo{background:rgba(255,170,51,.1);border-color:var(--amber);color:var(--amber)}
+  .btn-clear{background:rgba(255,77,77,.08);border-color:var(--red);color:var(--red)}
+  .btn-export{background:rgba(0,200,150,.08);border-color:var(--teal);color:var(--teal)}
+  .heat-section{padding:10px 12px}
+  .heat-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .hf-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer}
+  .hf-btn.active{border-color:var(--teal);color:var(--teal);background:rgba(0,200,150,.08)}
+  #heatCanvas{border-radius:10px;display:block;width:100%;max-width:340px;margin:0 auto}
+  .heat-legend{display:flex;align-items:center;gap:8px;margin-top:6px;justify-content:center}
+  .legend-grad{width:100px;height:8px;border-radius:4px;background:linear-gradient(to right,rgba(74,158,255,.2),rgba(255,77,77,.9))}
+  .legend-lbl{font-size:10px;color:var(--muted);font-weight:700}
+  .stats-section{padding:10px 12px}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+  .stat-lbl{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px}
+  .stat-val{font-size:21px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+  .stat-sub{font-size:10px;color:var(--muted);margin-top:1px}
+  .pitch-breakdown{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  .pb-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
+  .pb-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .pb-name{font-size:11px;font-weight:700;min-width:58px}
+  .pb-bar-wrap{flex:1;height:6px;background:var(--navy);border-radius:3px;overflow:hidden}
+  .pb-bar{height:100%;border-radius:3px;transition:width .3s}
+  .pb-stats{font-size:10px;color:var(--muted);font-family:'SF Mono','Fira Mono',monospace;min-width:70px;text-align:right}
+  .pitch-log{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .pl-header{display:flex;padding:7px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+  .pl-row{display:flex;padding:6px 12px;border-bottom:1px solid var(--border);align-items:center;font-size:11px}
+  .pl-row:last-child{border-bottom:none}
+  .pl-num{min-width:28px;color:var(--muted);font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+  .pl-type{min-width:58px;font-weight:700}
+  .pl-loc{min-width:50px;color:var(--muted);font-family:'SF Mono','Fira Mono',monospace;font-size:10px}
+  .pl-vel{min-width:46px;color:var(--amber);font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+  .pl-result{flex:1;text-align:right}
+  .badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;letter-spacing:.5px}
+  .badge-str{background:rgba(255,77,77,.15);color:var(--red)}
+  .badge-bal{background:rgba(74,158,255,.15);color:var(--blue)}
+  .badge-swm{background:rgba(167,139,250,.15);color:var(--purple)}
+  .badge-foul{background:rgba(255,170,51,.15);color:var(--amber)}
+  .roster-section{padding:12px}
+  .roster-add{display:flex;gap:8px;margin-bottom:12px}
+  .roster-inp{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:13px;flex:1;outline:none}
+  .roster-inp:focus{border-color:var(--teal)}
+  .roster-inp::placeholder{color:var(--dim)}
+  .roster-list{display:flex;flex-direction:column;gap:6px}
+  .roster-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  .roster-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+  .roster-info{flex:1}
+  .roster-name{font-size:14px;font-weight:700}
+  .roster-meta{font-size:10px;color:var(--muted);margin-top:1px}
+  .roster-del{background:none;border:none;color:var(--red);cursor:pointer;padding:4px;font-size:18px;line-height:1}
+  .roster-item.active-p{border-color:var(--teal);background:rgba(0,200,150,.05)}
+  .popup{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+  .popup-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;width:100%;max-width:320px}
+  .popup-title{font-size:16px;font-weight:700;margin-bottom:12px}
+  .popup-inp{background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-size:14px;width:100%;outline:none;margin-bottom:10px}
+  .popup-inp:focus{border-color:var(--teal)}
+  .popup-btns{display:flex;gap:8px}
+  .popup-btns button{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid}
+  .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:12px;font-weight:700;z-index:200;pointer-events:none;transition:opacity .3s;white-space:nowrap}
+  .outcome-picker{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--panel);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:16px 14px 24px;z-index:50}
+  .op-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;text-align:center}
+  .op-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .op-btn{padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid;text-align:center;letter-spacing:.3px}
+  .op-cancel{margin-top:8px;width:100%;padding:10px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer}
+  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;gap:8px;color:var(--muted);text-align:center}
+  .empty-icon{font-size:40px;margin-bottom:4px}
+  .empty-title{font-size:15px;font-weight:700;color:var(--text)}
+  .empty-sub{font-size:12px;line-height:1.5}
 </style>
 </head>
 <body>
-
-<!-- LOGIN -->
-<div id="login">
-<h2>Login</h2>
-<input id="email" type="email" placeholder="Enter email"><br>
-<input id="password" type="password" placeholder="Password"><br>
-<button onclick="signup()">Sign Up</button>
-<button onclick="login()">Login</button>
-</div>
-
-<!-- APP -->
-<div id="app">
-<h1>Bullpen Tracker Pro</h1>
-<div id="userDisplay"></div>
-
-<input id="newPitcher" placeholder="Add pitcher">
-<button onclick="addPitcher()">Add</button>
-<select id="pitcherSelect"></select>
-<button onclick="deletePitcher()">Delete</button>
-
-<br>
-
-<select id="pitchType">
-<option>Four-Seam</option>
-<option>Two-Seam</option>
-<option>Changeup</option>
-<option>Slider</option>
-<option>Curveball</option>
-</select>
-
-<select id="viewMode">
-<option value="all">All Pitches</option>
-<option value="pitch">Selected Pitch</option>
-<option value="team">Entire Staff</option>
-</select>
-
-<br>
-<label><input type="checkbox" id="swingMiss"> Swing & Miss</label>
-<button onclick="undoPitch()">Undo Last Pitch</button>
-<button onclick="clearSession()">Clear Session</button>
-<div id="pitchCount">Balls: 0 | Strikes: 0</div>
-
-<h2>Tap to Record Pitch</h2>
-<canvas id="zone" width="320" height="420"></canvas>
-
-<h2>Heat Map</h2>
-<canvas id="heat" width="320" height="420"></canvas>
-
-<h3>Stats</h3>
-<div id="stats"></div>
-<button onclick="exportCSV()">Export CSV</button>
-</div>
-
-<!-- Firebase Compat Scripts -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-
+<div id="root"></div>
 <script>
-// --- FIREBASE CONFIG ---
-const firebaseConfig = {
-  apiKey: "AIzaSyATMceL9OwutTlZYbBzeXa02KCUJawaoUw",
-  authDomain: "bullpen-tracker.firebaseapp.com",
-  projectId: "bullpen-tracker",
-  storageBucket: "bullpen-tracker.firebasestorage.app",
-  messagingSenderId: "370897827412",
-  appId: "1:370897827412:web:847c7475fe0c8f7b105fc1"
+const PITCH_TYPES = [
+  {code:'FB',name:'4-Seam',color:'#FF4D4D',cls:'pt-fb'},
+  {code:'SI',name:'Sinker',color:'#FFB347',cls:'pt-si'},
+  {code:'CU',name:'Curveball',color:'#7EB5FF',cls:'pt-cu'},
+  {code:'CH',name:'Changeup',color:'#98FF98',cls:'pt-ch'},
+  {code:'SL',name:'Slider',color:'#DA70D6',cls:'pt-sl'},
+  {code:'SP',name:'Splitter',color:'#F0E68C',cls:'pt-sp'},
+  {code:'KN',name:'Knuckle',color:'#C0C0C0',cls:'pt-kn'},
+];
+
+const AVATAR_COLORS = ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#F4A460','#87CEEB'];
+
+let state = {
+  pitchers: JSON.parse(localStorage.getItem('bp_pitchers') || '[]'),
+  sessions: JSON.parse(localStorage.getItem('bp_sessions') || '{}'),
+  activePitcher: null,
+  activeTab: 'zone',
+  pitchType: 'FB',
+  velocity: '',
+  swingMiss: false,
+  balls: 0,
+  strikes: 0,
+  pitches: 0,
+  pendingPitch: null,
+  heatFilter: 'session',
+  heatPitchType: 'ALL',
+  showAddPitcher: false,
+  newPitcherName: '',
+  toast: null,
+  toastTimer: null,
 };
-firebase.initializeApp(firebaseConfig);
 
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-// --- GLOBALS ---
-let user = null;
-let data = {};
-let pitchCount = {balls:0,strikes:0};
-
-// --- LOGIN/SIGNUP ---
-function signup(){
-  const email=document.getElementById("email").value;
-  const password=document.getElementById("password").value;
-  if(!email || !password){ alert("Enter email and password"); return; }
-  auth.createUserWithEmailAndPassword(email,password)
-    .then(cred=>initApp(cred.user))
-    .catch(e=>alert(e.message));
+function save() {
+  localStorage.setItem('bp_pitchers', JSON.stringify(state.pitchers));
+  localStorage.setItem('bp_sessions', JSON.stringify(state.sessions));
 }
 
-function login(){
-  const email=document.getElementById("email").value;
-  const password=document.getElementById("password").value;
-  if(!email || !password){ alert("Enter email and password"); return; }
-  auth.signInWithEmailAndPassword(email,password)
-    .then(cred=>initApp(cred.user))
-    .catch(e=>alert(e.message));
+function getSession(pid) {
+  if (!state.sessions[pid]) state.sessions[pid] = {allTime:[], sessions:[]};
+  return state.sessions[pid];
 }
 
-// --- INIT APP ---
-function initApp(u){
-  user=u;
-  document.getElementById("login").style.display="none";
-  document.getElementById("app").style.display="block";
-  document.getElementById("userDisplay").innerText="User: "+u.email;
-  loadData();
+function getCurrentSession(pid) {
+  const s = getSession(pid);
+  if (!s.sessions.length) s.sessions.push({date: new Date().toLocaleDateString(), pitches:[]});
+  return s.sessions[s.sessions.length - 1];
 }
 
-// --- LOAD / SAVE DATA ---
-function loadData(){
-  db.collection("users").doc(user.uid).get().then(doc=>{
-    if(doc.exists){ data=doc.data().data||{}; }
-    else{ data={}; }
-    updatePitchers();
-    drawZone();
-    drawHeat();
-    updateStats();
-    updateCountDisplay();
-  });
+function showToast(msg, color='var(--teal)') {
+  clearTimeout(state.toastTimer);
+  state.toast = {msg, color};
+  render();
+  state.toastTimer = setTimeout(() => { state.toast = null; render(); }, 2200);
 }
 
-function saveData(){
-  db.collection("users").doc(user.uid).set({data});
-}
+const ZONE_W = 340, ZONE_H = 420;
+const ZX = 60, ZY = 80, ZW = 220, ZH = 280;
 
-// --- PITCHERS ---
-function addPitcher(){
-  const name=document.getElementById("newPitcher").value.trim();
-  if(!name) return;
-  if(!data[name]) data[name]=[];
-  saveData(); updatePitchers(); document.getElementById("newPitcher").value="";
-}
-
-function deletePitcher(){
-  const name=document.getElementById("pitcherSelect").value;
-  if(name){ delete data[name]; saveData(); updatePitchers(); resetCount(); drawHeat(); updateStats(); }
-}
-
-function updatePitchers(){
-  const select=document.getElementById("pitcherSelect");
-  select.innerHTML="";
-  for(let p in data){
-    let opt=document.createElement("option");
-    opt.value=p; opt.textContent=p;
-    select.appendChild(opt);
-  }
-}
-
-// --- STRIKE ZONE 3x3 ---
-const zone=document.getElementById("zone");
-const ctx=zone.getContext("2d");
-function drawZone(){
-  ctx.clearRect(0,0,320,420);
-  ctx.strokeStyle="white"; ctx.lineWidth=2;
-  ctx.strokeRect(80,100,160,200); // Strike zone
-
-  const rows=3, cols=3;
-  for(let r=1;r<rows;r++){
-    ctx.beginPath();
-    ctx.moveTo(80,100 + r*(200/rows));
-    ctx.lineTo(240,100 + r*(200/rows));
-    ctx.stroke();
-  }
-  for(let c=1;c<cols;c++){
-    ctx.beginPath();
-    ctx.moveTo(80 + c*(160/cols),100);
-    ctx.lineTo(80 + c*(160/cols),300);
-    ctx.stroke();
-  }
-}
-
-// --- PITCH COUNTS ---
-function updateCountDisplay(){
-  document.getElementById("pitchCount").innerText=`Balls: ${pitchCount.balls} | Strikes: ${pitchCount.strikes}`;
-}
-function resetCount(){ pitchCount={balls:0,strikes:0}; updateCountDisplay(); }
-
-// --- RECORD PITCH ---
-zone.addEventListener("click",function(e){
-  const pitcher=document.getElementById("pitcherSelect").value;
-  if(!pitcher) return alert("Select pitcher");
-  const rect=zone.getBoundingClientRect();
-  const x=e.clientX-rect.left;
-  const y=e.clientY-rect.top;
-  const swingMiss=document.getElementById("swingMiss").checked;
-
-  const pitch={x,y,type:document.getElementById("pitchType").value,date:new Date().toLocaleDateString(),swingMiss};
-  if(!data[pitcher]) data[pitcher]=[];
-  data[pitcher].push(pitch);
-
-  // Update balls/strikes
-  if(x>=80 && x<=240 && y>=100 && y<=300) pitchCount.strikes++;
-  else if(swingMiss) pitchCount.strikes++;
-  else pitchCount.balls++;
-
-  if(pitchCount.strikes>=3){ alert("Strikeout!"); resetCount(); }
-  if(pitchCount.balls>=4){ alert("Walk!"); resetCount(); }
-
-  saveData();
-  drawZone();
-  drawPitchDot(x, y);
-  drawHeat(); updateStats(); updateCountDisplay();
-});
-
-// --- DRAW DOT ---
-function drawPitchDot(x,y){
-  ctx.fillStyle="yellow";
-  ctx.beginPath();
-  ctx.arc(x,y,8,0,Math.PI*2);
+function drawZoneCanvas(canvas, pitches, highlightLast) {
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = ZONE_W * dpr;
+  canvas.height = ZONE_H * dpr;
+  canvas.style.width = ZONE_W + 'px';
+  canvas.style.height = ZONE_H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#0A1628';
+  ctx.roundRect(0, 0, ZONE_W, ZONE_H, 10);
   ctx.fill();
-}
-
-// --- UNDO LAST PITCH ---
-function undoPitch(){
-  const pitcher=document.getElementById("pitcherSelect").value;
-  if(!data[pitcher]||data[pitcher].length===0) return;
-  const last=data[pitcher].pop();
-  if(last.x>=80 && last.x<=240 && last.y>=100 && last.y<=300) pitchCount.strikes--;
-  else if(last.swingMiss) pitchCount.strikes--;
-  else pitchCount.balls--;
-  saveData(); drawZone(); drawHeat(); updateStats(); updateCountDisplay();
-}
-
-// --- CLEAR SESSION ---
-function clearSession(){
-  const pitcher=document.getElementById("pitcherSelect").value;
-  if(!data[pitcher]||data[pitcher].length===0) return;
-  if(confirm(`Clear all pitches for ${pitcher}?`)){
-    data[pitcher]=[];
-    resetCount(); saveData(); drawZone(); drawHeat(); updateStats(); updateCountDisplay();
+  ctx.fillStyle = 'rgba(255,255,255,.03)';
+  ctx.beginPath();
+  ctx.arc(ZONE_W - 28, ZY + 30, 14, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillRect(ZONE_W - 34, ZY + 44, 12, 60);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,.04)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(ZONE_W - 28, ZY + 54);
+  ctx.lineTo(ZONE_W - 70, ZY + 20);
+  ctx.stroke();
+  ctx.restore();
+  ctx.shadowColor = '#00C896';
+  ctx.shadowBlur = 12;
+  ctx.strokeStyle = 'rgba(0,200,150,.7)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(ZX, ZY, ZW, ZH);
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(0,200,150,.25)';
+  ctx.lineWidth = 1;
+  const cw = ZW / 3, ch = ZH / 3;
+  for (let i = 1; i < 3; i++) {
+    ctx.beginPath(); ctx.moveTo(ZX + i*cw, ZY); ctx.lineTo(ZX + i*cw, ZY+ZH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ZX, ZY + i*ch); ctx.lineTo(ZX+ZW, ZY + i*ch); ctx.stroke();
+  }
+  const labels = [['1','2','3'],['4','5','6'],['7','8','9']];
+  ctx.font = '10px SF Mono, monospace';
+  ctx.fillStyle = 'rgba(123,141,176,.3)';
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      ctx.fillText(labels[r][c], ZX + c*cw + 4, ZY + r*ch + 13);
+    }
+  }
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(123,141,176,.12)';
+  ctx.lineWidth = 1;
+  const OX = ZX - 40, OY = ZY - 40, OW = ZW + 80, OH = ZH + 80;
+  ctx.strokeRect(OX, OY, OW, OH);
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,255,255,.08)';
+  ctx.beginPath();
+  const px = ZX + ZW/2, py = ZY + ZH + 50;
+  ctx.moveTo(px - 22, py - 12);
+  ctx.lineTo(px + 22, py - 12);
+  ctx.lineTo(px + 22, py + 2);
+  ctx.lineTo(px, py + 16);
+  ctx.lineTo(px - 22, py + 2);
+  ctx.closePath();
+  ctx.fill();
+  if (pitches) {
+    pitches.forEach((p, i) => {
+      const isLast = highlightLast && i === pitches.length - 1;
+      const pt = PITCH_TYPES.find(t => t.code === p.type) || PITCH_TYPES[0];
+      if (!isLast) ctx.globalAlpha = 0.55;
+      ctx.shadowColor = pt.color;
+      ctx.shadowBlur = isLast ? 10 : 4;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, isLast ? 9 : 7, 0, Math.PI*2);
+      ctx.fillStyle = pt.color;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, isLast ? 4 : 3, 0, Math.PI*2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      if (isLast) {
+        ctx.font = 'bold 10px SF Mono, monospace';
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.type, p.x, p.y - 14);
+        ctx.textAlign = 'left';
+      }
+    });
+  }
+  if (pitches && pitches.length > 0) {
+    pitches.forEach((p, i) => {
+      ctx.font = '7px SF Mono, monospace';
+      ctx.fillStyle = 'rgba(255,255,255,.4)';
+      ctx.textAlign = 'center';
+      ctx.fillText(i+1, p.x, p.y + 3);
+      ctx.textAlign = 'left';
+    });
   }
 }
 
-// --- HEATMAP ---
-const heat=document.getElementById("heat"); const heatCtx=heat.getContext("2d");
-function drawHeat(){
-  heatCtx.clearRect(0,0,320,420);
-  heatCtx.strokeStyle="white"; heatCtx.strokeRect(80,100,160,200);
-  const mode=document.getElementById("viewMode").value;
-  const pitcher=document.getElementById("pitcherSelect").value;
-  const pitchType=document.getElementById("pitchType").value;
-  let pitches=[];
-  if(mode==="team"){ for(let p in data)pitches=pitches.concat(data[p]); }
-  else{ pitches=data[pitcher]||[]; if(mode==="pitch") pitches=pitches.filter(p=>p.type===pitchType);}
-  pitches.forEach(p=>{
-    let grd=heatCtx.createRadialGradient(p.x,p.y,2,p.x,p.y,20);
-    grd.addColorStop(0,"rgba(255,0,0,0.6)");
-    grd.addColorStop(1,"rgba(255,0,0,0)");
-    heatCtx.fillStyle=grd; heatCtx.beginPath(); heatCtx.arc(p.x,p.y,20,0,Math.PI*2); heatCtx.fill();
+function drawHeatCanvas(canvas, pitches) {
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = ZONE_W * dpr;
+  canvas.height = ZONE_H * dpr;
+  canvas.style.width = ZONE_W + 'px';
+  canvas.style.height = ZONE_H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#080E1C';
+  ctx.roundRect(0, 0, ZONE_W, ZONE_H, 10);
+  ctx.fill();
+  if (pitches && pitches.length > 0) {
+    pitches.forEach(p => {
+      const pt = PITCH_TYPES.find(t => t.code === p.type) || PITCH_TYPES[0];
+      const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 32);
+      grd.addColorStop(0, pt.color + 'AA');
+      grd.addColorStop(0.4, pt.color + '44');
+      grd.addColorStop(1, pt.color + '00');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 32, 0, Math.PI*2);
+      ctx.fill();
+    });
+  }
+  ctx.strokeStyle = 'rgba(0,200,150,.5)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(ZX, ZY, ZW, ZH);
+  ctx.strokeStyle = 'rgba(0,200,150,.18)';
+  ctx.lineWidth = .8;
+  const cw = ZW/3, ch = ZH/3;
+  for (let i = 1; i < 3; i++) {
+    ctx.beginPath(); ctx.moveTo(ZX+i*cw, ZY); ctx.lineTo(ZX+i*cw, ZY+ZH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ZX, ZY+i*ch); ctx.lineTo(ZX+ZW, ZY+i*ch); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(255,255,255,.06)';
+  ctx.beginPath();
+  const px2 = ZX + ZW/2, py2 = ZY + ZH + 50;
+  ctx.moveTo(px2-22, py2-12); ctx.lineTo(px2+22,py2-12); ctx.lineTo(px2+22,py2+2);
+  ctx.lineTo(px2,py2+16); ctx.lineTo(px2-22,py2+2); ctx.closePath(); ctx.fill();
+}
+
+function handleZoneClick(e) {
+  if (!state.activePitcher) { showToast('Select a pitcher first'); return; }
+  const canvas = document.getElementById('zoneCanvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = ZONE_W / rect.width;
+  const scaleY = ZONE_H / rect.height;
+  const ex = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const ey = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  state.pendingPitch = {x: ex * scaleX, y: ey * scaleY, type: state.pitchType, vel: state.velocity, ts: Date.now()};
+  render();
+}
+
+function confirmOutcome(outcome) {
+  if (!state.pendingPitch) return;
+  const p = state.pendingPitch;
+  const inZone = p.x >= ZX && p.x <= ZX+ZW && p.y >= ZY && p.y <= ZY+ZH;
+  let isStrike = false;
+  if (outcome === 'strike') isStrike = true;
+  else if (outcome === 'swm') { isStrike = true; p.swingMiss = true; }
+  else if (outcome === 'foul') { isStrike = state.strikes < 2; p.foul = true; }
+  else if (outcome === 'hit') { p.hit = true; }
+  else if (outcome === 'auto') isStrike = inZone;
+  p.result = outcome; p.inZone = inZone; p.isStrike = isStrike;
+  const sess = getCurrentSession(state.activePitcher);
+  const allTime = getSession(state.activePitcher);
+  sess.pitches.push(p);
+  allTime.allTime.push(p);
+  state.sessions[state.activePitcher] = allTime;
+  save();
+  if (isStrike) state.strikes++;
+  else if (outcome !== 'foul' && outcome !== 'hit') state.balls++;
+  state.pitches++;
+  let alert_msg = null;
+  if (state.strikes >= 3) { alert_msg = '⚡ STRIKEOUT!'; state.strikes = 0; state.balls = 0; }
+  else if (state.balls >= 4) { alert_msg = '🚶 WALK!'; state.strikes = 0; state.balls = 0; }
+  state.pendingPitch = null;
+  if (alert_msg) showToast(alert_msg, '#00C896');
+  render();
+  setTimeout(() => {
+    const zc = document.getElementById('zoneCanvas');
+    drawZoneCanvas(zc, getCurrentSession(state.activePitcher).pitches, true);
+  }, 50);
+}
+
+function undoPitch() {
+  if (!state.activePitcher) return;
+  const sess = getCurrentSession(state.activePitcher);
+  const allTime = getSession(state.activePitcher);
+  if (!sess.pitches.length) return;
+  const last = sess.pitches.pop();
+  allTime.allTime.pop();
+  if (last.isStrike && !last.foul) state.strikes = Math.max(0, state.strikes-1);
+  else if (!last.isStrike && !last.foul && !last.hit) state.balls = Math.max(0, state.balls-1);
+  state.pitches = Math.max(0, state.pitches-1);
+  save(); showToast('Pitch removed'); render();
+  setTimeout(() => {
+    const zc = document.getElementById('zoneCanvas');
+    drawZoneCanvas(zc, getCurrentSession(state.activePitcher).pitches, true);
+  }, 50);
+}
+
+function clearSession() {
+  if (!state.activePitcher) return;
+  if (!confirm('Clear current session for ' + state.activePitcher + '?')) return;
+  const s = getSession(state.activePitcher);
+  s.sessions.push({date: new Date().toLocaleDateString(), pitches:[]});
+  state.balls = 0; state.strikes = 0; state.pitches = 0;
+  save(); showToast('Session cleared'); render();
+  setTimeout(() => { drawZoneCanvas(document.getElementById('zoneCanvas'), [], false); }, 50);
+}
+
+function exportCSV() {
+  let csv = 'Pitcher,Session Date,#,Type,Velocity,X,Y,InZone,Result\n';
+  for (const pid in state.sessions) {
+    state.sessions[pid].sessions.forEach(sess => {
+      sess.pitches.forEach((p, i) => {
+        csv += `${pid},${sess.date},${i+1},${p.type},${p.vel||''},${p.x.toFixed(1)},${p.y.toFixed(1)},${p.inZone},${p.result}\n`;
+      });
+    });
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'bullpen_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+function calcStats(pitches) {
+  if (!pitches || !pitches.length) return null;
+  const total = pitches.length;
+  const strikes = pitches.filter(p => p.isStrike).length;
+  const balls = pitches.filter(p => !p.isStrike && !p.foul && !p.hit).length;
+  const inZone = pitches.filter(p => p.inZone).length;
+  const swm = pitches.filter(p => p.swingMiss).length;
+  const vels = pitches.filter(p => p.vel && !isNaN(p.vel)).map(p => parseFloat(p.vel));
+  const avgVel = vels.length ? (vels.reduce((a,b)=>a+b,0)/vels.length).toFixed(1) : '--';
+  const maxVel = vels.length ? Math.max(...vels) : '--';
+  const byType = {};
+  PITCH_TYPES.forEach(pt => {
+    const pts = pitches.filter(p => p.type === pt.code);
+    if (pts.length) {
+      const ptVels = pts.filter(p => p.vel && !isNaN(p.vel)).map(p => parseFloat(p.vel));
+      byType[pt.code] = {
+        count: pts.length,
+        pct: ((pts.length/total)*100).toFixed(0),
+        strikes: pts.filter(p=>p.isStrike).length,
+        avgVel: ptVels.length ? (ptVels.reduce((a,b)=>a+b,0)/ptVels.length).toFixed(1) : '--',
+        name: pt.name, color: pt.color
+      };
+    }
   });
+  return {
+    total, strikes, balls, inZone,
+    strikePct: ((strikes/total)*100).toFixed(1),
+    zonePct: ((inZone/total)*100).toFixed(1),
+    swmPct: total ? ((swm/total)*100).toFixed(1) : '0.0',
+    avgVel, maxVel, byType
+  };
 }
 
-// --- STATS ---
-function updateStats(){
-  const pitcher=document.getElementById("pitcherSelect").value;
-  if(!pitcher||!data[pitcher]) return;
-  const pitches=data[pitcher];
-  let strikes=0; pitches.forEach(p=>{ if(p.x>=80&&p.x<=240&&p.y>=100&&p.y<=300) strikes++; });
-  let percent=((strikes/pitches.length)*100).toFixed(1);
-  let daily={}; pitches.forEach(p=>{ daily[p.date]=(daily[p.date]||0)+1; });
-  let dailyText=""; for(let d in daily){ dailyText+=`${d}: ${daily[d]}<br>`; }
-  document.getElementById("stats").innerHTML=`Total Pitches: ${pitches.length}<br>Strike %: ${percent}%<br><b>Daily:</b><br>${dailyText}`;
+function getZoneNum(x, y) {
+  if (x < ZX || x > ZX+ZW || y < ZY || y > ZY+ZH) return '--';
+  const col = Math.floor((x - ZX) / (ZW/3));
+  const row = Math.floor((y - ZY) / (ZH/3));
+  return row * 3 + col + 1;
 }
 
-// --- EXPORT CSV ---
-function exportCSV(){
-  let csv="Pitcher,Type,X,Y,Date,SwingMiss\n";
-  for(let p in data){ data[p].forEach(row=>{ csv+=`${p},${row.type},${row.x},${row.y},${row.date},${row.swingMiss}\n`; }); }
-  let a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download="bullpen.csv"; a.click();
+function render() {
+  document.getElementById('root').innerHTML = buildHTML();
+  attachEvents();
+  setTimeout(() => {
+    if (state.activeTab === 'zone') {
+      const zc = document.getElementById('zoneCanvas');
+      if (zc) drawZoneCanvas(zc, state.activePitcher ? getCurrentSession(state.activePitcher).pitches : [], true);
+    }
+    if (state.activeTab === 'heat') {
+      const hc = document.getElementById('heatCanvas');
+      if (hc) {
+        let pitches = [];
+        if (state.activePitcher) {
+          const s = getSession(state.activePitcher);
+          pitches = state.heatFilter === 'session' ? getCurrentSession(state.activePitcher).pitches : s.allTime;
+          if (state.heatPitchType !== 'ALL') pitches = pitches.filter(p => p.type === state.heatPitchType);
+        }
+        drawHeatCanvas(hc, pitches);
+      }
+    }
+  }, 30);
 }
 
-// --- LISTENERS ---
-document.getElementById("pitcherSelect").addEventListener("change",()=>{ drawHeat(); updateStats(); });
-document.getElementById("viewMode").addEventListener("change", drawHeat);
-document.getElementById("pitchType").addEventListener("change", drawHeat);
+function buildHTML() {
+  const ap = state.activePitcher;
+  const sess = ap ? getCurrentSession(ap) : null;
+  const pitches = sess ? sess.pitches : [];
+  const stats = ap ? calcStats(pitches) : null;
+
+  let html = `
+    <div class="hdr">
+      <div class="hdr-title">BULLPEN <span>PRO</span></div>
+      <div class="hdr-badge">MLB CALIBER</div>
+    </div>
+    <div class="pitcher-bar">
+      <select class="pitcher-select" id="pitcherSel" onchange="selectPitcher(this.value)">
+        <option value="">— Select Pitcher —</option>
+        ${state.pitchers.map(p => `<option value="${p.name}" ${ap===p.name?'selected':''}>${p.name} #${p.num||'—'}</option>`).join('')}
+      </select>
+      <button class="btn-sm btn-teal" onclick="state.showAddPitcher=true;render()">+ Add</button>
+    </div>
+    <div class="count-bar">
+      <div class="count-seg"><div class="count-lbl">BALLS</div><div class="count-val cv-b">${state.balls}</div></div>
+      <div class="count-seg"><div class="count-lbl">STRIKES</div><div class="count-val cv-s">${state.strikes}</div></div>
+      <div class="count-seg"><div class="count-lbl">PITCHES</div><div class="count-val cv-p">${state.pitches}</div></div>
+      <div class="count-seg"><div class="count-lbl">LAST VEL</div><div class="count-val cv-v">${pitches.length && pitches[pitches.length-1].vel ? pitches[pitches.length-1].vel : '—'}</div></div>
+    </div>
+    <div class="tabs">
+      ${[['zone','⚾ ZONE'],['heat','🔥 HEAT'],['stats','📊 STATS'],['roster','👥 ROSTER']].map(([k,l])=>`
+        <div class="tab ${state.activeTab===k?'active':''}" onclick="state.activeTab='${k}';render()">${l}</div>
+      `).join('')}
+    </div>
+    <div class="scroll">
+  `;
+
+  if (state.activeTab === 'zone') html += buildZoneTab(ap, pitches, stats);
+  else if (state.activeTab === 'heat') html += buildHeatTab(ap);
+  else if (state.activeTab === 'stats') html += buildStatsTab(ap, pitches, stats);
+  else if (state.activeTab === 'roster') html += buildRosterTab();
+
+  html += `</div>`;
+
+  if (state.activeTab === 'zone') {
+    html += `
+      <div class="action-row">
+        <button class="btn-undo" onclick="undoPitch()">↩ UNDO</button>
+        <button class="btn-clear" onclick="clearSession()">🗑 CLEAR</button>
+        <button class="btn-export" onclick="exportCSV()">⬇ CSV</button>
+      </div>`;
+  }
+
+  if (state.toast) {
+    html += `<div class="toast" style="color:${state.toast.color};border-color:${state.toast.color}20">${state.toast.msg}</div>`;
+  }
+
+  if (state.pendingPitch) {
+    const inZ = state.pendingPitch.x >= ZX && state.pendingPitch.x <= ZX+ZW && state.pendingPitch.y >= ZY && state.pendingPitch.y <= ZY+ZH;
+    html += `
+      <div class="outcome-picker">
+        <div class="op-title">SELECT OUTCOME — Pitch ${state.pitches+1} ${inZ?'🟢 IN ZONE':'🔴 OFF PLATE'}</div>
+        <div class="op-grid">
+          <button class="op-btn" style="background:rgba(255,77,77,.12);border-color:#FF4D4D;color:#FF4D4D" onclick="confirmOutcome('strike')">⚡ STRIKE</button>
+          <button class="op-btn" style="background:rgba(74,158,255,.12);border-color:#4A9EFF;color:#4A9EFF" onclick="confirmOutcome('ball')">🔵 BALL</button>
+          <button class="op-btn" style="background:rgba(167,139,250,.12);border-color:#A78BFA;color:#A78BFA" onclick="confirmOutcome('swm')">🌀 SWING &amp; MISS</button>
+          <button class="op-btn" style="background:rgba(255,170,51,.12);border-color:#FFAA33;color:#FFAA33" onclick="confirmOutcome('foul')">↗ FOUL</button>
+          <button class="op-btn" style="background:rgba(74,222,128,.12);border-color:#4ADE80;color:#4ADE80" onclick="confirmOutcome('hit')">💥 HIT/OUT</button>
+          <button class="op-btn" style="background:rgba(0,200,150,.1);border-color:#00C896;color:#00C896" onclick="confirmOutcome('auto')">${inZ?'✅ AUTO (STR)':'✅ AUTO (BALL)'}</button>
+        </div>
+        <button class="op-cancel" onclick="state.pendingPitch=null;render()">Cancel</button>
+      </div>`;
+  }
+
+  if (state.showAddPitcher) {
+    html += `
+      <div class="popup">
+        <div class="popup-box">
+          <div class="popup-title">Add Pitcher</div>
+          <input class="popup-inp" id="newPitcherName" placeholder="Full name" value="${state.newPitcherName}" oninput="state.newPitcherName=this.value">
+          <input class="popup-inp" id="newPitcherNum" placeholder="# Jersey number" style="margin-bottom:12px">
+          <div class="popup-btns">
+            <button style="background:var(--card);border-color:var(--border);color:var(--muted)" onclick="state.showAddPitcher=false;state.newPitcherName='';render()">Cancel</button>
+            <button style="background:rgba(0,200,150,.12);border-color:var(--teal);color:var(--teal)" onclick="addPitcher()">Add</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  return html;
+}
+
+function buildZoneTab(ap) {
+  if (!ap) return `
+    <div class="empty-state">
+      <div class="empty-icon">⚾</div>
+      <div class="empty-title">No Pitcher Selected</div>
+      <div class="empty-sub">Add a pitcher in the Roster tab, then select them above to start tracking.</div>
+    </div>`;
+  return `
+    <div class="zone-wrap">
+      <canvas id="zoneCanvas" width="${ZONE_W}" height="${ZONE_H}" aria-label="Strike zone pitch tracker"></canvas>
+    </div>
+    <div class="pitch-ctrl">
+      <div class="ctrl-row">
+        <div class="ctrl-label">PITCH</div>
+        <div class="pitch-type-grid">
+          ${PITCH_TYPES.map(pt => `
+            <button class="pt-btn ${pt.cls} ${state.pitchType===pt.code?'active':''}"
+              onclick="state.pitchType='${pt.code}';render()"
+              style="${state.pitchType===pt.code?`background:${pt.color}22;border-color:${pt.color};color:${pt.color}`:''}">
+              ${pt.code}
+            </button>`).join('')}
+        </div>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-label">VEL</div>
+        <input class="vel-inp" id="velInp" type="number" min="40" max="105" placeholder="MPH"
+          value="${state.velocity}" oninput="state.velocity=this.value">
+        <span class="vel-unit">MPH</span>
+        <div style="flex:1"></div>
+        <div class="swing-tog" onclick="state.swingMiss=!state.swingMiss;render()">
+          <div class="tog-box ${state.swingMiss?'on':''}"><div class="tog-dot"></div></div>
+          <span class="tog-lbl">SWING &amp; MISS</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildHeatTab(ap) {
+  const pitchTypes = ['ALL', ...PITCH_TYPES.map(p=>p.code)];
+  return `
+    <div class="heat-section">
+      <div class="heat-filters">
+        ${['session','alltime'].map(f=>`
+          <button class="hf-btn ${state.heatFilter===f?'active':''}" onclick="state.heatFilter='${f}';render()">${f==='session'?'This Session':'All Time'}</button>
+        `).join('')}
+      </div>
+      <div class="heat-filters">
+        ${pitchTypes.map(t=>`
+          <button class="hf-btn ${state.heatPitchType===t?'active':''}" onclick="state.heatPitchType='${t}';render()">${t}</button>
+        `).join('')}
+      </div>
+      <canvas id="heatCanvas" width="${ZONE_W}" height="${ZONE_H}" aria-label="Pitch location heat map"></canvas>
+      <div class="heat-legend">
+        <span class="legend-lbl">FEW</span>
+        <div class="legend-grad"></div>
+        <span class="legend-lbl">HOT ZONE</span>
+      </div>
+      ${!ap ? '<div class="empty-state" style="margin-top:12px"><div class="empty-sub">Select a pitcher to see their heat map</div></div>' : ''}
+    </div>`;
+}
+
+function buildStatsTab(ap, pitches, stats) {
+  if (!ap || !stats || !pitches.length) return `
+    <div class="empty-state">
+      <div class="empty-icon">📊</div>
+      <div class="empty-title">No Data Yet</div>
+      <div class="empty-sub">Throw some pitches in the Zone tab to see stats here.</div>
+    </div>`;
+  const allStats = calcStats(getSession(ap).allTime);
+  return `
+    <div class="stats-section">
+      <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">THIS SESSION</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-lbl">PITCHES</div><div class="stat-val" style="color:var(--teal)">${stats.total}</div><div class="stat-sub">${stats.strikes}K / ${stats.balls}BB</div></div>
+        <div class="stat-card"><div class="stat-lbl">STRIKE %</div><div class="stat-val" style="color:${parseFloat(stats.strikePct)>=65?'var(--green)':parseFloat(stats.strikePct)>=55?'var(--amber)':'var(--red)'}">${stats.strikePct}%</div><div class="stat-sub">MLB avg ~65%</div></div>
+        <div class="stat-card"><div class="stat-lbl">ZONE %</div><div class="stat-val" style="color:var(--blue)">${stats.zonePct}%</div><div class="stat-sub">${stats.inZone} in zone</div></div>
+        <div class="stat-card"><div class="stat-lbl">SWM %</div><div class="stat-val" style="color:var(--purple)">${stats.swmPct}%</div><div class="stat-sub">Swing & miss</div></div>
+        <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${stats.avgVel}</div><div class="stat-sub">MPH</div></div>
+        <div class="stat-card"><div class="stat-lbl">MAX VELO</div><div class="stat-val" style="color:var(--amber)">${stats.maxVel}</div><div class="stat-sub">MPH top speed</div></div>
+      </div>
+      <div class="pitch-breakdown">
+        <div class="pb-title">PITCH MIX — SESSION</div>
+        ${Object.entries(stats.byType).map(([code, d]) => `
+          <div class="pb-row">
+            <div class="pb-name" style="color:${d.color}">${d.name}</div>
+            <div class="pb-bar-wrap"><div class="pb-bar" style="width:${d.pct}%;background:${d.color}88"></div></div>
+            <div class="pb-stats">${d.pct}% • ${d.avgVel}mph</div>
+          </div>`).join('')}
+      </div>
+      ${allStats && getSession(ap).allTime.length > pitches.length ? `
+      <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;margin-top:4px">ALL TIME — ${getSession(ap).allTime.length} pitches</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-lbl">STRIKE %</div><div class="stat-val" style="color:var(--teal)">${allStats.strikePct}%</div></div>
+        <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${allStats.avgVel}</div><div class="stat-sub">MPH all-time</div></div>
+      </div>` : ''}
+      <div class="pitch-log">
+        <div class="pl-header">
+          <span class="pl-num">#</span><span class="pl-type">TYPE</span><span class="pl-loc">ZONE</span><span class="pl-vel">VEL</span><span class="pl-result" style="text-align:right">RESULT</span>
+        </div>
+        ${pitches.slice().reverse().slice(0,20).map((p, i) => {
+          const idx = pitches.length - i;
+          const pt = PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
+          let badge = p.swingMiss ? '<span class="badge badge-swm">SWM</span>'
+            : p.foul ? '<span class="badge badge-foul">FOUL</span>'
+            : p.isStrike ? '<span class="badge badge-str">STRIKE</span>'
+            : p.hit ? '<span class="badge" style="background:rgba(74,222,128,.15);color:#4ADE80">HIT</span>'
+            : '<span class="badge badge-bal">BALL</span>';
+          return `
+            <div class="pl-row">
+              <span class="pl-num">${idx}</span>
+              <span class="pl-type" style="color:${pt.color}">${pt.code}</span>
+              <span class="pl-loc">Z${getZoneNum(p.x,p.y)}</span>
+              <span class="pl-vel">${p.vel||'—'}</span>
+              <span class="pl-result">${badge}</span>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function buildRosterTab() {
+  return `
+    <div class="roster-section">
+      <div class="roster-add">
+        <input class="roster-inp" placeholder="Pitcher name…" id="quickAdd" onkeydown="if(event.key==='Enter')quickAddPitcher()">
+        <button class="btn-sm btn-teal" onclick="quickAddPitcher()">+ Add</button>
+      </div>
+      <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">${state.pitchers.length} PITCHER${state.pitchers.length!==1?'S':''} ON ROSTER</div>
+      <div class="roster-list">
+        ${state.pitchers.length === 0 ? `
+          <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <div class="empty-title">No Pitchers Yet</div>
+            <div class="empty-sub">Add pitchers above to start tracking their bullpen sessions.</div>
+          </div>` :
+        state.pitchers.map((p, i) => {
+          const s = getSession(p.name);
+          const allT = s.allTime || [];
+          const stats = calcStats(allT);
+          const avColor = AVATAR_COLORS[i % AVATAR_COLORS.length];
+          const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          return `
+            <div class="roster-item ${state.activePitcher===p.name?'active-p':''}" onclick="selectPitcher('${p.name}');state.activeTab='zone';render()">
+              <div class="roster-avatar" style="background:${avColor}22;color:${avColor}">${initials}</div>
+              <div class="roster-info">
+                <div class="roster-name">${p.name} <span style="color:var(--muted);font-size:12px;font-weight:400">#${p.num||'—'}</span></div>
+                <div class="roster-meta">${allT.length} pitches all-time${stats?` • ${stats.strikePct}% strikes • ${stats.avgVel} MPH avg`:' • No data'}</div>
+              </div>
+              <button class="roster-del" onclick="event.stopPropagation();deletePitcher('${p.name}')">×</button>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+window.selectPitcher = function(name) {
+  state.activePitcher = name || null;
+  state.balls = 0; state.strikes = 0; state.pitches = 0;
+  if (name) state.pitches = getCurrentSession(name).pitches.length;
+  render();
+  setTimeout(() => {
+    if (state.activeTab === 'zone') {
+      const zc = document.getElementById('zoneCanvas');
+      if (zc && state.activePitcher) drawZoneCanvas(zc, getCurrentSession(state.activePitcher).pitches, true);
+    }
+  }, 50);
+};
+
+window.addPitcher = function() {
+  const name = state.newPitcherName.trim();
+  const num = document.getElementById('newPitcherNum')?.value?.trim() || '';
+  if (!name) return;
+  if (state.pitchers.find(p=>p.name===name)) { showToast('Pitcher already exists'); return; }
+  state.pitchers.push({name, num});
+  save();
+  state.showAddPitcher = false;
+  state.newPitcherName = '';
+  showToast('Added ' + name);
+  selectPitcher(name);
+};
+
+window.quickAddPitcher = function() {
+  const inp = document.getElementById('quickAdd');
+  if (!inp || !inp.value.trim()) return;
+  const name = inp.value.trim();
+  if (state.pitchers.find(p=>p.name===name)) { showToast('Already exists'); return; }
+  state.pitchers.push({name, num:''});
+  save(); showToast('Added ' + name); render();
+};
+
+window.deletePitcher = function(name) {
+  if (!confirm('Remove ' + name + ' from roster?')) return;
+  state.pitchers = state.pitchers.filter(p=>p.name!==name);
+  if (state.activePitcher===name) { state.activePitcher=null; state.balls=0;state.strikes=0;state.pitches=0; }
+  save(); render();
+};
+
+window.confirmOutcome = confirmOutcome;
+window.undoPitch = undoPitch;
+window.clearSession = clearSession;
+window.exportCSV = exportCSV;
+
+function attachEvents() {
+  const zc = document.getElementById('zoneCanvas');
+  if (zc) {
+    zc.addEventListener('click', handleZoneClick);
+    zc.addEventListener('touchstart', (e) => { e.preventDefault(); handleZoneClick(e); }, {passive:false});
+  }
+  const vel = document.getElementById('velInp');
+  if (vel) vel.addEventListener('change', () => { state.velocity = vel.value; });
+}
+
+render();
 </script>
 </body>
 </html>
