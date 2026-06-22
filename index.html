@@ -11,9 +11,8 @@
     --teal:#00C896;--teal-dim:#007A5A;--red:#FF4D4D;--red-dim:#8B1A1A;
     --blue:#4A9EFF;--amber:#FFAA33;--purple:#A78BFA;--green:#4ADE80;
     --text:#F0F4FF;--muted:#7B8DB0;--dim:#3A4A6B;
-    --fs:13px;--fb:600
   }
-  html,body{height:100%;background:var(--navy);color:var(--text);font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:var(--fs);overflow:hidden}
+  html,body{height:100%;background:var(--navy);color:var(--text);font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;overflow:hidden}
   #root{height:100vh;display:flex;flex-direction:column;max-width:420px;margin:0 auto}
   .hdr{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
   .hdr-title{font-size:15px;font-weight:700;letter-spacing:.5px}
@@ -24,19 +23,17 @@
   .btn-sm{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap;font-weight:600}
   .btn-sm:active{opacity:.7}
   .btn-teal{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
-  .btn-red{background:var(--red-dim);border-color:var(--red);color:var(--red)}
-  .count-bar{background:var(--navy);display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0}
+  .count-bar{background:var(--navy);display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
   .count-seg{flex:1;padding:7px 4px;text-align:center;border-right:1px solid var(--border)}
   .count-seg:last-child{border-right:none}
   .count-lbl{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
   .count-val{font-size:22px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;line-height:1.1}
   .cv-b{color:var(--blue)}.cv-s{color:var(--red)}.cv-p{color:var(--teal)}.cv-v{color:var(--amber)}
   .tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
-  .tab{flex:1;padding:10px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;letter-spacing:.3px;position:relative;border-bottom:2px solid transparent}
+  .tab{flex:1;padding:10px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;letter-spacing:.3px;border-bottom:2px solid transparent}
   .tab.active{color:var(--teal);border-bottom-color:var(--teal)}
   .scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
   .scroll::-webkit-scrollbar{width:3px}
-  .scroll::-webkit-scrollbar-track{background:transparent}
   .scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
   .zone-wrap{padding:10px 12px 6px;display:flex;flex-direction:column;align-items:center}
   #zoneCanvas{border-radius:10px;cursor:crosshair;touch-action:none;display:block;width:100%;max-width:340px}
@@ -45,8 +42,6 @@
   .ctrl-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;min-width:40px}
   .pitch-type-grid{display:flex;gap:6px;flex-wrap:wrap;flex:1}
   .pt-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
-  .pt-btn.active{border-color:currentColor}
-  .pt-fb{color:#FF4D4D}.pt-si{color:#FFB347}.pt-cu{color:#7EB5FF}.pt-ch{color:#98FF98}.pt-sl{color:#DA70D6}.pt-sp{color:#F0E68C}.pt-kn{color:#C0C0C0}
   .vel-inp{background:var(--card);border:1px solid var(--border);color:var(--teal);border-radius:8px;padding:6px 10px;font-size:16px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;width:80px;outline:none;text-align:center}
   .vel-unit{color:var(--muted);font-size:11px;font-weight:700}
   .swing-tog{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
@@ -60,7 +55,7 @@
   .action-row button{flex:1;padding:9px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;letter-spacing:.3px}
   .btn-undo{background:rgba(255,170,51,.1);border-color:var(--amber);color:var(--amber)}
   .btn-clear{background:rgba(255,77,77,.08);border-color:var(--red);color:var(--red)}
-  .btn-export{background:rgba(0,200,150,.08);border-color:var(--teal);color:var(--teal)}
+  .btn-end{background:rgba(0,200,150,.08);border-color:var(--teal);color:var(--teal)}
   .heat-section{padding:10px 12px}
   .heat-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
   .hf-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer}
@@ -80,9 +75,9 @@
   .pb-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .pb-name{font-size:11px;font-weight:700;min-width:58px}
   .pb-bar-wrap{flex:1;height:6px;background:var(--navy);border-radius:3px;overflow:hidden}
-  .pb-bar{height:100%;border-radius:3px;transition:width .3s}
+  .pb-bar{height:100%;border-radius:3px}
   .pb-stats{font-size:10px;color:var(--muted);font-family:'SF Mono','Fira Mono',monospace;min-width:70px;text-align:right}
-  .pitch-log{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .pitch-log{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px}
   .pl-header{display:flex;padding:7px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
   .pl-row{display:flex;padding:6px 12px;border-bottom:1px solid var(--border);align-items:center;font-size:11px}
   .pl-row:last-child{border-bottom:none}
@@ -102,26 +97,55 @@
   .roster-inp:focus{border-color:var(--teal)}
   .roster-inp::placeholder{color:var(--dim)}
   .roster-list{display:flex;flex-direction:column;gap:6px}
-  .roster-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  .roster-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
   .roster-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
   .roster-info{flex:1}
   .roster-name{font-size:14px;font-weight:700}
   .roster-meta{font-size:10px;color:var(--muted);margin-top:1px}
   .roster-del{background:none;border:none;color:var(--red);cursor:pointer;padding:4px;font-size:18px;line-height:1}
   .roster-item.active-p{border-color:var(--teal);background:rgba(0,200,150,.05)}
-  .popup{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
-  .popup-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;width:100%;max-width:320px}
-  .popup-title{font-size:16px;font-weight:700;margin-bottom:12px}
+  .session-history{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px}
+  .sh-header{padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+  .sh-item{padding:10px 12px;border-bottom:1px solid var(--border)}
+  .sh-item:last-child{border-bottom:none}
+  .sh-date{font-size:10px;font-weight:700;color:var(--teal);margin-bottom:3px}
+  .sh-stats{font-size:10px;color:var(--muted);margin-bottom:4px;font-family:'SF Mono','Fira Mono',monospace}
+  .sh-note{font-size:11px;color:var(--text);font-style:italic;opacity:.8}
+  .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:flex-end;justify-content:center;z-index:100}
+  .popup-sheet{background:var(--panel);border:1px solid var(--border);border-radius:18px 18px 0 0;padding:20px 16px 32px;width:100%;max-width:420px;max-height:88vh;overflow-y:auto}
+  .popup-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;width:calc(100% - 40px);max-width:320px;margin:auto;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)}
+  .popup-drag{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+  .popup-title{font-size:17px;font-weight:700;margin-bottom:4px}
+  .popup-sub{font-size:11px;color:var(--muted);margin-bottom:16px}
   .popup-inp{background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-size:14px;width:100%;outline:none;margin-bottom:10px}
   .popup-inp:focus{border-color:var(--teal)}
-  .popup-btns{display:flex;gap:8px}
+  .popup-btns{display:flex;gap:8px;margin-top:4px}
   .popup-btns button{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid}
-  .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:12px;font-weight:700;z-index:200;pointer-events:none;transition:opacity .3s;white-space:nowrap}
+  .es-hero{text-align:center;padding:8px 0 16px}
+  .es-count{font-size:52px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;color:var(--teal);line-height:1}
+  .es-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+  .es-quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+  .es-stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center}
+  .es-stat-val{font-size:18px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+  .es-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-top:2px}
+  .es-expand-btn{width:100%;padding:10px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:12px}
+  .es-expand-btn .arrow{display:inline-block;transition:transform .2s;font-size:14px}
+  .es-expand-btn.open .arrow{transform:rotate(180deg)}
+  .es-full-stats{display:none;margin-bottom:12px}
+  .es-full-stats.open{display:block}
+  .es-note-section{margin-top:4px}
+  .es-note-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .pen-icon{font-size:13px}
+  .es-note-inp{background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 12px;font-size:13px;width:100%;outline:none;resize:none;font-family:inherit;line-height:1.5;min-height:80px}
+  .es-note-inp:focus{border-color:var(--teal)}
+  .es-note-inp::placeholder{color:var(--dim)}
+  .es-done-btn{width:100%;padding:12px;border-radius:10px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);font-size:14px;font-weight:700;cursor:pointer;margin-top:12px;letter-spacing:.3px}
   .outcome-picker{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--panel);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:16px 14px 24px;z-index:50}
   .op-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;text-align:center}
   .op-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .op-btn{padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid;text-align:center;letter-spacing:.3px}
+  .op-btn{padding:13px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid;text-align:center;letter-spacing:.3px}
   .op-cancel{margin-top:8px;width:100%;padding:10px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer}
+  .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:12px;font-weight:700;z-index:200;pointer-events:none;white-space:nowrap}
   .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;gap:8px;color:var(--muted);text-align:center}
   .empty-icon{font-size:40px;margin-bottom:4px}
   .empty-title{font-size:15px;font-weight:700;color:var(--text)}
@@ -132,15 +156,14 @@
 <div id="root"></div>
 <script>
 const PITCH_TYPES = [
-  {code:'FB',name:'4-Seam',color:'#FF4D4D',cls:'pt-fb'},
-  {code:'SI',name:'Sinker',color:'#FFB347',cls:'pt-si'},
-  {code:'CU',name:'Curveball',color:'#7EB5FF',cls:'pt-cu'},
-  {code:'CH',name:'Changeup',color:'#98FF98',cls:'pt-ch'},
-  {code:'SL',name:'Slider',color:'#DA70D6',cls:'pt-sl'},
-  {code:'SP',name:'Splitter',color:'#F0E68C',cls:'pt-sp'},
-  {code:'KN',name:'Knuckle',color:'#C0C0C0',cls:'pt-kn'},
+  {code:'FB',name:'4-Seam',color:'#FF4D4D'},
+  {code:'SI',name:'Sinker',color:'#FFB347'},
+  {code:'CU',name:'Curveball',color:'#7EB5FF'},
+  {code:'CH',name:'Changeup',color:'#98FF98'},
+  {code:'SL',name:'Slider',color:'#DA70D6'},
+  {code:'SP',name:'Splitter',color:'#F0E68C'},
+  {code:'KN',name:'Knuckle',color:'#C0C0C0'},
 ];
-
 const AVATAR_COLORS = ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#F4A460','#87CEEB'];
 
 let state = {
@@ -151,16 +174,16 @@ let state = {
   pitchType: 'FB',
   velocity: '',
   swingMiss: false,
-  balls: 0,
-  strikes: 0,
-  pitches: 0,
+  balls: 0, strikes: 0, pitches: 0,
   pendingPitch: null,
   heatFilter: 'session',
   heatPitchType: 'ALL',
   showAddPitcher: false,
   newPitcherName: '',
-  toast: null,
-  toastTimer: null,
+  showEndSession: false,
+  endSessionNote: '',
+  endSessionExpanded: false,
+  toast: null, toastTimer: null,
 };
 
 function save() {
@@ -175,7 +198,7 @@ function getSession(pid) {
 
 function getCurrentSession(pid) {
   const s = getSession(pid);
-  if (!s.sessions.length) s.sessions.push({date: new Date().toLocaleDateString(), pitches:[]});
+  if (!s.sessions.length) s.sessions.push({date: new Date().toLocaleDateString(), pitches:[], note:''});
   return s.sessions[s.sessions.length - 1];
 }
 
@@ -192,301 +215,242 @@ const ZX = 60, ZY = 80, ZW = 220, ZH = 280;
 function drawZoneCanvas(canvas, pitches, highlightLast) {
   if (!canvas) return;
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = ZONE_W * dpr;
-  canvas.height = ZONE_H * dpr;
-  canvas.style.width = ZONE_W + 'px';
-  canvas.style.height = ZONE_H + 'px';
+  canvas.width = ZONE_W * dpr; canvas.height = ZONE_H * dpr;
+  canvas.style.width = ZONE_W + 'px'; canvas.style.height = ZONE_H + 'px';
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
   ctx.fillStyle = '#0A1628';
-  ctx.roundRect(0, 0, ZONE_W, ZONE_H, 10);
-  ctx.fill();
+  ctx.roundRect(0,0,ZONE_W,ZONE_H,10); ctx.fill();
   ctx.fillStyle = 'rgba(255,255,255,.03)';
-  ctx.beginPath();
-  ctx.arc(ZONE_W - 28, ZY + 30, 14, 0, Math.PI*2);
-  ctx.fill();
-  ctx.fillRect(ZONE_W - 34, ZY + 44, 12, 60);
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,.04)';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(ZONE_W - 28, ZY + 54);
-  ctx.lineTo(ZONE_W - 70, ZY + 20);
-  ctx.stroke();
-  ctx.restore();
-  ctx.shadowColor = '#00C896';
-  ctx.shadowBlur = 12;
-  ctx.strokeStyle = 'rgba(0,200,150,.7)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(ZX, ZY, ZW, ZH);
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = 'rgba(0,200,150,.25)';
-  ctx.lineWidth = 1;
-  const cw = ZW / 3, ch = ZH / 3;
-  for (let i = 1; i < 3; i++) {
-    ctx.beginPath(); ctx.moveTo(ZX + i*cw, ZY); ctx.lineTo(ZX + i*cw, ZY+ZH); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(ZX, ZY + i*ch); ctx.lineTo(ZX+ZW, ZY + i*ch); ctx.stroke();
+  ctx.beginPath(); ctx.arc(ZONE_W-28,ZY+30,14,0,Math.PI*2); ctx.fill();
+  ctx.fillRect(ZONE_W-34,ZY+44,12,60);
+  ctx.save(); ctx.strokeStyle='rgba(255,255,255,.04)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(ZONE_W-28,ZY+54); ctx.lineTo(ZONE_W-70,ZY+20); ctx.stroke(); ctx.restore();
+  ctx.shadowColor='#00C896'; ctx.shadowBlur=12;
+  ctx.strokeStyle='rgba(0,200,150,.7)'; ctx.lineWidth=2;
+  ctx.strokeRect(ZX,ZY,ZW,ZH); ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(0,200,150,.25)'; ctx.lineWidth=1;
+  const cw=ZW/3, ch=ZH/3;
+  for(let i=1;i<3;i++){
+    ctx.beginPath(); ctx.moveTo(ZX+i*cw,ZY); ctx.lineTo(ZX+i*cw,ZY+ZH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ZX,ZY+i*ch); ctx.lineTo(ZX+ZW,ZY+i*ch); ctx.stroke();
   }
-  const labels = [['1','2','3'],['4','5','6'],['7','8','9']];
-  ctx.font = '10px SF Mono, monospace';
-  ctx.fillStyle = 'rgba(123,141,176,.3)';
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
-      ctx.fillText(labels[r][c], ZX + c*cw + 4, ZY + r*ch + 13);
-    }
-  }
-  ctx.setLineDash([4, 4]);
-  ctx.strokeStyle = 'rgba(123,141,176,.12)';
-  ctx.lineWidth = 1;
-  const OX = ZX - 40, OY = ZY - 40, OW = ZW + 80, OH = ZH + 80;
-  ctx.strokeRect(OX, OY, OW, OH);
-  ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(255,255,255,.08)';
-  ctx.beginPath();
-  const px = ZX + ZW/2, py = ZY + ZH + 50;
-  ctx.moveTo(px - 22, py - 12);
-  ctx.lineTo(px + 22, py - 12);
-  ctx.lineTo(px + 22, py + 2);
-  ctx.lineTo(px, py + 16);
-  ctx.lineTo(px - 22, py + 2);
-  ctx.closePath();
-  ctx.fill();
-  if (pitches) {
-    pitches.forEach((p, i) => {
-      const isLast = highlightLast && i === pitches.length - 1;
-      const pt = PITCH_TYPES.find(t => t.code === p.type) || PITCH_TYPES[0];
-      if (!isLast) ctx.globalAlpha = 0.55;
-      ctx.shadowColor = pt.color;
-      ctx.shadowBlur = isLast ? 10 : 4;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, isLast ? 9 : 7, 0, Math.PI*2);
-      ctx.fillStyle = pt.color;
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, isLast ? 4 : 3, 0, Math.PI*2);
-      ctx.fillStyle = '#fff';
-      ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.globalAlpha = 1;
-      if (isLast) {
-        ctx.font = 'bold 10px SF Mono, monospace';
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'center';
-        ctx.fillText(p.type, p.x, p.y - 14);
-        ctx.textAlign = 'left';
-      }
-    });
-  }
-  if (pitches && pitches.length > 0) {
-    pitches.forEach((p, i) => {
-      ctx.font = '7px SF Mono, monospace';
-      ctx.fillStyle = 'rgba(255,255,255,.4)';
-      ctx.textAlign = 'center';
-      ctx.fillText(i+1, p.x, p.y + 3);
-      ctx.textAlign = 'left';
-    });
-  }
+  const labels=[['1','2','3'],['4','5','6'],['7','8','9']];
+  ctx.font='10px SF Mono,monospace'; ctx.fillStyle='rgba(123,141,176,.3)';
+  for(let r=0;r<3;r++) for(let c=0;c<3;c++) ctx.fillText(labels[r][c],ZX+c*cw+4,ZY+r*ch+13);
+  ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(123,141,176,.12)'; ctx.lineWidth=1;
+  ctx.strokeRect(ZX-40,ZY-40,ZW+80,ZH+80); ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,255,.08)';
+  const px=ZX+ZW/2, py=ZY+ZH+50;
+  ctx.beginPath(); ctx.moveTo(px-22,py-12); ctx.lineTo(px+22,py-12); ctx.lineTo(px+22,py+2);
+  ctx.lineTo(px,py+16); ctx.lineTo(px-22,py+2); ctx.closePath(); ctx.fill();
+  if(pitches) pitches.forEach((p,i)=>{
+    const isLast=highlightLast&&i===pitches.length-1;
+    const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
+    if(!isLast) ctx.globalAlpha=0.55;
+    ctx.shadowColor=pt.color; ctx.shadowBlur=isLast?10:4;
+    ctx.beginPath(); ctx.arc(p.x,p.y,isLast?9:7,0,Math.PI*2); ctx.fillStyle=pt.color; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x,p.y,isLast?4:3,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+    ctx.shadowBlur=0; ctx.globalAlpha=1;
+    if(isLast){ctx.font='bold 10px SF Mono,monospace';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(p.type,p.x,p.y-14);ctx.textAlign='left';}
+  });
+  if(pitches&&pitches.length>0) pitches.forEach((p,i)=>{
+    ctx.font='7px SF Mono,monospace'; ctx.fillStyle='rgba(255,255,255,.4)';
+    ctx.textAlign='center'; ctx.fillText(i+1,p.x,p.y+3); ctx.textAlign='left';
+  });
 }
 
 function drawHeatCanvas(canvas, pitches) {
-  if (!canvas) return;
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = ZONE_W * dpr;
-  canvas.height = ZONE_H * dpr;
-  canvas.style.width = ZONE_W + 'px';
-  canvas.style.height = ZONE_H + 'px';
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  ctx.fillStyle = '#080E1C';
-  ctx.roundRect(0, 0, ZONE_W, ZONE_H, 10);
-  ctx.fill();
-  if (pitches && pitches.length > 0) {
-    pitches.forEach(p => {
-      const pt = PITCH_TYPES.find(t => t.code === p.type) || PITCH_TYPES[0];
-      const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 32);
-      grd.addColorStop(0, pt.color + 'AA');
-      grd.addColorStop(0.4, pt.color + '44');
-      grd.addColorStop(1, pt.color + '00');
-      ctx.fillStyle = grd;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 32, 0, Math.PI*2);
-      ctx.fill();
-    });
+  if(!canvas) return;
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=ZONE_W*dpr; canvas.height=ZONE_H*dpr;
+  canvas.style.width=ZONE_W+'px'; canvas.style.height=ZONE_H+'px';
+  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  ctx.fillStyle='#080E1C'; ctx.roundRect(0,0,ZONE_W,ZONE_H,10); ctx.fill();
+  if(pitches&&pitches.length>0) pitches.forEach(p=>{
+    const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
+    const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,32);
+    grd.addColorStop(0,pt.color+'AA'); grd.addColorStop(0.4,pt.color+'44'); grd.addColorStop(1,pt.color+'00');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(p.x,p.y,32,0,Math.PI*2); ctx.fill();
+  });
+  ctx.strokeStyle='rgba(0,200,150,.5)'; ctx.lineWidth=1.5; ctx.strokeRect(ZX,ZY,ZW,ZH);
+  ctx.strokeStyle='rgba(0,200,150,.18)'; ctx.lineWidth=.8;
+  const cw=ZW/3,ch=ZH/3;
+  for(let i=1;i<3;i++){
+    ctx.beginPath(); ctx.moveTo(ZX+i*cw,ZY); ctx.lineTo(ZX+i*cw,ZY+ZH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ZX,ZY+i*ch); ctx.lineTo(ZX+ZW,ZY+i*ch); ctx.stroke();
   }
-  ctx.strokeStyle = 'rgba(0,200,150,.5)';
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(ZX, ZY, ZW, ZH);
-  ctx.strokeStyle = 'rgba(0,200,150,.18)';
-  ctx.lineWidth = .8;
-  const cw = ZW/3, ch = ZH/3;
-  for (let i = 1; i < 3; i++) {
-    ctx.beginPath(); ctx.moveTo(ZX+i*cw, ZY); ctx.lineTo(ZX+i*cw, ZY+ZH); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(ZX, ZY+i*ch); ctx.lineTo(ZX+ZW, ZY+i*ch); ctx.stroke();
-  }
-  ctx.fillStyle = 'rgba(255,255,255,.06)';
-  ctx.beginPath();
-  const px2 = ZX + ZW/2, py2 = ZY + ZH + 50;
-  ctx.moveTo(px2-22, py2-12); ctx.lineTo(px2+22,py2-12); ctx.lineTo(px2+22,py2+2);
-  ctx.lineTo(px2,py2+16); ctx.lineTo(px2-22,py2+2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.06)';
+  const px=ZX+ZW/2,py=ZY+ZH+50;
+  ctx.beginPath(); ctx.moveTo(px-22,py-12); ctx.lineTo(px+22,py-12); ctx.lineTo(px+22,py+2);
+  ctx.lineTo(px,py+16); ctx.lineTo(px-22,py+2); ctx.closePath(); ctx.fill();
 }
 
 function handleZoneClick(e) {
-  if (!state.activePitcher) { showToast('Select a pitcher first'); return; }
-  const canvas = document.getElementById('zoneCanvas');
-  if (!canvas) return;
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = ZONE_W / rect.width;
-  const scaleY = ZONE_H / rect.height;
-  const ex = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-  const ey = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-  state.pendingPitch = {x: ex * scaleX, y: ey * scaleY, type: state.pitchType, vel: state.velocity, ts: Date.now()};
+  if(!state.activePitcher){showToast('Select a pitcher first');return;}
+  const canvas=document.getElementById('zoneCanvas');
+  if(!canvas) return;
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=ZONE_W/rect.width, scaleY=ZONE_H/rect.height;
+  const ex=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+  const ey=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+  state.pendingPitch={x:ex*scaleX,y:ey*scaleY,type:state.pitchType,vel:state.velocity,ts:Date.now()};
   render();
 }
 
 function confirmOutcome(outcome) {
-  if (!state.pendingPitch) return;
-  const p = state.pendingPitch;
-  const inZone = p.x >= ZX && p.x <= ZX+ZW && p.y >= ZY && p.y <= ZY+ZH;
-  let isStrike = false;
-  if (outcome === 'strike') isStrike = true;
-  else if (outcome === 'swm') { isStrike = true; p.swingMiss = true; }
-  else if (outcome === 'foul') { isStrike = state.strikes < 2; p.foul = true; }
-  else if (outcome === 'hit') { p.hit = true; }
-  else if (outcome === 'auto') isStrike = inZone;
-  p.result = outcome; p.inZone = inZone; p.isStrike = isStrike;
-  const sess = getCurrentSession(state.activePitcher);
-  const allTime = getSession(state.activePitcher);
-  sess.pitches.push(p);
-  allTime.allTime.push(p);
-  state.sessions[state.activePitcher] = allTime;
-  save();
-  if (isStrike) state.strikes++;
-  else if (outcome !== 'foul' && outcome !== 'hit') state.balls++;
+  if(!state.pendingPitch) return;
+  const p=state.pendingPitch;
+  const inZone=p.x>=ZX&&p.x<=ZX+ZW&&p.y>=ZY&&p.y<=ZY+ZH;
+  let isStrike=false;
+  if(outcome==='strike') isStrike=true;
+  else if(outcome==='swm'){isStrike=true;p.swingMiss=true;}
+  else if(outcome==='foul'){isStrike=state.strikes<2;p.foul=true;}
+  p.result=outcome; p.inZone=inZone; p.isStrike=isStrike;
+  const sess=getCurrentSession(state.activePitcher);
+  const allTime=getSession(state.activePitcher);
+  sess.pitches.push(p); allTime.allTime.push(p);
+  state.sessions[state.activePitcher]=allTime; save();
+  if(isStrike) state.strikes++;
+  else if(outcome!=='foul') state.balls++;
   state.pitches++;
-  let alert_msg = null;
-  if (state.strikes >= 3) { alert_msg = '⚡ STRIKEOUT!'; state.strikes = 0; state.balls = 0; }
-  else if (state.balls >= 4) { alert_msg = '🚶 WALK!'; state.strikes = 0; state.balls = 0; }
-  state.pendingPitch = null;
-  if (alert_msg) showToast(alert_msg, '#00C896');
+  let msg=null;
+  if(state.strikes>=3){msg='STRIKEOUT!';state.strikes=0;state.balls=0;}
+  else if(state.balls>=4){msg='WALK!';state.strikes=0;state.balls=0;}
+  state.pendingPitch=null;
+  if(msg) showToast(msg,'#00C896');
   render();
-  setTimeout(() => {
-    const zc = document.getElementById('zoneCanvas');
-    drawZoneCanvas(zc, getCurrentSession(state.activePitcher).pitches, true);
-  }, 50);
+  setTimeout(()=>{
+    const zc=document.getElementById('zoneCanvas');
+    drawZoneCanvas(zc,getCurrentSession(state.activePitcher).pitches,true);
+  },50);
 }
 
 function undoPitch() {
-  if (!state.activePitcher) return;
-  const sess = getCurrentSession(state.activePitcher);
-  const allTime = getSession(state.activePitcher);
-  if (!sess.pitches.length) return;
-  const last = sess.pitches.pop();
-  allTime.allTime.pop();
-  if (last.isStrike && !last.foul) state.strikes = Math.max(0, state.strikes-1);
-  else if (!last.isStrike && !last.foul && !last.hit) state.balls = Math.max(0, state.balls-1);
-  state.pitches = Math.max(0, state.pitches-1);
+  if(!state.activePitcher) return;
+  const sess=getCurrentSession(state.activePitcher);
+  const allTime=getSession(state.activePitcher);
+  if(!sess.pitches.length) return;
+  const last=sess.pitches.pop(); allTime.allTime.pop();
+  if(last.isStrike&&!last.foul) state.strikes=Math.max(0,state.strikes-1);
+  else if(!last.isStrike&&!last.foul) state.balls=Math.max(0,state.balls-1);
+  state.pitches=Math.max(0,state.pitches-1);
   save(); showToast('Pitch removed'); render();
-  setTimeout(() => {
-    const zc = document.getElementById('zoneCanvas');
-    drawZoneCanvas(zc, getCurrentSession(state.activePitcher).pitches, true);
-  }, 50);
+  setTimeout(()=>{drawZoneCanvas(document.getElementById('zoneCanvas'),getCurrentSession(state.activePitcher).pitches,true);},50);
 }
 
-function clearSession() {
-  if (!state.activePitcher) return;
-  if (!confirm('Clear current session for ' + state.activePitcher + '?')) return;
-  const s = getSession(state.activePitcher);
-  s.sessions.push({date: new Date().toLocaleDateString(), pitches:[]});
-  state.balls = 0; state.strikes = 0; state.pitches = 0;
-  save(); showToast('Session cleared'); render();
-  setTimeout(() => { drawZoneCanvas(document.getElementById('zoneCanvas'), [], false); }, 50);
+function clearPitches() {
+  if(!state.activePitcher) return;
+  if(!confirm('Clear all pitches for this session?')) return;
+  const s=getSession(state.activePitcher);
+  if(s.sessions.length) s.sessions[s.sessions.length-1].pitches=[];
+  s.allTime=s.sessions.flatMap(ss=>ss.pitches);
+  state.balls=0; state.strikes=0; state.pitches=0;
+  save(); showToast('Pitches cleared'); render();
+  setTimeout(()=>{drawZoneCanvas(document.getElementById('zoneCanvas'),[],false);},50);
+}
+
+function endSession() {
+  if(!state.activePitcher) return;
+  const sess=getCurrentSession(state.activePitcher);
+  if(!sess.pitches.length){showToast('No pitches this session');return;}
+  state.showEndSession=true;
+  state.endSessionNote='';
+  state.endSessionExpanded=false;
+  render();
+}
+
+function finalizeEndSession() {
+  const noteEl=document.getElementById('esNoteInp');
+  const note=noteEl?noteEl.value.trim():'';
+  const s=getSession(state.activePitcher);
+  if(s.sessions.length) s.sessions[s.sessions.length-1].note=note;
+  s.sessions.push({date:new Date().toLocaleDateString(),pitches:[],note:''});
+  state.balls=0; state.strikes=0; state.pitches=0;
+  state.showEndSession=false;
+  state.endSessionNote='';
+  save(); showToast('Session saved'); render();
+  setTimeout(()=>{drawZoneCanvas(document.getElementById('zoneCanvas'),[],false);},50);
 }
 
 function exportCSV() {
-  let csv = 'Pitcher,Session Date,#,Type,Velocity,X,Y,InZone,Result\n';
-  for (const pid in state.sessions) {
-    state.sessions[pid].sessions.forEach(sess => {
-      sess.pitches.forEach((p, i) => {
-        csv += `${pid},${sess.date},${i+1},${p.type},${p.vel||''},${p.x.toFixed(1)},${p.y.toFixed(1)},${p.inZone},${p.result}\n`;
+  let csv='Pitcher,Session Date,#,Type,Velocity,X,Y,InZone,Result\n';
+  for(const pid in state.sessions){
+    state.sessions[pid].sessions.forEach(sess=>{
+      sess.pitches.forEach((p,i)=>{
+        csv+=`${pid},${sess.date},${i+1},${p.type},${p.vel||''},${p.x.toFixed(1)},${p.y.toFixed(1)},${p.inZone},${p.result}\n`;
       });
     });
   }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-  a.download = 'bullpen_' + new Date().toISOString().slice(0,10) + '.csv';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='bullpen_'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 }
 
 function calcStats(pitches) {
-  if (!pitches || !pitches.length) return null;
-  const total = pitches.length;
-  const strikes = pitches.filter(p => p.isStrike).length;
-  const balls = pitches.filter(p => !p.isStrike && !p.foul && !p.hit).length;
-  const inZone = pitches.filter(p => p.inZone).length;
-  const swm = pitches.filter(p => p.swingMiss).length;
-  const vels = pitches.filter(p => p.vel && !isNaN(p.vel)).map(p => parseFloat(p.vel));
-  const avgVel = vels.length ? (vels.reduce((a,b)=>a+b,0)/vels.length).toFixed(1) : '--';
-  const maxVel = vels.length ? Math.max(...vels) : '--';
-  const byType = {};
-  PITCH_TYPES.forEach(pt => {
-    const pts = pitches.filter(p => p.type === pt.code);
-    if (pts.length) {
-      const ptVels = pts.filter(p => p.vel && !isNaN(p.vel)).map(p => parseFloat(p.vel));
-      byType[pt.code] = {
-        count: pts.length,
-        pct: ((pts.length/total)*100).toFixed(0),
-        strikes: pts.filter(p=>p.isStrike).length,
-        avgVel: ptVels.length ? (ptVels.reduce((a,b)=>a+b,0)/ptVels.length).toFixed(1) : '--',
-        name: pt.name, color: pt.color
-      };
+  if(!pitches||!pitches.length) return null;
+  const total=pitches.length;
+  const strikes=pitches.filter(p=>p.isStrike).length;
+  const balls=pitches.filter(p=>!p.isStrike&&!p.foul).length;
+  const inZone=pitches.filter(p=>p.inZone).length;
+  const swm=pitches.filter(p=>p.swingMiss).length;
+  const vels=pitches.filter(p=>p.vel&&!isNaN(p.vel)).map(p=>parseFloat(p.vel));
+  const avgVel=vels.length?(vels.reduce((a,b)=>a+b,0)/vels.length).toFixed(1):'--';
+  const maxVel=vels.length?Math.max(...vels):'--';
+  const byType={};
+  PITCH_TYPES.forEach(pt=>{
+    const pts=pitches.filter(p=>p.type===pt.code);
+    if(pts.length){
+      const pv=pts.filter(p=>p.vel&&!isNaN(p.vel)).map(p=>parseFloat(p.vel));
+      byType[pt.code]={count:pts.length,pct:((pts.length/total)*100).toFixed(0),
+        strikes:pts.filter(p=>p.isStrike).length,
+        avgVel:pv.length?(pv.reduce((a,b)=>a+b,0)/pv.length).toFixed(1):'--',
+        name:pt.name,color:pt.color};
     }
   });
-  return {
-    total, strikes, balls, inZone,
-    strikePct: ((strikes/total)*100).toFixed(1),
-    zonePct: ((inZone/total)*100).toFixed(1),
-    swmPct: total ? ((swm/total)*100).toFixed(1) : '0.0',
-    avgVel, maxVel, byType
-  };
+  return{total,strikes,balls,inZone,swm,
+    strikePct:((strikes/total)*100).toFixed(1),
+    zonePct:((inZone/total)*100).toFixed(1),
+    swmPct:((swm/total)*100).toFixed(1),
+    avgVel,maxVel,byType};
 }
 
-function getZoneNum(x, y) {
-  if (x < ZX || x > ZX+ZW || y < ZY || y > ZY+ZH) return '--';
-  const col = Math.floor((x - ZX) / (ZW/3));
-  const row = Math.floor((y - ZY) / (ZH/3));
-  return row * 3 + col + 1;
+function getZoneNum(x,y){
+  if(x<ZX||x>ZX+ZW||y<ZY||y>ZY+ZH) return '--';
+  return Math.floor((y-ZY)/(ZH/3))*3+Math.floor((x-ZX)/(ZW/3))+1;
 }
 
 function render() {
-  document.getElementById('root').innerHTML = buildHTML();
+  document.getElementById('root').innerHTML=buildHTML();
   attachEvents();
-  setTimeout(() => {
-    if (state.activeTab === 'zone') {
-      const zc = document.getElementById('zoneCanvas');
-      if (zc) drawZoneCanvas(zc, state.activePitcher ? getCurrentSession(state.activePitcher).pitches : [], true);
+  setTimeout(()=>{
+    if(state.activeTab==='zone'){
+      const zc=document.getElementById('zoneCanvas');
+      if(zc) drawZoneCanvas(zc,state.activePitcher?getCurrentSession(state.activePitcher).pitches:[],true);
     }
-    if (state.activeTab === 'heat') {
-      const hc = document.getElementById('heatCanvas');
-      if (hc) {
-        let pitches = [];
-        if (state.activePitcher) {
-          const s = getSession(state.activePitcher);
-          pitches = state.heatFilter === 'session' ? getCurrentSession(state.activePitcher).pitches : s.allTime;
-          if (state.heatPitchType !== 'ALL') pitches = pitches.filter(p => p.type === state.heatPitchType);
+    if(state.activeTab==='heat'){
+      const hc=document.getElementById('heatCanvas');
+      if(hc){
+        let pitches=[];
+        if(state.activePitcher){
+          const s=getSession(state.activePitcher);
+          pitches=state.heatFilter==='session'?getCurrentSession(state.activePitcher).pitches:s.allTime;
+          if(state.heatPitchType!=='ALL') pitches=pitches.filter(p=>p.type===state.heatPitchType);
         }
-        drawHeatCanvas(hc, pitches);
+        drawHeatCanvas(hc,pitches);
       }
     }
-  }, 30);
+  },30);
 }
 
 function buildHTML() {
-  const ap = state.activePitcher;
-  const sess = ap ? getCurrentSession(ap) : null;
-  const pitches = sess ? sess.pitches : [];
-  const stats = ap ? calcStats(pitches) : null;
+  const ap=state.activePitcher;
+  const sess=ap?getCurrentSession(ap):null;
+  const pitches=sess?sess.pitches:[];
+  const stats=ap?calcStats(pitches):null;
 
-  let html = `
+  let html=`
     <div class="hdr">
       <div class="hdr-title">BULLPEN <span>PRO</span></div>
       <div class="hdr-badge">MLB CALIBER</div>
@@ -494,7 +458,7 @@ function buildHTML() {
     <div class="pitcher-bar">
       <select class="pitcher-select" id="pitcherSel" onchange="selectPitcher(this.value)">
         <option value="">— Select Pitcher —</option>
-        ${state.pitchers.map(p => `<option value="${p.name}" ${ap===p.name?'selected':''}>${p.name} #${p.num||'—'}</option>`).join('')}
+        ${state.pitchers.map(p=>`<option value="${p.name}" ${ap===p.name?'selected':''}>${p.name} #${p.num||'—'}</option>`).join('')}
       </select>
       <button class="btn-sm btn-teal" onclick="state.showAddPitcher=true;render()">+ Add</button>
     </div>
@@ -502,7 +466,7 @@ function buildHTML() {
       <div class="count-seg"><div class="count-lbl">BALLS</div><div class="count-val cv-b">${state.balls}</div></div>
       <div class="count-seg"><div class="count-lbl">STRIKES</div><div class="count-val cv-s">${state.strikes}</div></div>
       <div class="count-seg"><div class="count-lbl">PITCHES</div><div class="count-val cv-p">${state.pitches}</div></div>
-      <div class="count-seg"><div class="count-lbl">LAST VEL</div><div class="count-val cv-v">${pitches.length && pitches[pitches.length-1].vel ? pitches[pitches.length-1].vel : '—'}</div></div>
+      <div class="count-seg"><div class="count-lbl">LAST VEL</div><div class="count-val cv-v">${pitches.length&&pitches[pitches.length-1].vel?pitches[pitches.length-1].vel:'—'}</div></div>
     </div>
     <div class="tabs">
       ${[['zone','⚾ ZONE'],['heat','🔥 HEAT'],['stats','📊 STATS'],['roster','👥 ROSTER']].map(([k,l])=>`
@@ -512,46 +476,49 @@ function buildHTML() {
     <div class="scroll">
   `;
 
-  if (state.activeTab === 'zone') html += buildZoneTab(ap, pitches, stats);
-  else if (state.activeTab === 'heat') html += buildHeatTab(ap);
-  else if (state.activeTab === 'stats') html += buildStatsTab(ap, pitches, stats);
-  else if (state.activeTab === 'roster') html += buildRosterTab();
+  if(state.activeTab==='zone') html+=buildZoneTab(ap);
+  else if(state.activeTab==='heat') html+=buildHeatTab(ap);
+  else if(state.activeTab==='stats') html+=buildStatsTab(ap,pitches,stats);
+  else if(state.activeTab==='roster') html+=buildRosterTab();
+  html+=`</div>`;
 
-  html += `</div>`;
-
-  if (state.activeTab === 'zone') {
-    html += `
+  if(state.activeTab==='zone'){
+    html+=`
       <div class="action-row">
         <button class="btn-undo" onclick="undoPitch()">↩ UNDO</button>
-        <button class="btn-clear" onclick="clearSession()">🗑 CLEAR</button>
-        <button class="btn-export" onclick="exportCSV()">⬇ CSV</button>
+        <button class="btn-clear" onclick="clearPitches()">CLEAR</button>
+        <button class="btn-end" onclick="endSession()">END SESSION</button>
       </div>`;
   }
 
-  if (state.toast) {
-    html += `<div class="toast" style="color:${state.toast.color};border-color:${state.toast.color}20">${state.toast.msg}</div>`;
+  if(state.toast){
+    html+=`<div class="toast" style="color:${state.toast.color};border-color:${state.toast.color}20">${state.toast.msg}</div>`;
   }
 
-  if (state.pendingPitch) {
-    const inZ = state.pendingPitch.x >= ZX && state.pendingPitch.x <= ZX+ZW && state.pendingPitch.y >= ZY && state.pendingPitch.y <= ZY+ZH;
-    html += `
+  if(state.pendingPitch){
+    const inZ=state.pendingPitch.x>=ZX&&state.pendingPitch.x<=ZX+ZW&&state.pendingPitch.y>=ZY&&state.pendingPitch.y<=ZY+ZH;
+    html+=`
       <div class="outcome-picker">
-        <div class="op-title">SELECT OUTCOME — Pitch ${state.pitches+1} ${inZ?'🟢 IN ZONE':'🔴 OFF PLATE'}</div>
+        <div class="op-title">PITCH ${state.pitches+1} — ${inZ?'IN ZONE':'OFF PLATE'}</div>
         <div class="op-grid">
-          <button class="op-btn" style="background:rgba(255,77,77,.12);border-color:#FF4D4D;color:#FF4D4D" onclick="confirmOutcome('strike')">⚡ STRIKE</button>
-          <button class="op-btn" style="background:rgba(74,158,255,.12);border-color:#4A9EFF;color:#4A9EFF" onclick="confirmOutcome('ball')">🔵 BALL</button>
-          <button class="op-btn" style="background:rgba(167,139,250,.12);border-color:#A78BFA;color:#A78BFA" onclick="confirmOutcome('swm')">🌀 SWING &amp; MISS</button>
-          <button class="op-btn" style="background:rgba(255,170,51,.12);border-color:#FFAA33;color:#FFAA33" onclick="confirmOutcome('foul')">↗ FOUL</button>
-          <button class="op-btn" style="background:rgba(74,222,128,.12);border-color:#4ADE80;color:#4ADE80" onclick="confirmOutcome('hit')">💥 HIT/OUT</button>
-          <button class="op-btn" style="background:rgba(0,200,150,.1);border-color:#00C896;color:#00C896" onclick="confirmOutcome('auto')">${inZ?'✅ AUTO (STR)':'✅ AUTO (BALL)'}</button>
+          <button class="op-btn" style="background:rgba(255,77,77,.12);border-color:#FF4D4D;color:#FF4D4D" onclick="confirmOutcome('strike')">STRIKE</button>
+          <button class="op-btn" style="background:rgba(74,158,255,.12);border-color:#4A9EFF;color:#4A9EFF" onclick="confirmOutcome('ball')">BALL</button>
+          <button class="op-btn" style="background:rgba(167,139,250,.12);border-color:#A78BFA;color:#A78BFA" onclick="confirmOutcome('swm')">SWING &amp; MISS</button>
+          <button class="op-btn" style="background:rgba(255,170,51,.12);border-color:#FFAA33;color:#FFAA33" onclick="confirmOutcome('foul')">FOUL</button>
         </div>
         <button class="op-cancel" onclick="state.pendingPitch=null;render()">Cancel</button>
       </div>`;
   }
 
-  if (state.showAddPitcher) {
-    html += `
-      <div class="popup">
+  if(state.showEndSession&&ap){
+    const sess2=getCurrentSession(ap);
+    const s=calcStats(sess2.pitches);
+    html+=buildEndSessionSheet(ap,sess2,s);
+  }
+
+  if(state.showAddPitcher){
+    html+=`
+      <div class="popup-overlay" onclick="if(event.target===this){state.showAddPitcher=false;state.newPitcherName='';render()}">
         <div class="popup-box">
           <div class="popup-title">Add Pitcher</div>
           <input class="popup-inp" id="newPitcherName" placeholder="Full name" value="${state.newPitcherName}" oninput="state.newPitcherName=this.value">
@@ -567,8 +534,66 @@ function buildHTML() {
   return html;
 }
 
+function buildEndSessionSheet(ap, sess, s) {
+  const fullStats = s ? `
+    <div class="stat-grid" style="margin-bottom:10px">
+      <div class="stat-card"><div class="stat-lbl">ZONE %</div><div class="stat-val" style="color:var(--blue)">${s.zonePct}%</div><div class="stat-sub">${s.inZone} in zone</div></div>
+      <div class="stat-card"><div class="stat-lbl">SWM %</div><div class="stat-val" style="color:var(--purple)">${s.swmPct}%</div><div class="stat-sub">Swing & miss</div></div>
+      <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${s.avgVel}</div><div class="stat-sub">MPH avg</div></div>
+      <div class="stat-card"><div class="stat-lbl">MAX VELO</div><div class="stat-val" style="color:var(--amber)">${s.maxVel}</div><div class="stat-sub">MPH top</div></div>
+    </div>
+    <div class="pitch-breakdown" style="margin-bottom:0">
+      <div class="pb-title">PITCH MIX</div>
+      ${Object.entries(s.byType).map(([code,d])=>`
+        <div class="pb-row">
+          <div class="pb-name" style="color:${d.color}">${d.name}</div>
+          <div class="pb-bar-wrap"><div class="pb-bar" style="width:${d.pct}%;background:${d.color}88"></div></div>
+          <div class="pb-stats">${d.pct}% · ${d.avgVel}mph</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  return `
+    <div class="popup-overlay">
+      <div class="popup-sheet">
+        <div class="popup-drag"></div>
+        <div class="popup-title">Session Complete</div>
+        <div class="popup-sub">${ap} · ${sess.date}</div>
+        <div class="es-hero">
+          <div class="es-count">${s?s.total:0}</div>
+          <div class="es-label">PITCHES THROWN</div>
+        </div>
+        <div class="es-quick">
+          <div class="es-stat">
+            <div class="es-stat-val" style="color:var(--red)">${s?s.strikes:0}</div>
+            <div class="es-stat-lbl">STRIKES</div>
+          </div>
+          <div class="es-stat">
+            <div class="es-stat-val" style="color:var(--blue)">${s?s.balls:0}</div>
+            <div class="es-stat-lbl">BALLS</div>
+          </div>
+          <div class="es-stat">
+            <div class="es-stat-val" style="color:var(--green)">${s?s.strikePct:0}%</div>
+            <div class="es-stat-lbl">STR%</div>
+          </div>
+        </div>
+        <button class="es-expand-btn ${state.endSessionExpanded?'open':''}" onclick="toggleEndExpand()">
+          <span>${state.endSessionExpanded?'Hide full stats':'Show full stats'}</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="es-full-stats ${state.endSessionExpanded?'open':''}">
+          ${fullStats}
+        </div>
+        <div class="es-note-section">
+          <div class="es-note-label"><span class="pen-icon">✏️</span> SESSION NOTES</div>
+          <textarea class="es-note-inp" id="esNoteInp" placeholder="How did it feel? Any notes on mechanics, pitch movement, fatigue…">${state.endSessionNote}</textarea>
+        </div>
+        <button class="es-done-btn" onclick="finalizeEndSession()">Save &amp; Start New Session</button>
+      </div>
+    </div>`;
+}
+
 function buildZoneTab(ap) {
-  if (!ap) return `
+  if(!ap) return `
     <div class="empty-state">
       <div class="empty-icon">⚾</div>
       <div class="empty-title">No Pitcher Selected</div>
@@ -582,17 +607,14 @@ function buildZoneTab(ap) {
       <div class="ctrl-row">
         <div class="ctrl-label">PITCH</div>
         <div class="pitch-type-grid">
-          ${PITCH_TYPES.map(pt => `
-            <button class="pt-btn ${pt.cls} ${state.pitchType===pt.code?'active':''}"
-              onclick="state.pitchType='${pt.code}';render()"
-              style="${state.pitchType===pt.code?`background:${pt.color}22;border-color:${pt.color};color:${pt.color}`:''}">
-              ${pt.code}
-            </button>`).join('')}
+          ${PITCH_TYPES.map(pt=>`
+            <button class="pt-btn" onclick="state.pitchType='${pt.code}';render()"
+              style="background:${state.pitchType===pt.code?pt.color+'22':'var(--card)'};border-color:${state.pitchType===pt.code?pt.color:'var(--border)'};color:${state.pitchType===pt.code?pt.color:'var(--muted)'}">${pt.code}</button>`).join('')}
         </div>
       </div>
       <div class="ctrl-row">
         <div class="ctrl-label">VEL</div>
-        <input class="vel-inp" id="velInp" type="number" min="40" max="105" placeholder="MPH"
+        <input class="vel-inp" id="velInp" type="number" min="40" max="105" placeholder="--"
           value="${state.velocity}" oninput="state.velocity=this.value">
         <span class="vel-unit">MPH</span>
         <div style="flex:1"></div>
@@ -605,7 +627,7 @@ function buildZoneTab(ap) {
 }
 
 function buildHeatTab(ap) {
-  const pitchTypes = ['ALL', ...PITCH_TYPES.map(p=>p.code)];
+  const pitchTypes=['ALL',...PITCH_TYPES.map(p=>p.code)];
   return `
     <div class="heat-section">
       <div class="heat-filters">
@@ -624,18 +646,19 @@ function buildHeatTab(ap) {
         <div class="legend-grad"></div>
         <span class="legend-lbl">HOT ZONE</span>
       </div>
-      ${!ap ? '<div class="empty-state" style="margin-top:12px"><div class="empty-sub">Select a pitcher to see their heat map</div></div>' : ''}
+      ${!ap?'<div class="empty-state" style="margin-top:12px"><div class="empty-sub">Select a pitcher to see their heat map</div></div>':''}
     </div>`;
 }
 
 function buildStatsTab(ap, pitches, stats) {
-  if (!ap || !stats || !pitches.length) return `
+  if(!ap||!stats||!pitches.length) return `
     <div class="empty-state">
       <div class="empty-icon">📊</div>
       <div class="empty-title">No Data Yet</div>
       <div class="empty-sub">Throw some pitches in the Zone tab to see stats here.</div>
     </div>`;
-  const allStats = calcStats(getSession(ap).allTime);
+  const allStats=calcStats(getSession(ap).allTime);
+  const pastSessions=getSession(ap).sessions.slice(0,-1).reverse().slice(0,5);
   return `
     <div class="stats-section">
       <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">THIS SESSION</div>
@@ -645,43 +668,54 @@ function buildStatsTab(ap, pitches, stats) {
         <div class="stat-card"><div class="stat-lbl">ZONE %</div><div class="stat-val" style="color:var(--blue)">${stats.zonePct}%</div><div class="stat-sub">${stats.inZone} in zone</div></div>
         <div class="stat-card"><div class="stat-lbl">SWM %</div><div class="stat-val" style="color:var(--purple)">${stats.swmPct}%</div><div class="stat-sub">Swing & miss</div></div>
         <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${stats.avgVel}</div><div class="stat-sub">MPH</div></div>
-        <div class="stat-card"><div class="stat-lbl">MAX VELO</div><div class="stat-val" style="color:var(--amber)">${stats.maxVel}</div><div class="stat-sub">MPH top speed</div></div>
+        <div class="stat-card"><div class="stat-lbl">MAX VELO</div><div class="stat-val" style="color:var(--amber)">${stats.maxVel}</div><div class="stat-sub">MPH top</div></div>
       </div>
       <div class="pitch-breakdown">
-        <div class="pb-title">PITCH MIX — SESSION</div>
-        ${Object.entries(stats.byType).map(([code, d]) => `
+        <div class="pb-title">PITCH MIX</div>
+        ${Object.entries(stats.byType).map(([code,d])=>`
           <div class="pb-row">
             <div class="pb-name" style="color:${d.color}">${d.name}</div>
             <div class="pb-bar-wrap"><div class="pb-bar" style="width:${d.pct}%;background:${d.color}88"></div></div>
-            <div class="pb-stats">${d.pct}% • ${d.avgVel}mph</div>
+            <div class="pb-stats">${d.pct}% · ${d.avgVel}mph</div>
           </div>`).join('')}
       </div>
-      ${allStats && getSession(ap).allTime.length > pitches.length ? `
-      <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;margin-top:4px">ALL TIME — ${getSession(ap).allTime.length} pitches</div>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="stat-lbl">STRIKE %</div><div class="stat-val" style="color:var(--teal)">${allStats.strikePct}%</div></div>
-        <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${allStats.avgVel}</div><div class="stat-sub">MPH all-time</div></div>
-      </div>` : ''}
+      ${allStats&&getSession(ap).allTime.length>pitches.length?`
+        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;margin-top:4px">ALL TIME — ${getSession(ap).allTime.length} pitches</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-lbl">STRIKE %</div><div class="stat-val" style="color:var(--teal)">${allStats.strikePct}%</div></div>
+          <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${allStats.avgVel}</div><div class="stat-sub">MPH all-time</div></div>
+        </div>`:''}
+      ${pastSessions.length?`
+        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;margin-top:4px">PAST SESSIONS</div>
+        <div class="session-history">
+          <div class="sh-header">DATE · PITCHES · STRIKE% · NOTES</div>
+          ${pastSessions.map(s=>{
+            const st=calcStats(s.pitches);
+            return `<div class="sh-item">
+              <div class="sh-date">${s.date}</div>
+              <div class="sh-stats">${st?`${st.total} pitches · ${st.strikePct}% strikes · ${st.avgVel} MPH avg`:'No data'}</div>
+              ${s.note?`<div class="sh-note">"${s.note}"</div>`:''}
+            </div>`;
+          }).join('')}
+        </div>`:''}
       <div class="pitch-log">
         <div class="pl-header">
           <span class="pl-num">#</span><span class="pl-type">TYPE</span><span class="pl-loc">ZONE</span><span class="pl-vel">VEL</span><span class="pl-result" style="text-align:right">RESULT</span>
         </div>
-        ${pitches.slice().reverse().slice(0,20).map((p, i) => {
-          const idx = pitches.length - i;
-          const pt = PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
-          let badge = p.swingMiss ? '<span class="badge badge-swm">SWM</span>'
-            : p.foul ? '<span class="badge badge-foul">FOUL</span>'
-            : p.isStrike ? '<span class="badge badge-str">STRIKE</span>'
-            : p.hit ? '<span class="badge" style="background:rgba(74,222,128,.15);color:#4ADE80">HIT</span>'
-            : '<span class="badge badge-bal">BALL</span>';
-          return `
-            <div class="pl-row">
-              <span class="pl-num">${idx}</span>
-              <span class="pl-type" style="color:${pt.color}">${pt.code}</span>
-              <span class="pl-loc">Z${getZoneNum(p.x,p.y)}</span>
-              <span class="pl-vel">${p.vel||'—'}</span>
-              <span class="pl-result">${badge}</span>
-            </div>`;
+        ${pitches.slice().reverse().slice(0,20).map((p,i)=>{
+          const idx=pitches.length-i;
+          const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
+          const badge=p.swingMiss?'<span class="badge badge-swm">SWM</span>'
+            :p.foul?'<span class="badge badge-foul">FOUL</span>'
+            :p.isStrike?'<span class="badge badge-str">STRIKE</span>'
+            :'<span class="badge badge-bal">BALL</span>';
+          return `<div class="pl-row">
+            <span class="pl-num">${idx}</span>
+            <span class="pl-type" style="color:${pt.color}">${pt.code}</span>
+            <span class="pl-loc">Z${getZoneNum(p.x,p.y)}</span>
+            <span class="pl-vel">${p.vel||'—'}</span>
+            <span class="pl-result">${badge}</span>
+          </div>`;
         }).join('')}
       </div>
     </div>`;
@@ -696,87 +730,86 @@ function buildRosterTab() {
       </div>
       <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">${state.pitchers.length} PITCHER${state.pitchers.length!==1?'S':''} ON ROSTER</div>
       <div class="roster-list">
-        ${state.pitchers.length === 0 ? `
+        ${state.pitchers.length===0?`
           <div class="empty-state">
             <div class="empty-icon">👥</div>
             <div class="empty-title">No Pitchers Yet</div>
             <div class="empty-sub">Add pitchers above to start tracking their bullpen sessions.</div>
-          </div>` :
-        state.pitchers.map((p, i) => {
-          const s = getSession(p.name);
-          const allT = s.allTime || [];
-          const stats = calcStats(allT);
-          const avColor = AVATAR_COLORS[i % AVATAR_COLORS.length];
-          const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-          return `
-            <div class="roster-item ${state.activePitcher===p.name?'active-p':''}" onclick="selectPitcher('${p.name}');state.activeTab='zone';render()">
-              <div class="roster-avatar" style="background:${avColor}22;color:${avColor}">${initials}</div>
-              <div class="roster-info">
-                <div class="roster-name">${p.name} <span style="color:var(--muted);font-size:12px;font-weight:400">#${p.num||'—'}</span></div>
-                <div class="roster-meta">${allT.length} pitches all-time${stats?` • ${stats.strikePct}% strikes • ${stats.avgVel} MPH avg`:' • No data'}</div>
-              </div>
-              <button class="roster-del" onclick="event.stopPropagation();deletePitcher('${p.name}')">×</button>
-            </div>`;
+          </div>`:
+        state.pitchers.map((p,i)=>{
+          const s=getSession(p.name);
+          const allT=s.allTime||[];
+          const st=calcStats(allT);
+          const avColor=AVATAR_COLORS[i%AVATAR_COLORS.length];
+          const initials=p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          return `<div class="roster-item ${state.activePitcher===p.name?'active-p':''}" onclick="selectPitcher('${p.name}');state.activeTab='zone';render()">
+            <div class="roster-avatar" style="background:${avColor}22;color:${avColor}">${initials}</div>
+            <div class="roster-info">
+              <div class="roster-name">${p.name} <span style="color:var(--muted);font-size:12px;font-weight:400">#${p.num||'—'}</span></div>
+              <div class="roster-meta">${allT.length} pitches · ${s.sessions.filter(ss=>ss.pitches.length).length} sessions${st?` · ${st.strikePct}% str · ${st.avgVel} MPH`:''}</div>
+            </div>
+            <button class="roster-del" onclick="event.stopPropagation();deletePitcher('${p.name}')">×</button>
+          </div>`;
         }).join('')}
       </div>
     </div>`;
 }
 
-window.selectPitcher = function(name) {
-  state.activePitcher = name || null;
-  state.balls = 0; state.strikes = 0; state.pitches = 0;
-  if (name) state.pitches = getCurrentSession(name).pitches.length;
+window.selectPitcher=function(name){
+  state.activePitcher=name||null;
+  state.balls=0;state.strikes=0;state.pitches=0;
+  if(name) state.pitches=getCurrentSession(name).pitches.length;
   render();
-  setTimeout(() => {
-    if (state.activeTab === 'zone') {
-      const zc = document.getElementById('zoneCanvas');
-      if (zc && state.activePitcher) drawZoneCanvas(zc, getCurrentSession(state.activePitcher).pitches, true);
+  setTimeout(()=>{
+    if(state.activeTab==='zone'){
+      const zc=document.getElementById('zoneCanvas');
+      if(zc&&state.activePitcher) drawZoneCanvas(zc,getCurrentSession(state.activePitcher).pitches,true);
     }
-  }, 50);
+  },50);
 };
-
-window.addPitcher = function() {
-  const name = state.newPitcherName.trim();
-  const num = document.getElementById('newPitcherNum')?.value?.trim() || '';
-  if (!name) return;
-  if (state.pitchers.find(p=>p.name===name)) { showToast('Pitcher already exists'); return; }
-  state.pitchers.push({name, num});
-  save();
-  state.showAddPitcher = false;
-  state.newPitcherName = '';
-  showToast('Added ' + name);
-  selectPitcher(name);
+window.addPitcher=function(){
+  const name=state.newPitcherName.trim();
+  const num=document.getElementById('newPitcherNum')?.value?.trim()||'';
+  if(!name) return;
+  if(state.pitchers.find(p=>p.name===name)){showToast('Pitcher already exists');return;}
+  state.pitchers.push({name,num});
+  save(); state.showAddPitcher=false; state.newPitcherName='';
+  showToast('Added '+name); selectPitcher(name);
 };
-
-window.quickAddPitcher = function() {
-  const inp = document.getElementById('quickAdd');
-  if (!inp || !inp.value.trim()) return;
-  const name = inp.value.trim();
-  if (state.pitchers.find(p=>p.name===name)) { showToast('Already exists'); return; }
-  state.pitchers.push({name, num:''});
-  save(); showToast('Added ' + name); render();
+window.quickAddPitcher=function(){
+  const inp=document.getElementById('quickAdd');
+  if(!inp||!inp.value.trim()) return;
+  const name=inp.value.trim();
+  if(state.pitchers.find(p=>p.name===name)){showToast('Already exists');return;}
+  state.pitchers.push({name,num:''}); save(); showToast('Added '+name); render();
 };
-
-window.deletePitcher = function(name) {
-  if (!confirm('Remove ' + name + ' from roster?')) return;
-  state.pitchers = state.pitchers.filter(p=>p.name!==name);
-  if (state.activePitcher===name) { state.activePitcher=null; state.balls=0;state.strikes=0;state.pitches=0; }
+window.deletePitcher=function(name){
+  if(!confirm('Remove '+name+' from roster?')) return;
+  state.pitchers=state.pitchers.filter(p=>p.name!==name);
+  if(state.activePitcher===name){state.activePitcher=null;state.balls=0;state.strikes=0;state.pitches=0;}
   save(); render();
 };
+window.toggleEndExpand=function(){
+  const noteEl=document.getElementById('esNoteInp');
+  if(noteEl) state.endSessionNote=noteEl.value;
+  state.endSessionExpanded=!state.endSessionExpanded;
+  render();
+};
+window.confirmOutcome=confirmOutcome;
+window.undoPitch=undoPitch;
+window.clearPitches=clearPitches;
+window.endSession=endSession;
+window.finalizeEndSession=finalizeEndSession;
+window.exportCSV=exportCSV;
 
-window.confirmOutcome = confirmOutcome;
-window.undoPitch = undoPitch;
-window.clearSession = clearSession;
-window.exportCSV = exportCSV;
-
-function attachEvents() {
-  const zc = document.getElementById('zoneCanvas');
-  if (zc) {
-    zc.addEventListener('click', handleZoneClick);
-    zc.addEventListener('touchstart', (e) => { e.preventDefault(); handleZoneClick(e); }, {passive:false});
+function attachEvents(){
+  const zc=document.getElementById('zoneCanvas');
+  if(zc){
+    zc.addEventListener('click',handleZoneClick);
+    zc.addEventListener('touchstart',(e)=>{e.preventDefault();handleZoneClick(e);},{passive:false});
   }
-  const vel = document.getElementById('velInp');
-  if (vel) vel.addEventListener('change', () => { state.velocity = vel.value; });
+  const vel=document.getElementById('velInp');
+  if(vel) vel.addEventListener('change',()=>{state.velocity=vel.value;});
 }
 
 render();
