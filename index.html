@@ -2,160 +2,279 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Bullpen Tracker Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chaser — Pitcher Development</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  :root{
-    --navy:#08101F;--panel:#0F1A2E;--card:#1A2640;--border:#253352;
-    --teal:#00C896;--teal-dim:#007A5A;--red:#FF4D4D;--red-dim:#8B1A1A;
-    --blue:#4A9EFF;--amber:#FFAA33;--purple:#A78BFA;--green:#4ADE80;
-    --text:#F0F4FF;--muted:#7B8DB0;--dim:#3A4A6B;
-  }
-  html,body{height:100%;background:var(--navy);color:var(--text);font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;overflow:hidden}
-  #root{height:100vh;display:flex;flex-direction:column;max-width:420px;margin:0 auto}
-  .hdr{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-  .hdr-title{font-size:15px;font-weight:700;letter-spacing:.5px}
-  .hdr-title span{color:var(--teal)}
-  .hdr-badge{background:var(--teal-dim);color:var(--teal);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.5px}
-  .pitcher-bar{background:var(--panel);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;align-items:center;flex-shrink:0}
-  .pitcher-select{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600;flex:1;outline:none;appearance:none;cursor:pointer}
-  .btn-sm{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap;font-weight:600}
-  .btn-sm:active{opacity:.7}
-  .btn-teal{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
-  .count-bar{background:var(--navy);display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
-  .count-seg{flex:1;padding:7px 4px;text-align:center;border-right:1px solid var(--border)}
-  .count-seg:last-child{border-right:none}
-  .count-lbl{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
-  .count-val{font-size:22px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;line-height:1.1}
-  .cv-b{color:var(--blue)}.cv-s{color:var(--red)}.cv-p{color:var(--teal)}.cv-v{color:var(--amber)}
-  .tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
-  .tab{flex:1;padding:10px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;letter-spacing:.3px;border-bottom:2px solid transparent}
-  .tab.active{color:var(--teal);border-bottom-color:var(--teal)}
-  .scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-  .scroll::-webkit-scrollbar{width:3px}
-  .scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-  .zone-wrap{padding:10px 12px 6px;display:flex;flex-direction:column;align-items:center}
-  #zoneCanvas{border-radius:10px;cursor:crosshair;touch-action:none;display:block;width:100%;max-width:340px}
-  .pitch-ctrl{padding:8px 12px;display:flex;flex-direction:column;gap:8px}
-  .ctrl-row{display:flex;gap:8px;align-items:center}
-  .ctrl-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;min-width:40px}
-  .pitch-type-grid{display:flex;gap:6px;flex-wrap:wrap;flex:1}
-  .pt-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
-  .vel-inp{background:var(--card);border:1px solid var(--border);color:var(--teal);border-radius:8px;padding:6px 10px;font-size:16px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;width:80px;outline:none;text-align:center}
-  .vel-unit{color:var(--muted);font-size:11px;font-weight:700}
-  .swing-tog{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
-  .tog-box{width:32px;height:18px;border-radius:9px;background:var(--card);border:1px solid var(--border);position:relative;transition:background .15s}
-  .tog-box.on{background:var(--teal-dim);border-color:var(--teal)}
-  .tog-dot{width:12px;height:12px;border-radius:50%;background:var(--muted);position:absolute;top:2px;left:2px;transition:left .15s,background .15s}
-  .tog-box.on .tog-dot{left:16px;background:var(--teal)}
-  .tog-lbl{font-size:11px;font-weight:700;color:var(--muted)}
-  .tog-box.on + .tog-lbl{color:var(--teal)}
-  .action-row{display:flex;gap:6px;padding:6px 12px;flex-shrink:0}
-  .action-row button{flex:1;padding:9px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;letter-spacing:.3px}
-  .btn-undo{background:rgba(255,170,51,.1);border-color:var(--amber);color:var(--amber)}
-  .btn-clear{background:rgba(255,77,77,.08);border-color:var(--red);color:var(--red)}
-  .btn-end{background:rgba(0,200,150,.08);border-color:var(--teal);color:var(--teal)}
-  .heat-section{padding:10px 12px}
-  .heat-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-  .hf-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer}
-  .hf-btn.active{border-color:var(--teal);color:var(--teal);background:rgba(0,200,150,.08)}
-  #heatCanvas{border-radius:10px;display:block;width:100%;max-width:340px;margin:0 auto}
-  .heat-legend{display:flex;align-items:center;gap:8px;margin-top:6px;justify-content:center}
-  .legend-grad{width:100px;height:8px;border-radius:4px;background:linear-gradient(to right,rgba(74,158,255,.2),rgba(255,77,77,.9))}
-  .legend-lbl{font-size:10px;color:var(--muted);font-weight:700}
-  .stats-section{padding:10px 12px}
-  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
-  .stat-lbl{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px}
-  .stat-val{font-size:21px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
-  .stat-sub{font-size:10px;color:var(--muted);margin-top:1px}
-  .pitch-breakdown{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px}
-  .pb-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
-  .pb-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-  .pb-name{font-size:11px;font-weight:700;min-width:58px}
-  .pb-bar-wrap{flex:1;height:6px;background:var(--navy);border-radius:3px;overflow:hidden}
-  .pb-bar{height:100%;border-radius:3px}
-  .pb-stats{font-size:10px;color:var(--muted);font-family:'SF Mono','Fira Mono',monospace;min-width:70px;text-align:right}
-  .pitch-log{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px}
-  .pl-header{display:flex;padding:7px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
-  .pl-row{display:flex;padding:6px 12px;border-bottom:1px solid var(--border);align-items:center;font-size:11px}
-  .pl-row:last-child{border-bottom:none}
-  .pl-num{min-width:28px;color:var(--muted);font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
-  .pl-type{min-width:58px;font-weight:700}
-  .pl-loc{min-width:50px;color:var(--muted);font-family:'SF Mono','Fira Mono',monospace;font-size:10px}
-  .pl-vel{min-width:46px;color:var(--amber);font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
-  .pl-result{flex:1;text-align:right}
-  .badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;letter-spacing:.5px}
-  .badge-str{background:rgba(255,77,77,.15);color:var(--red)}
-  .badge-bal{background:rgba(74,158,255,.15);color:var(--blue)}
-  .badge-swm{background:rgba(167,139,250,.15);color:var(--purple)}
-  .badge-foul{background:rgba(255,170,51,.15);color:var(--amber)}
-  .roster-section{padding:12px}
-  .roster-add{display:flex;gap:8px;margin-bottom:12px}
-  .roster-inp{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:13px;flex:1;outline:none}
-  .roster-inp:focus{border-color:var(--teal)}
-  .roster-inp::placeholder{color:var(--dim)}
-  .roster-list{display:flex;flex-direction:column;gap:6px}
-  .roster-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
-  .roster-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-  .roster-info{flex:1}
-  .roster-name{font-size:14px;font-weight:700}
-  .roster-meta{font-size:10px;color:var(--muted);margin-top:1px}
-  .roster-del{background:none;border:none;color:var(--red);cursor:pointer;padding:4px;font-size:18px;line-height:1}
-  .roster-item.active-p{border-color:var(--teal);background:rgba(0,200,150,.05)}
-  .session-history{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px}
-  .sh-header{padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
-  .sh-item{padding:10px 12px;border-bottom:1px solid var(--border)}
-  .sh-item:last-child{border-bottom:none}
-  .sh-date{font-size:10px;font-weight:700;color:var(--teal);margin-bottom:3px}
-  .sh-stats{font-size:10px;color:var(--muted);margin-bottom:4px;font-family:'SF Mono','Fira Mono',monospace}
-  .sh-note{font-size:11px;color:var(--text);font-style:italic;opacity:.8}
-  .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:flex-end;justify-content:center;z-index:100}
-  .popup-sheet{background:var(--panel);border:1px solid var(--border);border-radius:18px 18px 0 0;padding:20px 16px 32px;width:100%;max-width:420px;max-height:88vh;overflow-y:auto}
-  .popup-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;width:calc(100% - 40px);max-width:320px;margin:auto;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)}
-  .popup-drag{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
-  .popup-title{font-size:17px;font-weight:700;margin-bottom:4px}
-  .popup-sub{font-size:11px;color:var(--muted);margin-bottom:16px}
-  .popup-inp{background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-size:14px;width:100%;outline:none;margin-bottom:10px}
-  .popup-inp:focus{border-color:var(--teal)}
-  .popup-btns{display:flex;gap:8px;margin-top:4px}
-  .popup-btns button{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid}
-  .es-hero{text-align:center;padding:8px 0 16px}
-  .es-count{font-size:52px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;color:var(--teal);line-height:1}
-  .es-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
-  .es-quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
-  .es-stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center}
-  .es-stat-val{font-size:18px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
-  .es-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-top:2px}
-  .es-expand-btn{width:100%;padding:10px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:12px}
-  .es-expand-btn .arrow{display:inline-block;transition:transform .2s;font-size:14px}
-  .es-expand-btn.open .arrow{transform:rotate(180deg)}
-  .es-full-stats{display:none;margin-bottom:12px}
-  .es-full-stats.open{display:block}
-  .es-note-section{margin-top:4px}
-  .es-note-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
-  .pen-icon{font-size:13px}
-  .es-note-inp{background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 12px;font-size:13px;width:100%;outline:none;resize:none;font-family:inherit;line-height:1.5;min-height:80px}
-  .es-note-inp:focus{border-color:var(--teal)}
-  .es-note-inp::placeholder{color:var(--dim)}
-  .es-done-btn{width:100%;padding:12px;border-radius:10px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);font-size:14px;font-weight:700;cursor:pointer;margin-top:12px;letter-spacing:.3px}
-  .outcome-picker{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--panel);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:16px 14px 24px;z-index:50}
-  .op-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;text-align:center}
-  .op-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .op-btn{padding:13px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid;text-align:center;letter-spacing:.3px}
-  .op-cancel{margin-top:8px;width:100%;padding:10px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer}
-  .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:12px;font-weight:700;z-index:200;pointer-events:none;white-space:nowrap}
-  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;gap:8px;color:var(--muted);text-align:center}
-  .empty-icon{font-size:40px;margin-bottom:4px}
-  .empty-title{font-size:15px;font-weight:700;color:var(--text)}
-  .empty-sub{font-size:12px;line-height:1.5}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --navy:#07101E;--panel:#0E1929;--card:#182338;--border:#223050;
+  --teal:#00C896;--teal-dim:#00785A;--red:#FF4D4D;--red-dim:#8B1A1A;
+  --blue:#4A9EFF;--amber:#FFAA33;--purple:#A78BFA;--green:#4ADE80;
+  --orange:#FF7A3D;--text:#EEF2FF;--muted:#6B80A8;--dim:#2E3F5C;
+}
+html,body{height:100%;background:var(--navy);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;font-size:13px;overflow:hidden}
+#root{height:100vh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative}
+
+/* HEADER */
+.hdr{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.menu-btn{background:none;border:none;color:var(--text);cursor:pointer;padding:4px;display:flex;flex-direction:column;gap:4px}
+.menu-btn span{display:block;width:20px;height:2px;background:var(--text);border-radius:1px}
+.hdr-logo{font-size:18px;font-weight:800;letter-spacing:1px;color:var(--teal)}
+.hdr-logo em{color:var(--text);font-style:normal}
+.hdr-right{display:flex;gap:8px;align-items:center}
+.ai-btn{background:rgba(0,200,150,.1);border:1px solid var(--teal);color:var(--teal);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.5px}
+
+/* DROPDOWN MENU */
+.menu-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5)}
+.menu-drawer{position:fixed;top:0;left:0;bottom:0;width:260px;background:var(--panel);border-right:1px solid var(--border);z-index:201;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .25s ease}
+.menu-drawer.open{transform:translateX(0)}
+.menu-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.menu-logo-text{font-size:20px;font-weight:800;letter-spacing:1px;color:var(--teal)}
+.menu-logo-sub{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-top:2px}
+.menu-items{flex:1;overflow-y:auto;padding:8px 0}
+.menu-item{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;border-left:3px solid transparent;transition:background .15s}
+.menu-item:hover{background:rgba(255,255,255,.04)}
+.menu-item.active{background:rgba(0,200,150,.08);border-left-color:var(--teal)}
+.menu-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.menu-label{font-size:13px;font-weight:700}
+.menu-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.menu-divider{height:1px;background:var(--border);margin:6px 16px}
+
+/* PITCHER BAR */
+.pitcher-bar{background:var(--panel);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;align-items:center;flex-shrink:0}
+.pitcher-select{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600;flex:1;outline:none;appearance:none;cursor:pointer}
+.btn-sm{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap;font-weight:600}
+.btn-teal{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+
+/* COUNT BAR */
+.count-bar{background:var(--navy);display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.count-seg{flex:1;padding:7px 4px;text-align:center;border-right:1px solid var(--border)}
+.count-seg:last-child{border-right:none}
+.count-lbl{font-size:8px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.count-val{font-size:20px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;line-height:1.1}
+.cv-b{color:var(--blue)}.cv-s{color:var(--red)}.cv-p{color:var(--teal)}.cv-v{color:var(--amber)}
+
+/* TABS */
+.tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;letter-spacing:.3px;border-bottom:2px solid transparent}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{width:3px}
+.scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ZONE */
+.zone-wrap{padding:10px 12px 4px;display:flex;flex-direction:column;align-items:center}
+#zoneCanvas,#gameZoneCanvas{border-radius:10px;cursor:crosshair;touch-action:none;display:block;width:100%;max-width:340px}
+
+/* CONTROLS */
+.pitch-ctrl{padding:6px 12px 4px;display:flex;flex-direction:column;gap:7px}
+.ctrl-row{display:flex;gap:8px;align-items:center}
+.ctrl-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;min-width:38px}
+.pitch-type-grid{display:flex;gap:5px;flex-wrap:wrap;flex:1}
+.pt-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap}
+.vel-inp{background:var(--card);border:1px solid var(--border);color:var(--teal);border-radius:8px;padding:6px 10px;font-size:16px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;width:76px;outline:none;text-align:center}
+.vel-unit{color:var(--muted);font-size:11px;font-weight:700}
+
+.end-session-row{padding:5px 12px 8px}
+.btn-end-session{width:100%;padding:10px;border-radius:10px;background:rgba(0,200,150,.08);border:1px solid var(--teal);color:var(--teal);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.4px}
+
+/* ACTION ROW */
+.action-row{display:flex;gap:6px;padding:6px 12px;flex-shrink:0}
+.action-row button{flex:1;padding:9px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;letter-spacing:.3px}
+.btn-undo{background:rgba(255,170,51,.1);border-color:var(--amber);color:var(--amber)}
+.btn-clear{background:rgba(255,77,77,.08);border-color:var(--red);color:var(--red)}
+.btn-export{background:rgba(123,141,176,.08);border-color:var(--muted);color:var(--muted)}
+
+/* HEAT */
+.heat-section{padding:10px 12px}
+.heat-filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px}
+.hf-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer}
+.hf-btn.active{border-color:var(--teal);color:var(--teal);background:rgba(0,200,150,.08)}
+#heatCanvas{border-radius:10px;display:block;width:100%;max-width:340px;margin:0 auto}
+.legend-grad{width:90px;height:7px;border-radius:3px;background:linear-gradient(to right,rgba(74,158,255,.2),rgba(255,77,77,.9))}
+.legend-lbl{font-size:10px;color:var(--muted);font-weight:700}
+
+/* STATS */
+.stats-section{padding:10px 12px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 11px}
+.stat-lbl{font-size:8px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px}
+.stat-val{font-size:20px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.pitch-breakdown{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:7px}
+.pb-title{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px}
+.pb-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.pb-name{font-size:10px;font-weight:700;min-width:55px}
+.pb-bar-wrap{flex:1;height:5px;background:var(--navy);border-radius:3px;overflow:hidden}
+.pb-bar{height:100%;border-radius:3px}
+.pb-stats{font-size:9px;color:var(--muted);font-family:'SF Mono','Fira Mono',monospace;min-width:68px;text-align:right}
+.pitch-log{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.pl-header{display:flex;padding:6px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:8px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+.pl-row{display:flex;padding:5px 12px;border-bottom:1px solid var(--border);align-items:center;font-size:10px}
+.pl-row:last-child{border-bottom:none}
+.pl-num{min-width:26px;color:var(--muted);font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+.pl-type{min-width:52px;font-weight:700}
+.pl-loc{min-width:44px;color:var(--muted);font-family:'SF Mono','Fira Mono',monospace;font-size:9px}
+.pl-vel{min-width:42px;color:var(--amber);font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+.pl-result{flex:1;text-align:right}
+.badge{font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;letter-spacing:.5px}
+.badge-str{background:rgba(255,77,77,.15);color:var(--red)}
+.badge-bal{background:rgba(74,158,255,.15);color:var(--blue)}
+.badge-swm{background:rgba(167,139,250,.15);color:var(--purple)}
+.badge-foul{background:rgba(255,170,51,.15);color:var(--amber)}
+.badge-k{background:rgba(255,77,77,.2);color:var(--red)}
+.badge-bb{background:rgba(74,158,255,.2);color:var(--blue)}
+
+/* ROSTER */
+.roster-section{padding:12px}
+.roster-add{display:flex;gap:8px;margin-bottom:12px}
+.roster-inp{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:13px;flex:1;outline:none}
+.roster-inp:focus{border-color:var(--teal)}
+.roster-inp::placeholder{color:var(--dim)}
+.roster-list{display:flex;flex-direction:column;gap:6px}
+.roster-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.roster-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.roster-info{flex:1}
+.roster-name{font-size:14px;font-weight:700}
+.roster-meta{font-size:10px;color:var(--muted);margin-top:1px}
+.roster-del{background:none;border:none;color:var(--red);cursor:pointer;padding:4px;font-size:18px;line-height:1}
+.roster-item.active-p{border-color:var(--teal);background:rgba(0,200,150,.05)}
+.session-history{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px}
+.sh-header{padding:7px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:8px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+.sh-item{padding:9px 12px;border-bottom:1px solid var(--border)}
+.sh-item:last-child{border-bottom:none}
+.sh-date{font-size:10px;font-weight:700;color:var(--teal);margin-bottom:2px}
+.sh-stats{font-size:10px;color:var(--muted);margin-bottom:3px;font-family:'SF Mono','Fira Mono',monospace}
+.sh-note{font-size:11px;color:var(--text);font-style:italic;opacity:.8}
+
+/* CONTENT PAGES (arm care, strength, throwing, gameday) */
+.content-page{padding:12px}
+.content-hero{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;text-align:center}
+.content-hero-title{font-size:17px;font-weight:800;letter-spacing:.5px;margin-bottom:4px}
+.content-hero-sub{font-size:11px;color:var(--muted);line-height:1.5}
+.section-label{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;margin-top:12px}
+.exercise-card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.exercise-header{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.exercise-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.exercise-info{flex:1}
+.exercise-name{font-size:13px;font-weight:700}
+.exercise-meta{font-size:10px;color:var(--muted);margin-top:1px}
+.exercise-chevron{color:var(--muted);font-size:16px;transition:transform .2s}
+.exercise-chevron.open{transform:rotate(180deg)}
+.exercise-body{display:none;padding:0 14px 12px;border-top:1px solid var(--border)}
+.exercise-body.open{display:block}
+.exercise-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px;margin-bottom:10px}
+.video-btn{display:flex;align-items:center;gap:8px;background:rgba(74,158,255,.1);border:1px solid rgba(74,158,255,.3);border-radius:8px;padding:8px 12px;cursor:pointer;color:var(--blue);font-size:11px;font-weight:700;text-decoration:none;width:100%}
+.video-btn-icon{width:28px;height:28px;border-radius:6px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+
+/* STRENGTH SUBMENU */
+.strength-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.strength-cat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer}
+.strength-cat:hover{border-color:var(--teal);background:rgba(0,200,150,.05)}
+.strength-cat-icon{font-size:24px;margin-bottom:6px}
+.strength-cat-name{font-size:12px;font-weight:700}
+.strength-cat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;padding:0;margin-bottom:12px}
+
+/* THROWING PROGRAM */
+.week-card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.week-header{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.week-badge{background:var(--teal-dim);color:var(--teal);font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.5px;white-space:nowrap}
+.week-title{font-size:13px;font-weight:700;flex:1}
+.week-body{display:none;border-top:1px solid var(--border);padding:12px 14px}
+.week-body.open{display:block}
+.day-row{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.day-label{font-size:9px;font-weight:700;color:var(--teal);min-width:30px;padding-top:1px}
+.day-desc{font-size:11px;color:var(--muted);line-height:1.5}
+
+/* GAMEDAY */
+.phase-card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.phase-header{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.phase-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.phase-title{font-size:13px;font-weight:700;flex:1}
+.phase-body{display:none;border-top:1px solid var(--border);padding:12px 14px}
+.phase-body.open{display:block}
+.routine-step{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.step-num{width:20px;height:20px;border-radius:50%;background:var(--teal-dim);color:var(--teal);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-text{font-size:12px;color:var(--muted);line-height:1.5;flex:1}
+.step-title{font-weight:700;color:var(--text);display:block;margin-bottom:1px}
+
+/* POPUPS */
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:flex-end;justify-content:center;z-index:100}
+.popup-sheet{background:var(--panel);border:1px solid var(--border);border-radius:18px 18px 0 0;padding:18px 16px 30px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto}
+.popup-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;width:calc(100% - 40px);max-width:320px;margin:auto;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:102}
+.popup-drag{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.popup-title{font-size:17px;font-weight:700;margin-bottom:4px}
+.popup-sub{font-size:11px;color:var(--muted);margin-bottom:14px}
+.popup-inp{background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-size:14px;width:100%;outline:none;margin-bottom:10px}
+.popup-inp:focus{border-color:var(--teal)}
+.popup-btns{display:flex;gap:8px;margin-top:4px}
+.popup-btns button{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid}
+
+/* END SESSION SHEET */
+.es-hero{text-align:center;padding:6px 0 14px}
+.es-count{font-size:50px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;color:var(--teal);line-height:1}
+.es-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+.es-quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:14px}
+.es-stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 5px;text-align:center}
+.es-stat-val{font-size:17px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+.es-stat-lbl{font-size:8px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-top:2px}
+.es-expand-btn{width:100%;padding:9px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:11px}
+.es-full-stats{display:none;margin-bottom:11px}
+.es-full-stats.open{display:block}
+.es-note-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.es-note-inp{background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 12px;font-size:13px;width:100%;outline:none;resize:none;font-family:inherit;line-height:1.5;min-height:75px}
+.es-note-inp:focus{border-color:var(--teal)}
+.es-note-inp::placeholder{color:var(--dim)}
+.es-done-btn{width:100%;padding:11px;border-radius:10px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);font-size:14px;font-weight:700;cursor:pointer;margin-top:11px}
+
+/* OUTCOME PICKER */
+.outcome-picker{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--panel);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:14px 14px 22px;z-index:50}
+.op-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;text-align:center}
+.op-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.op-btn{padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid;text-align:center;letter-spacing:.3px}
+.op-cancel{margin-top:7px;width:100%;padding:9px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer}
+
+/* AI CHAT */
+.ai-page{display:flex;flex-direction:column;height:100%}
+.ai-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.ai-msg{max-width:88%;padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.55}
+.ai-msg.user{background:var(--teal-dim);color:var(--text);align-self:flex-end;border-bottom-right-radius:3px}
+.ai-msg.ai{background:var(--card);border:1px solid var(--border);color:var(--text);align-self:flex-start;border-bottom-left-radius:3px}
+.ai-msg.thinking{color:var(--muted);font-style:italic}
+.ai-input-row{padding:10px 12px;background:var(--panel);border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.ai-inp{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:9px 14px;font-size:13px;outline:none;font-family:inherit}
+.ai-inp:focus{border-color:var(--teal)}
+.ai-inp::placeholder{color:var(--muted)}
+.ai-send{background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:20px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer}
+
+/* TOAST */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 15px;font-size:12px;font-weight:700;z-index:300;pointer-events:none;white-space:nowrap}
+
+/* EMPTY */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;gap:8px;color:var(--muted);text-align:center}
+.empty-icon{font-size:38px;margin-bottom:4px}
+.empty-title{font-size:15px;font-weight:700;color:var(--text)}
+.empty-sub{font-size:12px;line-height:1.5}
+
+/* PAGE WRAPPER for non-bullpen pages */
+.full-page{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
+.full-page::-webkit-scrollbar{width:3px}
+.full-page::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.page-hero{background:linear-gradient(135deg,var(--panel) 0%,var(--card) 100%);border-bottom:1px solid var(--border);padding:16px 14px 14px;flex-shrink:0}
+.page-hero-label{font-size:9px;font-weight:700;color:var(--teal);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px}
+.page-hero-title{font-size:20px;font-weight:800;letter-spacing:.3px;margin-bottom:4px}
+.page-hero-sub{font-size:11px;color:var(--muted);line-height:1.5}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script>
-const PITCH_TYPES = [
+const PITCH_TYPES=[
   {code:'FB',name:'4-Seam',color:'#FF4D4D'},
   {code:'SI',name:'Sinker',color:'#FFB347'},
   {code:'CU',name:'Curveball',color:'#7EB5FF'},
@@ -163,218 +282,370 @@ const PITCH_TYPES = [
   {code:'SL',name:'Slider',color:'#DA70D6'},
   {code:'SP',name:'Splitter',color:'#F0E68C'},
   {code:'KN',name:'Knuckle',color:'#C0C0C0'},
+  {code:'?',name:'Unknown',color:'#94A3B8'},
 ];
-const AVATAR_COLORS = ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#F4A460','#87CEEB'];
+const GAME_PITCH_TYPES=[...PITCH_TYPES];
+const AVATAR_COLORS=['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#F4A460','#87CEEB'];
 
-let state = {
-  pitchers: JSON.parse(localStorage.getItem('bp_pitchers') || '[]'),
-  sessions: JSON.parse(localStorage.getItem('bp_sessions') || '{}'),
-  activePitcher: null,
-  activeTab: 'zone',
-  pitchType: 'FB',
-  velocity: '',
-  swingMiss: false,
-  balls: 0, strikes: 0, pitches: 0,
-  pendingPitch: null,
-  heatFilter: 'session',
-  heatPitchType: 'ALL',
-  showAddPitcher: false,
-  newPitcherName: '',
-  showEndSession: false,
-  endSessionNote: '',
-  endSessionExpanded: false,
-  toast: null, toastTimer: null,
+const MENU_ITEMS=[
+  {id:'bullpen',icon:'⚾',label:'Bullpen',sub:'Track throwing sessions',color:'#00C896'},
+  {id:'game',icon:'🏟️',label:'Game Tracker',sub:'Live game pitch tracking',color:'#4A9EFF'},
+  {id:'armcare',icon:'💪',label:'Arm Care',sub:'Post-bullpen recovery',color:'#FF7A3D'},
+  {id:'strength',icon:'🏋️',label:'Strength Training',sub:'MLB pitcher workouts',color:'#A78BFA'},
+  {id:'throwing',icon:'🎯',label:'Throwing Program',sub:'Build arm strength',color:'#FFAA33'},
+  {id:'gameday',icon:'🌅',label:'Game Day Routine',sub:'Pre & post game',color:'#4ADE80'},
+  {id:'ai',icon:'🤖',label:'Ask AI Coach',sub:'Get instant answers',color:'#FF4D4D'},
+];
+
+const ARM_CARE=[
+  {name:'Arm Circles',sets:'2 sets × 20 reps',icon:'🔄',desc:'Stand tall, extend arms out. Small to large circles forward 10 reps, then reverse. Keeps shoulder joint mobile and warm. Critical for post-outing recovery.',url:'https://www.youtube.com/results?search_query=arm+circles+baseball+pitcher'},
+  {name:'Band Pull-Aparts',sets:'3 sets × 15 reps',icon:'↔️',desc:'Hold a light resistance band in front at chest height, arms straight. Pull apart squeezing shoulder blades together. Targets rear delts and rotator cuff stabilizers — essential for every pitcher.',url:'https://www.youtube.com/results?search_query=band+pull+aparts+pitcher+arm+care'},
+  {name:'External Rotation w/ Band',sets:'3 sets × 12 reps each arm',icon:'🔁',desc:'Anchor band at elbow height. Elbow at 90°, rotate arm outward against resistance. The #1 rotator cuff exercise for pitchers. Targets infraspinatus and teres minor.',url:'https://www.youtube.com/results?search_query=external+rotation+band+pitcher'},
+  {name:'W-T-Y Raises',sets:'2 sets × 10 reps each position',icon:'✈️',desc:'Lie face down or stand bent over. Form W, T, and Y shapes with your arms using light weights or no weight. Activates all three portions of the lower trapezius and posterior shoulder.',url:'https://www.youtube.com/results?search_query=WTY+raises+pitcher+shoulder'},
+  {name:'Sleeper Stretch',sets:'3 × 30 sec holds each side',icon:'😴',desc:'Lie on your throwing side, arm at 90°. Use your other hand to gently push your forearm toward the floor. Stretches the posterior capsule — directly prevents arm injuries in pitchers.',url:'https://www.youtube.com/results?search_query=sleeper+stretch+pitcher'},
+  {name:'Cross-Body Stretch',sets:'3 × 30 sec each side',icon:'🤸',desc:'Pull your throwing arm across your chest with your other arm, keeping it at shoulder height. Stretches the posterior shoulder and reduces impingement risk.',url:'https://www.youtube.com/results?search_query=cross+body+shoulder+stretch+pitcher'},
+  {name:'Forearm Flexor Stretch',sets:'2 × 30 sec each',icon:'🖐️',desc:'Extend arm forward, palm up. Use other hand to gently pull fingers back. Reduces risk of UCL stress and elbow inflammation — especially important for curveball pitchers.',url:'https://www.youtube.com/results?search_query=forearm+stretch+pitcher+elbow'},
+  {name:'Ice / Contrast Therapy',sets:'15 min ice, then 5 min heat',icon:'🧊',desc:'After any outing of 30+ pitches, ice the shoulder and elbow for 15 min. Reduces inflammation. Some MLB staffs use contrast (alternating heat/ice) to accelerate recovery.',url:'https://www.youtube.com/results?search_query=icing+arm+pitcher+recovery'},
+];
+
+const STRENGTH_CATS={
+  upper:[
+    {name:'Dumbbell Row',sets:'4×10 each side',icon:'💪',desc:'Brace one hand and knee on bench. Row dumbbell to hip, leading with elbow. Builds lat strength critical for deceleration phase of pitching. Do NOT rush — control the eccentric.',url:'https://www.youtube.com/results?search_query=dumbbell+row+pitcher+strength'},
+    {name:'Push-Up Variations',sets:'3×15 (standard), 3×10 (archer)',icon:'🤲',desc:'Standard push-ups for foundation, then progress to archer push-ups (lean to one side). Builds serratus anterior, which stabilizes the shoulder blade during the arm path.',url:'https://www.youtube.com/results?search_query=archer+push+up+pitcher'},
+    {name:'Face Pulls',sets:'4×15',icon:'🎯',desc:'Using cable or band at face height, pull toward forehead with elbows high. Directly targets posterior deltoid and external rotators. MLB pitchers do these every single day.',url:'https://www.youtube.com/results?search_query=face+pulls+pitcher+shoulder+health'},
+    {name:'Landmine Press',sets:'3×10 each side',icon:'📐',desc:'One-arm press on an angled barbell from shoulder height. Mimics the arm path pattern of pitching more than any other press. Activates serratus and stabilizers simultaneously.',url:'https://www.youtube.com/results?search_query=landmine+press+baseball+pitcher'},
+    {name:'Chin-Ups',sets:'4×6-8',icon:'⬆️',desc:'Full dead hang chin-ups build lat and bicep strength for the deceleration phase. More sport-specific than lat pulldown. Work up to sets of 10 for elite-level strength.',url:'https://www.youtube.com/results?search_query=chin+ups+baseball+pitcher+training'},
+    {name:'Rotator Cuff Circuit',sets:'3 rounds, all exercises',icon:'🔄',desc:'Full circuit: ER, IR, scaption, side-lying ER, prone T-raises. Light weight, perfect form. Done 3x/week keeps pitchers healthy all season. Non-negotiable.',url:'https://www.youtube.com/results?search_query=rotator+cuff+circuit+baseball+pitcher'},
+  ],
+  lower:[
+    {name:'Romanian Deadlift',sets:'4×8',icon:'🏋️',desc:'Hip hinge with slight knee bend, push hips back, lower bar along legs. Greatest posterior chain builder for pitchers. Lower half drives 50%+ of pitch velocity.',url:'https://www.youtube.com/results?search_query=romanian+deadlift+baseball+pitcher'},
+    {name:'Bulgarian Split Squat',sets:'3×10 each leg',icon:'🦵',desc:'Rear foot elevated on bench, lunge down until knee nearly touches. Destroys the glutes and quads unilaterally — critical for drive leg power and landing leg stability.',url:'https://www.youtube.com/results?search_query=bulgarian+split+squat+pitcher'},
+    {name:'Trap Bar Deadlift',sets:'4×6 (heavy)',icon:'⚡',desc:'Most powerful total-lower-body movement for pitchers. Neutral grip, chest up, drive through the floor. Studies show highest correlation to pitch velocity of any lift.',url:'https://www.youtube.com/results?search_query=trap+bar+deadlift+baseball+velocity'},
+    {name:'Hip Thrust',sets:'3×12',icon:'🍑',desc:'Shoulders on bench, drive hips up squeezing glutes at top. Glutes are the primary power source in the pitching motion. Essential for late-stage drive mechanics.',url:'https://www.youtube.com/results?search_query=hip+thrust+baseball+pitcher+training'},
+    {name:'Lateral Band Walk',sets:'3×20 steps each direction',icon:'↔️',desc:'Light band around ankles, slight squat position, step laterally with control. Activates hip abductors needed for landing leg stability and injury prevention.',url:'https://www.youtube.com/results?search_query=lateral+band+walk+pitcher+hip'},
+  ],
+  speed:[
+    {name:'Med Ball Rotational Throw',sets:'4×6 each side',icon:'💥',desc:'Load into hip, violent rotation, throw med ball into wall. Best power transfer exercise for pitchers — trains the exact kinetic chain used in throwing. 6-12 lb ball.',url:'https://www.youtube.com/results?search_query=med+ball+rotational+throw+pitcher'},
+    {name:'Box Jump',sets:'4×5',icon:'⬆️',desc:'Full effort explosive jump onto box, step down (never jump down). Trains rate of force development in the lower half. Do before lifting, never fatigued.',url:'https://www.youtube.com/results?search_query=box+jump+baseball+pitcher+explosiveness'},
+    {name:'Broad Jump',sets:'4×5',icon:'↗️',desc:'Squat down, swing arms, jump as far forward as possible. Linear power development for the drive phase of pitching. Measures and builds stride explosiveness.',url:'https://www.youtube.com/results?search_query=broad+jump+baseball+pitching+power'},
+    {name:'Sprint Acceleration',sets:'6×30 yards',icon:'🏃',desc:'Full sprint 30 yards from dead stop. Pitchers with higher sprint speed have higher pitch velocity — they are correlated. Improves fast-twitch fiber recruitment.',url:'https://www.youtube.com/results?search_query=sprint+training+baseball+pitcher+speed'},
+    {name:'Lateral Bound',sets:'3×8 each direction',icon:'↔️',desc:'Single-leg explosive lateral hop, stick landing on opposite foot. Trains the frontal-plane explosiveness used in the stride phase. Progress to consecutive bounds.',url:'https://www.youtube.com/results?search_query=lateral+bound+baseball+pitcher+training'},
+  ],
+  band:[
+    {name:'Full Arm Care Band Circuit',sets:'Daily × 15 reps each',icon:'🔄',desc:'Complete circuit: pull-aparts, ER, IR, W raise, T raise, Y raise, diagonal patterns. Do this EVERY day you throw and every off day. Takes 8 minutes. Prevents most pitcher injuries.',url:'https://www.youtube.com/results?search_query=pitcher+band+arm+care+circuit+daily'},
+    {name:'Internal/External Rotation',sets:'3×15 each direction',icon:'🔁',desc:'ER: rotate out against resistance. IR: rotate in against resistance. Work both directions equally to maintain rotator cuff balance. Never skip IR — most programs neglect it.',url:'https://www.youtube.com/results?search_query=internal+external+rotation+band+pitcher'},
+    {name:'Diagonal Patterns (PNF)',sets:'3×12 each direction',icon:'✖️',desc:'D1 and D2 diagonal patterns with band. Mimics throwing mechanics across all planes. PNF patterns are used by every MLB strength staff to train the full shoulder complex.',url:'https://www.youtube.com/results?search_query=PNF+diagonal+band+pitcher+shoulder'},
+    {name:'Hip Flexor Band Walk',sets:'3×20 steps',icon:'🦵',desc:'Band around ankles or above knees. March forward with high knees against resistance. Builds hip flexor strength used in the leg lift phase of the pitching windup.',url:'https://www.youtube.com/results?search_query=hip+flexor+band+walk+pitcher'},
+    {name:'Monster Walks',sets:'3×20 each direction',icon:'👾',desc:'Band above knees, slight squat, walk forward/backward/laterally. Activates glute medius which is critical for landing stability. Often done as a warm-up before every bullpen.',url:'https://www.youtube.com/results?search_query=monster+walks+band+baseball+pitcher'},
+  ],
+  mobility:[
+    {name:'Hip 90/90 Stretch',sets:'3×60 sec each side',icon:'🧘',desc:'Sit on floor, both knees at 90°. Rotate between internal and external hip positions. Pitchers need elite hip mobility to generate lower-half rotation without compensation.',url:'https://www.youtube.com/results?search_query=90+90+hip+stretch+baseball+pitcher'},
+    {name:'Thoracic Rotation',sets:'3×10 each side',icon:'🌀',desc:'Side-lying or seated, rotate upper back open with arm. Thoracic mobility is the #1 limiting factor in arm path for most youth pitchers. Do every single day.',url:'https://www.youtube.com/results?search_query=thoracic+rotation+pitcher+mobility'},
+    {name:'Ankle Dorsiflexion',sets:'2×15 each ankle',icon:'🦶',desc:'Standing facing wall, knee bent over foot, press knee forward keeping heel down. Landing leg ankle mobility directly affects stride length and front leg bracing.',url:'https://www.youtube.com/results?search_query=ankle+dorsiflexion+pitcher+landing+leg'},
+    {name:'Hip Flexor Lunge Stretch',sets:'3×45 sec each side',icon:'🤸',desc:'Kneeling lunge, push hips forward, reach arm overhead and lean away. Opens the hip flexor on the drive leg, which allows full hip extension during push-off.',url:'https://www.youtube.com/results?search_query=hip+flexor+stretch+pitcher+lunge'},
+    {name:'Lat Stretch / Child\'s Pose',sets:'3×30 sec',icon:'🙇',desc:'Arms extended on floor, sit back toward heels. Stretches the lat which is the largest muscle involved in deceleration. Tight lats restrict arm path and can cause shoulder issues.',url:'https://www.youtube.com/results?search_query=lat+stretch+pitcher+child+pose'},
+    {name:'Wrist Circles & Extensions',sets:'2×20 reps each',icon:'🖐️',desc:'Full wrist circles, then extend and flex wrist with opposite hand assistance. Maintains the wrist flexibility and strength needed for backspin and offspeed movement.',url:'https://www.youtube.com/results?search_query=wrist+exercises+pitcher+baseball'},
+  ],
 };
 
-function save() {
-  localStorage.setItem('bp_pitchers', JSON.stringify(state.pitchers));
-  localStorage.setItem('bp_sessions', JSON.stringify(state.sessions));
-}
+const THROWING_PROGRAM=[
+  {week:'Week 1–2',title:'Foundation — Easy Toss',days:[
+    {day:'Mon',desc:'15 min easy catch, 45-60 ft. No effort. Focus on arm path and loose wrist snap. Max 30 pitches.'},
+    {day:'Tue',desc:'Rest. Band arm care circuit only.'},
+    {day:'Wed',desc:'15 min toss, 45-60 ft. Add slight intent on 5-10 throws. Monitor elbow and shoulder.'},
+    {day:'Thu',desc:'Rest. Light stretch and mobility work.'},
+    {day:'Fri',desc:'20 min toss, max 60 ft. Finish with 5-10 throws at 70% intent.'},
+    {day:'Sat',desc:'Rest or light activity.'},
+    {day:'Sun',desc:'Rest. Ice if any soreness present.'},
+  ]},
+  {week:'Week 3–4',title:'Building Distance — 75 ft',days:[
+    {day:'Mon',desc:'Warm up at 45 ft × 10 throws. Advance to 75 ft × 20 throws at 70-75% effort. Arm care after.'},
+    {day:'Tue',desc:'Rest. Band work only.'},
+    {day:'Wed',desc:'45 ft warm-up × 10. 75 ft × 25 throws at 75%. First bullpen of 20 pitches flat-ground.'},
+    {day:'Thu',desc:'Rest. Mobility and stretching session.'},
+    {day:'Fri',desc:'45 ft × 10. 75 ft × 20 throws. Attempt 5 throws at 80% intent.'},
+    {day:'Sat',desc:'Light toss 30-45 ft if feeling good.'},
+    {day:'Sun',desc:'Full rest.'},
+  ]},
+  {week:'Week 5–6',title:'Mound Work — 90 ft',days:[
+    {day:'Mon',desc:'Warm up 45-75 ft. Advance to 90 ft × 20 throws at 75-80%. First mound session: 30-40 pitches, all fastballs.'},
+    {day:'Tue',desc:'Rest. Full arm care circuit + icing if needed.'},
+    {day:'Wed',desc:'45-90 ft progression. Mound: 35-45 pitches. Introduce location focus.'},
+    {day:'Thu',desc:'Light toss 45-60 ft only. Active recovery.'},
+    {day:'Fri',desc:'Full distance progression. Mound: 40-50 pitches. Add 2-3 offspeed pitches.'},
+    {day:'Sat',desc:'Rest or light toss with intent.'},
+    {day:'Sun',desc:'Rest. Evaluate weekly soreness and recovery.'},
+  ]},
+  {week:'Week 7–8',title:'Intensity — Max Effort',days:[
+    {day:'Mon',desc:'Full distance warm-up. Mound: 50-60 pitches. Introduce all pitch types. Work on 2-pitch combo (FB + offspeed).'},
+    {day:'Tue',desc:'Rest. Full arm care. Ice after if 50+ pitches thrown prior day.'},
+    {day:'Wed',desc:'Light toss / flat ground work. Keep intensity at 70%.'},
+    {day:'Thu',desc:'Mound: 55-65 pitches. Work full sequence: 1st pitch strikes, expanding zone, finishing hitters.'},
+    {day:'Fri',desc:'Light maintenance toss only. Prepare for weekend.'},
+    {day:'Sat',desc:'Game ready: follow pre-game routine. Track all pitches with Chaser.'},
+    {day:'Sun',desc:'Post-game arm care. Ice. Rest. Review Chaser data.'},
+  ]},
+];
 
-function getSession(pid) {
-  if (!state.sessions[pid]) state.sessions[pid] = {allTime:[], sessions:[]};
+const GAMEDAY_PHASES=[
+  {title:'3–4 Hours Before First Pitch',icon:'🌅',color:'rgba(255,170,51,.15)',iconBg:'rgba(255,170,51,.2)',steps:[
+    {title:'Hydration & Nutrition',text:'16–24 oz water immediately upon waking. Eat a balanced meal: lean protein, complex carbs (oatmeal, rice), healthy fat. Avoid anything new — stick to what you know works.'},
+    {title:'Mental Preparation',text:'Review your scouting notes on hitters if available. Visualize 3-5 key pitches in each zone executing perfectly. MLB starters spend 20-30 min on mental prep before arriving at the field.'},
+    {title:'Light Walk / Easy Movement',text:'10-15 min brisk walk. Gets blood flowing, loosens joints, raises body temperature. Many pro pitchers prefer walking to static stretching as first activity of the day.'},
+  ]},
+  {title:'90 Minutes Before — Pre-Game Mobility',icon:'🤸',color:'rgba(74,158,255,.12)',iconBg:'rgba(74,158,255,.2)',steps:[
+    {title:'Full Body Dynamic Warm-Up (15 min)',text:'Leg swings (front/back, lateral) × 15 each. Hip circles × 10 each direction. Arm circles, progressive speed. Torso rotations. High knees, butt kicks × 20 yards. A-skips × 20 yards.'},
+    {title:'Thoracic & Hip Mobility (10 min)',text:'90/90 hip stretch × 60 sec each side. Thoracic rotation × 10 each side. Hip flexor lunge stretch × 45 sec each side. Ankle circles × 10 each. World\'s greatest stretch × 5 each side.'},
+    {title:'Rotator Cuff Activation (8 min)',text:'Band pull-aparts × 15. Band ER × 12 each side. Band IR × 12 each side. W-T-Y raises × 10 each position. Complete 2 rounds. Shoulders should feel warm, never fatigued.'},
+  ]},
+  {title:'40 Minutes Before — Throwing Warm-Up',icon:'⚾',color:'rgba(0,200,150,.1)',iconBg:'rgba(0,200,150,.2)',steps:[
+    {title:'Easy Toss — 40-60 ft (5 min)',text:'Start at 40 ft, completely loose and easy. No effort. Focus on arm path feeling natural. Increase to 60 ft after 20-25 throws. This is non-negotiable — never skip.'},
+    {title:'Extended Toss — 80-100 ft (5 min)',text:'Move back to 80-100 ft, gradually increasing intent to 75-80%. Feel the ball\'s weight, wrist snap, release point consistency.'},
+    {title:'Mound Warm-Up (15 min)',text:'Return to mound distance. 10-12 fastballs building to 90% intent. 4-6 of each offspeed pitch. Final 5-8 pitches: game-speed sequences. Catcher catches last 10 pitches minimum.'},
+  ]},
+  {title:'Post-Game Arm Care (Within 30 min)',icon:'❄️',color:'rgba(167,139,250,.12)',iconBg:'rgba(167,139,250,.2)',steps:[
+    {title:'Immediate Light Toss',text:'After 50+ pitch outings, some MLB starters throw light easy toss 5-10 min post-game while still warm. Flushes lactic acid before muscles cool. Optional but effective.'},
+    {title:'Stretching While Warm (10 min)',text:'Cross-body stretch × 30 sec each side. Sleeper stretch × 30 sec each. Forearm stretches × 30 sec each direction. Thoracic rotation × 10. Do this before icing — stretch warm, ice after.'},
+    {title:'Ice & Elevation (15 min)',text:'Ice the shoulder and elbow for 15 minutes. Elbow should be slightly elevated. This is the most important recovery step after any serious outing. Never skip on high-pitch-count days.'},
+    {title:'Hydration & Nutrition',text:'Consume 20-40g protein within 45 min of finishing. Chocolate milk, protein shake, or whole food. Rehydrate with water + electrolytes. Track this — recovery starts immediately.'},
+    {title:'Review Your Chaser Data',text:'Open Chaser, check your strike%, zone%, velocity trend, and pitch mix. Note what worked, what didn\'t. Add session notes while memory is fresh. This data compounds over a whole season.'},
+  ]},
+];
+
+let state={
+  pitchers:JSON.parse(localStorage.getItem('bp_pitchers')||'[]'),
+  sessions:JSON.parse(localStorage.getItem('bp_sessions')||'{}'),
+  gameSessions:JSON.parse(localStorage.getItem('bp_game_sessions')||'{}'),
+  activePitcher:null,
+  activeGamePitcher:null,
+  page:'bullpen',
+  activeTab:'zone',
+  pitchType:'FB',
+  velocity:'',
+  balls:0,strikes:0,pitches:0,
+  gameBalls:0,gameStrikes:0,gameOuts:0,gameInning:1,gamePitches:0,
+  gameStrikeouts:0,gameWalks:0,gameFPS:0,gameFPSAttempts:0,
+  pendingPitch:null,pendingGamePitch:null,
+  heatFilter:'session',heatPitchType:'ALL',
+  showAddPitcher:false,newPitcherName:'',
+  showEndSession:false,endSessionNote:'',endSessionExpanded:false,
+  menuOpen:false,
+  strengthCat:null,
+  expandedExercise:null,
+  expandedWeek:null,
+  expandedPhase:null,
+  aiMessages:[{role:'ai',text:"Hey! I'm your AI pitching coach. Ask me anything about mechanics, training, pitch selection, arm care, or the game of pitching. What's on your mind?"}],
+  aiLoading:false,
+  toast:null,toastTimer:null,
+  showAddPopup:false,
+};
+
+function save(){
+  localStorage.setItem('bp_pitchers',JSON.stringify(state.pitchers));
+  localStorage.setItem('bp_sessions',JSON.stringify(state.sessions));
+  localStorage.setItem('bp_game_sessions',JSON.stringify(state.gameSessions));
+}
+function getSession(pid){
+  if(!state.sessions[pid])state.sessions[pid]={allTime:[],sessions:[]};
   return state.sessions[pid];
 }
-
-function getCurrentSession(pid) {
-  const s = getSession(pid);
-  if (!s.sessions.length) s.sessions.push({date: new Date().toLocaleDateString(), pitches:[], note:''});
-  return s.sessions[s.sessions.length - 1];
+function getCurrentSession(pid){
+  const s=getSession(pid);
+  if(!s.sessions.length)s.sessions.push({date:new Date().toLocaleDateString(),pitches:[],note:''});
+  return s.sessions[s.sessions.length-1];
 }
-
-function showToast(msg, color='var(--teal)') {
+function getGameSession(pid){
+  if(!state.gameSessions[pid])state.gameSessions[pid]=[];
+  return state.gameSessions[pid];
+}
+function getCurrentGameSession(pid){
+  const s=getGameSession(pid);
+  if(!s.length)s.push({date:new Date().toLocaleDateString(),pitches:[],note:'',inning:1});
+  return s[s.length-1];
+}
+function showToast(msg,color='var(--teal)'){
   clearTimeout(state.toastTimer);
-  state.toast = {msg, color};
-  render();
-  state.toastTimer = setTimeout(() => { state.toast = null; render(); }, 2200);
+  state.toast={msg,color};render();
+  state.toastTimer=setTimeout(()=>{state.toast=null;render();},2200);
 }
 
-const ZONE_W = 340, ZONE_H = 420;
-const ZX = 60, ZY = 80, ZW = 220, ZH = 280;
+const ZONE_W=340,ZONE_H=380,ZX=60,ZY=70,ZW=220,ZH=240;
 
-function drawZoneCanvas(canvas, pitches, highlightLast) {
-  if (!canvas) return;
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = ZONE_W * dpr; canvas.height = ZONE_H * dpr;
-  canvas.style.width = ZONE_W + 'px'; canvas.style.height = ZONE_H + 'px';
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  ctx.fillStyle = '#0A1628';
-  ctx.roundRect(0,0,ZONE_W,ZONE_H,10); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,.03)';
-  ctx.beginPath(); ctx.arc(ZONE_W-28,ZY+30,14,0,Math.PI*2); ctx.fill();
-  ctx.fillRect(ZONE_W-34,ZY+44,12,60);
-  ctx.save(); ctx.strokeStyle='rgba(255,255,255,.04)'; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.moveTo(ZONE_W-28,ZY+54); ctx.lineTo(ZONE_W-70,ZY+20); ctx.stroke(); ctx.restore();
-  ctx.shadowColor='#00C896'; ctx.shadowBlur=12;
-  ctx.strokeStyle='rgba(0,200,150,.7)'; ctx.lineWidth=2;
-  ctx.strokeRect(ZX,ZY,ZW,ZH); ctx.shadowBlur=0;
-  ctx.strokeStyle='rgba(0,200,150,.25)'; ctx.lineWidth=1;
-  const cw=ZW/3, ch=ZH/3;
-  for(let i=1;i<3;i++){
-    ctx.beginPath(); ctx.moveTo(ZX+i*cw,ZY); ctx.lineTo(ZX+i*cw,ZY+ZH); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(ZX,ZY+i*ch); ctx.lineTo(ZX+ZW,ZY+i*ch); ctx.stroke();
-  }
-  const labels=[['1','2','3'],['4','5','6'],['7','8','9']];
-  ctx.font='10px SF Mono,monospace'; ctx.fillStyle='rgba(123,141,176,.3)';
-  for(let r=0;r<3;r++) for(let c=0;c<3;c++) ctx.fillText(labels[r][c],ZX+c*cw+4,ZY+r*ch+13);
-  ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(123,141,176,.12)'; ctx.lineWidth=1;
-  ctx.strokeRect(ZX-40,ZY-40,ZW+80,ZH+80); ctx.setLineDash([]);
-  ctx.fillStyle='rgba(255,255,255,.08)';
-  const px=ZX+ZW/2, py=ZY+ZH+50;
-  ctx.beginPath(); ctx.moveTo(px-22,py-12); ctx.lineTo(px+22,py-12); ctx.lineTo(px+22,py+2);
-  ctx.lineTo(px,py+16); ctx.lineTo(px-22,py+2); ctx.closePath(); ctx.fill();
-  if(pitches) pitches.forEach((p,i)=>{
-    const isLast=highlightLast&&i===pitches.length-1;
-    const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
-    if(!isLast) ctx.globalAlpha=0.55;
-    ctx.shadowColor=pt.color; ctx.shadowBlur=isLast?10:4;
-    ctx.beginPath(); ctx.arc(p.x,p.y,isLast?9:7,0,Math.PI*2); ctx.fillStyle=pt.color; ctx.fill();
-    ctx.beginPath(); ctx.arc(p.x,p.y,isLast?4:3,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
-    ctx.shadowBlur=0; ctx.globalAlpha=1;
-    if(isLast){ctx.font='bold 10px SF Mono,monospace';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(p.type,p.x,p.y-14);ctx.textAlign='left';}
-  });
-  if(pitches&&pitches.length>0) pitches.forEach((p,i)=>{
-    ctx.font='7px SF Mono,monospace'; ctx.fillStyle='rgba(255,255,255,.4)';
-    ctx.textAlign='center'; ctx.fillText(i+1,p.x,p.y+3); ctx.textAlign='left';
-  });
-}
-
-function drawHeatCanvas(canvas, pitches) {
-  if(!canvas) return;
+function drawZoneCanvas(canvas,pitches,highlightLast,compact){
+  if(!canvas)return;
+  const H=compact?380:380;
   const dpr=window.devicePixelRatio||1;
-  canvas.width=ZONE_W*dpr; canvas.height=ZONE_H*dpr;
-  canvas.style.width=ZONE_W+'px'; canvas.style.height=ZONE_H+'px';
-  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
-  ctx.fillStyle='#080E1C'; ctx.roundRect(0,0,ZONE_W,ZONE_H,10); ctx.fill();
-  if(pitches&&pitches.length>0) pitches.forEach(p=>{
-    const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
-    const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,32);
-    grd.addColorStop(0,pt.color+'AA'); grd.addColorStop(0.4,pt.color+'44'); grd.addColorStop(1,pt.color+'00');
-    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(p.x,p.y,32,0,Math.PI*2); ctx.fill();
-  });
-  ctx.strokeStyle='rgba(0,200,150,.5)'; ctx.lineWidth=1.5; ctx.strokeRect(ZX,ZY,ZW,ZH);
-  ctx.strokeStyle='rgba(0,200,150,.18)'; ctx.lineWidth=.8;
+  canvas.width=ZONE_W*dpr;canvas.height=H*dpr;
+  canvas.style.width=ZONE_W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#080E1C';ctx.beginPath();ctx.roundRect(0,0,ZONE_W,H,10);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.03)';
+  ctx.beginPath();ctx.arc(ZONE_W-28,ZY+25,12,0,Math.PI*2);ctx.fill();
+  ctx.fillRect(ZONE_W-32,ZY+37,10,50);
+  ctx.shadowColor='#00C896';ctx.shadowBlur=10;
+  ctx.strokeStyle='rgba(0,200,150,.7)';ctx.lineWidth=2;
+  ctx.strokeRect(ZX,ZY,ZW,ZH);ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(0,200,150,.22)';ctx.lineWidth=1;
   const cw=ZW/3,ch=ZH/3;
   for(let i=1;i<3;i++){
-    ctx.beginPath(); ctx.moveTo(ZX+i*cw,ZY); ctx.lineTo(ZX+i*cw,ZY+ZH); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(ZX,ZY+i*ch); ctx.lineTo(ZX+ZW,ZY+i*ch); ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ZX+i*cw,ZY);ctx.lineTo(ZX+i*cw,ZY+ZH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ZX,ZY+i*ch);ctx.lineTo(ZX+ZW,ZY+i*ch);ctx.stroke();
   }
-  ctx.fillStyle='rgba(255,255,255,.06)';
-  const px=ZX+ZW/2,py=ZY+ZH+50;
-  ctx.beginPath(); ctx.moveTo(px-22,py-12); ctx.lineTo(px+22,py-12); ctx.lineTo(px+22,py+2);
-  ctx.lineTo(px,py+16); ctx.lineTo(px-22,py+2); ctx.closePath(); ctx.fill();
+  const labels=[['1','2','3'],['4','5','6'],['7','8','9']];
+  ctx.font='9px SF Mono,monospace';ctx.fillStyle='rgba(123,141,176,.28)';
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++)ctx.fillText(labels[r][c],ZX+c*cw+4,ZY+r*ch+11);
+  ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(123,141,176,.1)';
+  ctx.strokeRect(ZX-35,ZY-35,ZW+70,ZH+70);ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,255,.07)';
+  const px=ZX+ZW/2,py=ZY+ZH+44;
+  ctx.beginPath();ctx.moveTo(px-20,py-10);ctx.lineTo(px+20,py-10);ctx.lineTo(px+20,py+2);
+  ctx.lineTo(px,py+14);ctx.lineTo(px-20,py+2);ctx.closePath();ctx.fill();
+  if(pitches)pitches.forEach((p,i)=>{
+    const isLast=highlightLast&&i===pitches.length-1;
+    const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
+    if(!isLast)ctx.globalAlpha=0.5;
+    ctx.shadowColor=pt.color;ctx.shadowBlur=isLast?8:3;
+    ctx.beginPath();ctx.arc(p.x,p.y,isLast?8:6,0,Math.PI*2);ctx.fillStyle=pt.color;ctx.fill();
+    ctx.beginPath();ctx.arc(p.x,p.y,isLast?3.5:2.5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+    ctx.shadowBlur=0;ctx.globalAlpha=1;
+    if(isLast){ctx.font='bold 9px SF Mono,monospace';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(p.type,p.x,p.y-12);ctx.textAlign='left';}
+  });
+  if(pitches&&pitches.length)pitches.forEach((p,i)=>{
+    ctx.font='6px SF Mono,monospace';ctx.fillStyle='rgba(255,255,255,.35)';
+    ctx.textAlign='center';ctx.fillText(i+1,p.x,p.y+2.5);ctx.textAlign='left';
+  });
 }
 
-function handleZoneClick(e) {
-  if(!state.activePitcher){showToast('Select a pitcher first');return;}
-  const canvas=document.getElementById('zoneCanvas');
-  if(!canvas) return;
+function drawHeatCanvas(canvas,pitches){
+  if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=ZONE_W*dpr;canvas.height=380*dpr;
+  canvas.style.width=ZONE_W+'px';canvas.style.height='380px';
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#050C17';ctx.beginPath();ctx.roundRect(0,0,ZONE_W,380,10);ctx.fill();
+  if(pitches&&pitches.length)pitches.forEach(p=>{
+    const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
+    const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,30);
+    grd.addColorStop(0,pt.color+'BB');grd.addColorStop(0.4,pt.color+'44');grd.addColorStop(1,pt.color+'00');
+    ctx.fillStyle=grd;ctx.beginPath();ctx.arc(p.x,p.y,30,0,Math.PI*2);ctx.fill();
+  });
+  ctx.strokeStyle='rgba(0,200,150,.5)';ctx.lineWidth=1.5;ctx.strokeRect(ZX,ZY,ZW,ZH);
+  ctx.strokeStyle='rgba(0,200,150,.16)';ctx.lineWidth=.7;
+  const cw=ZW/3,ch=ZH/3;
+  for(let i=1;i<3;i++){
+    ctx.beginPath();ctx.moveTo(ZX+i*cw,ZY);ctx.lineTo(ZX+i*cw,ZY+ZH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ZX,ZY+i*ch);ctx.lineTo(ZX+ZW,ZY+i*ch);ctx.stroke();
+  }
+}
+
+function handleZoneClick(e,isGame){
+  const pid=isGame?state.activeGamePitcher:state.activePitcher;
+  if(!pid){showToast('Select a pitcher first');return;}
+  const id=isGame?'gameZoneCanvas':'zoneCanvas';
+  const canvas=document.getElementById(id);
+  if(!canvas)return;
   const rect=canvas.getBoundingClientRect();
-  const scaleX=ZONE_W/rect.width, scaleY=ZONE_H/rect.height;
+  const scaleX=ZONE_W/rect.width,scaleY=380/rect.height;
   const ex=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
   const ey=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
-  state.pendingPitch={x:ex*scaleX,y:ey*scaleY,type:state.pitchType,vel:state.velocity,ts:Date.now()};
+  const pitch={x:ex*scaleX,y:ey*scaleY,type:isGame?state.gamePitchType||'FB':state.pitchType,vel:state.velocity,ts:Date.now()};
+  if(isGame)state.pendingGamePitch=pitch;
+  else state.pendingPitch=pitch;
   render();
 }
 
-function confirmOutcome(outcome) {
-  if(!state.pendingPitch) return;
+function confirmOutcome(outcome){
+  if(!state.pendingPitch)return;
   const p=state.pendingPitch;
   const inZone=p.x>=ZX&&p.x<=ZX+ZW&&p.y>=ZY&&p.y<=ZY+ZH;
   let isStrike=false;
-  if(outcome==='strike') isStrike=true;
+  if(outcome==='strike')isStrike=true;
   else if(outcome==='swm'){isStrike=true;p.swingMiss=true;}
   else if(outcome==='foul'){isStrike=state.strikes<2;p.foul=true;}
-  p.result=outcome; p.inZone=inZone; p.isStrike=isStrike;
+  p.result=outcome;p.inZone=inZone;p.isStrike=isStrike;
   const sess=getCurrentSession(state.activePitcher);
   const allTime=getSession(state.activePitcher);
-  sess.pitches.push(p); allTime.allTime.push(p);
-  state.sessions[state.activePitcher]=allTime; save();
-  if(isStrike) state.strikes++;
-  else if(outcome!=='foul') state.balls++;
+  sess.pitches.push(p);allTime.allTime.push(p);
+  state.sessions[state.activePitcher]=allTime;save();
+  if(isStrike)state.strikes++;
+  else if(outcome!=='foul')state.balls++;
   state.pitches++;
   let msg=null;
   if(state.strikes>=3){msg='STRIKEOUT!';state.strikes=0;state.balls=0;}
   else if(state.balls>=4){msg='WALK!';state.strikes=0;state.balls=0;}
   state.pendingPitch=null;
-  if(msg) showToast(msg,'#00C896');
+  if(msg)showToast(msg,'#00C896');
   render();
-  setTimeout(()=>{
-    const zc=document.getElementById('zoneCanvas');
-    drawZoneCanvas(zc,getCurrentSession(state.activePitcher).pitches,true);
-  },50);
+  setTimeout(()=>{const zc=document.getElementById('zoneCanvas');if(zc)drawZoneCanvas(zc,getCurrentSession(state.activePitcher).pitches,true);},50);
 }
 
-function undoPitch() {
-  if(!state.activePitcher) return;
+function confirmGameOutcome(outcome){
+  if(!state.pendingGamePitch)return;
+  const p=state.pendingGamePitch;
+  const inZone=p.x>=ZX&&p.x<=ZX+ZW&&p.y>=ZY&&p.y<=ZY+ZH;
+  let isStrike=false;
+  if(outcome==='strike')isStrike=true;
+  else if(outcome==='swm'){isStrike=true;p.swingMiss=true;}
+  else if(outcome==='foul'){isStrike=state.gameStrikes<2;p.foul=true;}
+  const isFirstPitch=state.gamePitches%3===0;
+  p.result=outcome;p.inZone=inZone;p.isStrike=isStrike;p.isFirstPitch=isFirstPitch;
+  if(isFirstPitch){state.gameFPSAttempts++;if(isStrike)state.gameFPS++;}
+  const gs=getCurrentGameSession(state.activeGamePitcher);
+  gs.pitches.push(p);save();
+  if(isStrike)state.gameStrikes++;
+  else if(outcome!=='foul')state.gameBalls++;
+  state.gamePitches++;
+  let msg=null;
+  if(state.gameStrikes>=3){msg='K!';state.gameStrikeouts++;state.gameStrikes=0;state.gameBalls=0;state.gameOuts++;}
+  else if(state.gameBalls>=4){msg='BB!';state.gameWalks++;state.gameStrikes=0;state.gameBalls=0;}
+  if(state.gameOuts>=3){state.gameOuts=0;state.gameInning++;msg=(msg||'')+'INNING OVER';}
+  state.pendingGamePitch=null;
+  if(msg)showToast(msg,'#00C896');
+  render();
+  setTimeout(()=>{const zc=document.getElementById('gameZoneCanvas');if(zc)drawZoneCanvas(zc,getCurrentGameSession(state.activeGamePitcher).pitches,true);},50);
+}
+
+function undoPitch(){
+  if(!state.activePitcher)return;
   const sess=getCurrentSession(state.activePitcher);
   const allTime=getSession(state.activePitcher);
-  if(!sess.pitches.length) return;
-  const last=sess.pitches.pop(); allTime.allTime.pop();
-  if(last.isStrike&&!last.foul) state.strikes=Math.max(0,state.strikes-1);
-  else if(!last.isStrike&&!last.foul) state.balls=Math.max(0,state.balls-1);
+  if(!sess.pitches.length)return;
+  const last=sess.pitches.pop();allTime.allTime.pop();
+  if(last.isStrike&&!last.foul)state.strikes=Math.max(0,state.strikes-1);
+  else if(!last.isStrike&&!last.foul)state.balls=Math.max(0,state.balls-1);
   state.pitches=Math.max(0,state.pitches-1);
-  save(); showToast('Pitch removed'); render();
-  setTimeout(()=>{drawZoneCanvas(document.getElementById('zoneCanvas'),getCurrentSession(state.activePitcher).pitches,true);},50);
+  save();showToast('Pitch removed');render();
+  setTimeout(()=>{const zc=document.getElementById('zoneCanvas');if(zc)drawZoneCanvas(zc,getCurrentSession(state.activePitcher).pitches,true);},50);
 }
-
-function clearPitches() {
-  if(!state.activePitcher) return;
-  if(!confirm('Clear all pitches for this session?')) return;
+function clearPitches(){
+  if(!state.activePitcher)return;
+  if(!confirm('Clear all pitches for this session?'))return;
   const s=getSession(state.activePitcher);
-  if(s.sessions.length) s.sessions[s.sessions.length-1].pitches=[];
+  if(s.sessions.length)s.sessions[s.sessions.length-1].pitches=[];
   s.allTime=s.sessions.flatMap(ss=>ss.pitches);
-  state.balls=0; state.strikes=0; state.pitches=0;
-  save(); showToast('Pitches cleared'); render();
-  setTimeout(()=>{drawZoneCanvas(document.getElementById('zoneCanvas'),[],false);},50);
+  state.balls=0;state.strikes=0;state.pitches=0;
+  save();showToast('Cleared');render();
+  setTimeout(()=>{const zc=document.getElementById('zoneCanvas');if(zc)drawZoneCanvas(zc,[],false);},50);
 }
-
-function endSession() {
-  if(!state.activePitcher) return;
+function endSession(){
+  if(!state.activePitcher)return;
   const sess=getCurrentSession(state.activePitcher);
   if(!sess.pitches.length){showToast('No pitches this session');return;}
-  state.showEndSession=true;
-  state.endSessionNote='';
-  state.endSessionExpanded=false;
-  render();
+  state.showEndSession=true;state.endSessionNote='';state.endSessionExpanded=false;render();
 }
-
-function finalizeEndSession() {
+function finalizeEndSession(){
   const noteEl=document.getElementById('esNoteInp');
   const note=noteEl?noteEl.value.trim():'';
   const s=getSession(state.activePitcher);
-  if(s.sessions.length) s.sessions[s.sessions.length-1].note=note;
+  if(s.sessions.length)s.sessions[s.sessions.length-1].note=note;
   s.sessions.push({date:new Date().toLocaleDateString(),pitches:[],note:''});
-  state.balls=0; state.strikes=0; state.pitches=0;
-  state.showEndSession=false;
-  state.endSessionNote='';
-  save(); showToast('Session saved'); render();
-  setTimeout(()=>{drawZoneCanvas(document.getElementById('zoneCanvas'),[],false);},50);
+  state.balls=0;state.strikes=0;state.pitches=0;
+  state.showEndSession=false;state.endSessionNote='';
+  save();showToast('Session saved');render();
+  setTimeout(()=>{const zc=document.getElementById('zoneCanvas');if(zc)drawZoneCanvas(zc,[],false);},50);
 }
-
-function exportCSV() {
-  let csv='Pitcher,Session Date,#,Type,Velocity,X,Y,InZone,Result\n';
+function exportCSV(){
+  let csv='Pitcher,Date,#,Type,Velocity,X,Y,InZone,Result\n';
   for(const pid in state.sessions){
     state.sessions[pid].sessions.forEach(sess=>{
       sess.pitches.forEach((p,i)=>{
@@ -384,12 +655,12 @@ function exportCSV() {
   }
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download='bullpen_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.download='chaser_'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 }
 
-function calcStats(pitches) {
-  if(!pitches||!pitches.length) return null;
+function calcStats(pitches){
+  if(!pitches||!pitches.length)return null;
   const total=pitches.length;
   const strikes=pitches.filter(p=>p.isStrike).length;
   const balls=pitches.filter(p=>!p.isStrike&&!p.foul).length;
@@ -415,52 +686,193 @@ function calcStats(pitches) {
     swmPct:((swm/total)*100).toFixed(1),
     avgVel,maxVel,byType};
 }
-
 function getZoneNum(x,y){
-  if(x<ZX||x>ZX+ZW||y<ZY||y>ZY+ZH) return '--';
+  if(x<ZX||x>ZX+ZW||y<ZY||y>ZY+ZH)return '--';
   return Math.floor((y-ZY)/(ZH/3))*3+Math.floor((x-ZX)/(ZW/3))+1;
 }
 
-function render() {
+async function sendAIMessage(msg){
+  if(!msg.trim())return;
+  state.aiMessages.push({role:'user',text:msg});
+  state.aiLoading=true;render();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:'You are an expert MLB-level pitching coach assistant inside an app called Chaser, designed for high school baseball pitchers. Answer questions about pitching mechanics, arm care, strength training, pitch selection, mental approach, game preparation, and recovery. Be specific, practical, and concise. Use baseball terminology correctly. Responses should be helpful for a high school pitcher trying to improve.',
+        messages:state.aiMessages.filter(m=>m.role!=='thinking').map(m=>({role:m.role==='ai'?'assistant':'user',content:m.text}))
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.[0]?.text||'Sorry, I had trouble with that. Try again!';
+    state.aiMessages.push({role:'ai',text});
+  }catch(e){
+    state.aiMessages.push({role:'ai',text:'Connection error. Make sure you have internet access and try again.'});
+  }
+  state.aiLoading=false;render();
+  setTimeout(()=>{const el=document.getElementById('aiMessages');if(el)el.scrollTop=el.scrollHeight;},50);
+}
+
+function render(){
   document.getElementById('root').innerHTML=buildHTML();
   attachEvents();
   setTimeout(()=>{
-    if(state.activeTab==='zone'){
-      const zc=document.getElementById('zoneCanvas');
-      if(zc) drawZoneCanvas(zc,state.activePitcher?getCurrentSession(state.activePitcher).pitches:[],true);
-    }
-    if(state.activeTab==='heat'){
-      const hc=document.getElementById('heatCanvas');
-      if(hc){
-        let pitches=[];
-        if(state.activePitcher){
-          const s=getSession(state.activePitcher);
-          pitches=state.heatFilter==='session'?getCurrentSession(state.activePitcher).pitches:s.allTime;
-          if(state.heatPitchType!=='ALL') pitches=pitches.filter(p=>p.type===state.heatPitchType);
+    if(state.page==='bullpen'){
+      if(state.activeTab==='zone'){
+        const zc=document.getElementById('zoneCanvas');
+        if(zc)drawZoneCanvas(zc,state.activePitcher?getCurrentSession(state.activePitcher).pitches:[],true);
+      }
+      if(state.activeTab==='heat'){
+        const hc=document.getElementById('heatCanvas');
+        if(hc){
+          let p=[];
+          if(state.activePitcher){
+            const s=getSession(state.activePitcher);
+            p=state.heatFilter==='session'?getCurrentSession(state.activePitcher).pitches:s.allTime;
+            if(state.heatPitchType!=='ALL')p=p.filter(x=>x.type===state.heatPitchType);
+          }
+          drawHeatCanvas(hc,p);
         }
-        drawHeatCanvas(hc,pitches);
       }
     }
+    if(state.page==='game'){
+      const zc=document.getElementById('gameZoneCanvas');
+      if(zc)drawZoneCanvas(zc,state.activeGamePitcher?getCurrentGameSession(state.activeGamePitcher).pitches:[],true);
+    }
+    const msgs=document.getElementById('aiMessages');
+    if(msgs)msgs.scrollTop=msgs.scrollHeight;
   },30);
 }
 
-function buildHTML() {
+function buildHTML(){
   const ap=state.activePitcher;
   const sess=ap?getCurrentSession(ap):null;
   const pitches=sess?sess.pitches:[];
   const stats=ap?calcStats(pitches):null;
 
-  let html=`
-    <div class="hdr">
-      <div class="hdr-title">BULLPEN <span>PRO</span></div>
-      <div class="hdr-badge">MLB CALIBER</div>
+  let html=``;
+
+  // MENU OVERLAY
+  if(state.menuOpen){
+    html+=`<div class="menu-overlay" onclick="state.menuOpen=false;render()"></div>`;
+  }
+
+  // MENU DRAWER
+  html+=`<div class="menu-drawer ${state.menuOpen?'open':''}">
+    <div class="menu-logo">
+      <div class="menu-logo-text">CHASER</div>
+      <div class="menu-logo-sub">Pitcher Development</div>
     </div>
+    <div class="menu-items">
+      ${MENU_ITEMS.map(m=>`
+        <div class="menu-item ${state.page===m.id?'active':''}" onclick="state.page='${m.id}';state.menuOpen=false;if('${m.id}'==='game'&&!state.activeGamePitcher&&state.pitchers.length){}render()">
+          <div class="menu-icon" style="background:${m.color}18;color:${m.color}">${m.icon}</div>
+          <div><div class="menu-label">${m.label}</div><div class="menu-sub">${m.sub}</div></div>
+        </div>
+        ${m.id==='game'?'<div class="menu-divider"></div>':''}
+      `).join('')}
+    </div>
+  </div>`;
+
+  // HEADER
+  html+=`<div class="hdr">
+    <div class="hdr-left">
+      <button class="menu-btn" onclick="state.menuOpen=!state.menuOpen;render()">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="hdr-logo">CHASER</div>
+    </div>
+    <div class="hdr-right">
+      <button class="ai-btn" onclick="state.page='ai';render()">AI COACH</button>
+    </div>
+  </div>`;
+
+  // PAGE CONTENT
+  if(state.page==='bullpen'){
+    html+=buildBullpenPage(ap,pitches,stats);
+  } else if(state.page==='game'){
+    html+=buildGamePage();
+  } else if(state.page==='armcare'){
+    html+=buildArmCarePage();
+  } else if(state.page==='strength'){
+    html+=buildStrengthPage();
+  } else if(state.page==='throwing'){
+    html+=buildThrowingPage();
+  } else if(state.page==='gameday'){
+    html+=buildGameDayPage();
+  } else if(state.page==='ai'){
+    html+=buildAIPage();
+  }
+
+  // TOAST
+  if(state.toast)html+=`<div class="toast" style="color:${state.toast.color};border-color:${state.toast.color}20">${state.toast.msg}</div>`;
+
+  // BULLPEN OUTCOME PICKER
+  if(state.pendingPitch){
+    const inZ=state.pendingPitch.x>=ZX&&state.pendingPitch.x<=ZX+ZW&&state.pendingPitch.y>=ZY&&state.pendingPitch.y<=ZY+ZH;
+    html+=`<div class="outcome-picker">
+      <div class="op-title">PITCH ${state.pitches+1} — ${inZ?'IN ZONE':'OFF PLATE'}</div>
+      <div class="op-grid">
+        <button class="op-btn" style="background:rgba(255,77,77,.12);border-color:#FF4D4D;color:#FF4D4D" onclick="confirmOutcome('strike')">STRIKE</button>
+        <button class="op-btn" style="background:rgba(74,158,255,.12);border-color:#4A9EFF;color:#4A9EFF" onclick="confirmOutcome('ball')">BALL</button>
+        <button class="op-btn" style="background:rgba(167,139,250,.12);border-color:#A78BFA;color:#A78BFA" onclick="confirmOutcome('swm')">SWING &amp; MISS</button>
+        <button class="op-btn" style="background:rgba(255,170,51,.12);border-color:#FFAA33;color:#FFAA33" onclick="confirmOutcome('foul')">FOUL</button>
+      </div>
+      <button class="op-cancel" onclick="state.pendingPitch=null;render()">Cancel</button>
+    </div>`;
+  }
+
+  // GAME OUTCOME PICKER
+  if(state.pendingGamePitch){
+    const inZ=state.pendingGamePitch.x>=ZX&&state.pendingGamePitch.x<=ZX+ZW&&state.pendingGamePitch.y>=ZY&&state.pendingGamePitch.y<=ZY+ZH;
+    html+=`<div class="outcome-picker">
+      <div class="op-title">PITCH ${state.gamePitches+1} — ${inZ?'IN ZONE':'OFF PLATE'}</div>
+      <div class="op-grid">
+        <button class="op-btn" style="background:rgba(255,77,77,.12);border-color:#FF4D4D;color:#FF4D4D" onclick="confirmGameOutcome('strike')">STRIKE</button>
+        <button class="op-btn" style="background:rgba(74,158,255,.12);border-color:#4A9EFF;color:#4A9EFF" onclick="confirmGameOutcome('ball')">BALL</button>
+        <button class="op-btn" style="background:rgba(167,139,250,.12);border-color:#A78BFA;color:#A78BFA" onclick="confirmGameOutcome('swm')">SWING &amp; MISS</button>
+        <button class="op-btn" style="background:rgba(255,170,51,.12);border-color:#FFAA33;color:#FFAA33" onclick="confirmGameOutcome('foul')">FOUL</button>
+      </div>
+      <button class="op-cancel" onclick="state.pendingGamePitch=null;render()">Cancel</button>
+    </div>`;
+  }
+
+  // END SESSION SHEET
+  if(state.showEndSession&&ap){
+    const sess2=getCurrentSession(ap);
+    const s=calcStats(sess2.pitches);
+    html+=buildEndSessionSheet(ap,sess2,s);
+  }
+
+  // ADD PITCHER POPUP
+  if(state.showAddPopup){
+    html+=`<div class="popup-overlay" onclick="if(event.target===this){state.showAddPopup=false;state.newPitcherName='';render()}">
+      <div class="popup-box">
+        <div class="popup-title">Add Pitcher</div>
+        <input class="popup-inp" id="newPitcherName" placeholder="Full name" value="${state.newPitcherName}" oninput="state.newPitcherName=this.value">
+        <input class="popup-inp" id="newPitcherNum" placeholder="# Jersey number" style="margin-bottom:12px">
+        <div class="popup-btns">
+          <button style="background:var(--card);border-color:var(--border);color:var(--muted)" onclick="state.showAddPopup=false;state.newPitcherName='';render()">Cancel</button>
+          <button style="background:rgba(0,200,150,.12);border-color:var(--teal);color:var(--teal)" onclick="addPitcher()">Add</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return html;
+}
+
+function buildBullpenPage(ap,pitches,stats){
+  return`
     <div class="pitcher-bar">
       <select class="pitcher-select" id="pitcherSel" onchange="selectPitcher(this.value)">
         <option value="">— Select Pitcher —</option>
         ${state.pitchers.map(p=>`<option value="${p.name}" ${ap===p.name?'selected':''}>${p.name} #${p.num||'—'}</option>`).join('')}
       </select>
-      <button class="btn-sm btn-teal" onclick="state.showAddPitcher=true;render()">+ Add</button>
+      <button class="btn-sm btn-teal" onclick="state.showAddPopup=true;render()">+ Add</button>
     </div>
     <div class="count-bar">
       <div class="count-seg"><div class="count-lbl">BALLS</div><div class="count-val cv-b">${state.balls}</div></div>
@@ -474,194 +886,348 @@ function buildHTML() {
       `).join('')}
     </div>
     <div class="scroll">
-  `;
-
-  if(state.activeTab==='zone') html+=buildZoneTab(ap);
-  else if(state.activeTab==='heat') html+=buildHeatTab(ap);
-  else if(state.activeTab==='stats') html+=buildStatsTab(ap,pitches,stats);
-  else if(state.activeTab==='roster') html+=buildRosterTab();
-  html+=`</div>`;
-
-  if(state.activeTab==='zone'){
-    html+=`
-      <div class="action-row">
-        <button class="btn-undo" onclick="undoPitch()">↩ UNDO</button>
-        <button class="btn-clear" onclick="clearPitches()">CLEAR</button>
-        <button class="btn-end" onclick="endSession()">END SESSION</button>
-      </div>`;
-  }
-
-  if(state.toast){
-    html+=`<div class="toast" style="color:${state.toast.color};border-color:${state.toast.color}20">${state.toast.msg}</div>`;
-  }
-
-  if(state.pendingPitch){
-    const inZ=state.pendingPitch.x>=ZX&&state.pendingPitch.x<=ZX+ZW&&state.pendingPitch.y>=ZY&&state.pendingPitch.y<=ZY+ZH;
-    html+=`
-      <div class="outcome-picker">
-        <div class="op-title">PITCH ${state.pitches+1} — ${inZ?'IN ZONE':'OFF PLATE'}</div>
-        <div class="op-grid">
-          <button class="op-btn" style="background:rgba(255,77,77,.12);border-color:#FF4D4D;color:#FF4D4D" onclick="confirmOutcome('strike')">STRIKE</button>
-          <button class="op-btn" style="background:rgba(74,158,255,.12);border-color:#4A9EFF;color:#4A9EFF" onclick="confirmOutcome('ball')">BALL</button>
-          <button class="op-btn" style="background:rgba(167,139,250,.12);border-color:#A78BFA;color:#A78BFA" onclick="confirmOutcome('swm')">SWING &amp; MISS</button>
-          <button class="op-btn" style="background:rgba(255,170,51,.12);border-color:#FFAA33;color:#FFAA33" onclick="confirmOutcome('foul')">FOUL</button>
-        </div>
-        <button class="op-cancel" onclick="state.pendingPitch=null;render()">Cancel</button>
-      </div>`;
-  }
-
-  if(state.showEndSession&&ap){
-    const sess2=getCurrentSession(ap);
-    const s=calcStats(sess2.pitches);
-    html+=buildEndSessionSheet(ap,sess2,s);
-  }
-
-  if(state.showAddPitcher){
-    html+=`
-      <div class="popup-overlay" onclick="if(event.target===this){state.showAddPitcher=false;state.newPitcherName='';render()}">
-        <div class="popup-box">
-          <div class="popup-title">Add Pitcher</div>
-          <input class="popup-inp" id="newPitcherName" placeholder="Full name" value="${state.newPitcherName}" oninput="state.newPitcherName=this.value">
-          <input class="popup-inp" id="newPitcherNum" placeholder="# Jersey number" style="margin-bottom:12px">
-          <div class="popup-btns">
-            <button style="background:var(--card);border-color:var(--border);color:var(--muted)" onclick="state.showAddPitcher=false;state.newPitcherName='';render()">Cancel</button>
-            <button style="background:rgba(0,200,150,.12);border-color:var(--teal);color:var(--teal)" onclick="addPitcher()">Add</button>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  return html;
-}
-
-function buildEndSessionSheet(ap, sess, s) {
-  const fullStats = s ? `
-    <div class="stat-grid" style="margin-bottom:10px">
-      <div class="stat-card"><div class="stat-lbl">ZONE %</div><div class="stat-val" style="color:var(--blue)">${s.zonePct}%</div><div class="stat-sub">${s.inZone} in zone</div></div>
-      <div class="stat-card"><div class="stat-lbl">SWM %</div><div class="stat-val" style="color:var(--purple)">${s.swmPct}%</div><div class="stat-sub">Swing & miss</div></div>
-      <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${s.avgVel}</div><div class="stat-sub">MPH avg</div></div>
-      <div class="stat-card"><div class="stat-lbl">MAX VELO</div><div class="stat-val" style="color:var(--amber)">${s.maxVel}</div><div class="stat-sub">MPH top</div></div>
+      ${state.activeTab==='zone'?buildZoneTab(ap):''}
+      ${state.activeTab==='heat'?buildHeatTab(ap):''}
+      ${state.activeTab==='stats'?buildStatsTab(ap,pitches,stats):''}
+      ${state.activeTab==='roster'?buildRosterTab():''}
     </div>
-    <div class="pitch-breakdown" style="margin-bottom:0">
-      <div class="pb-title">PITCH MIX</div>
-      ${Object.entries(s.byType).map(([code,d])=>`
-        <div class="pb-row">
-          <div class="pb-name" style="color:${d.color}">${d.name}</div>
-          <div class="pb-bar-wrap"><div class="pb-bar" style="width:${d.pct}%;background:${d.color}88"></div></div>
-          <div class="pb-stats">${d.pct}% · ${d.avgVel}mph</div>
-        </div>`).join('')}
-    </div>` : '';
-
-  return `
-    <div class="popup-overlay">
-      <div class="popup-sheet">
-        <div class="popup-drag"></div>
-        <div class="popup-title">Session Complete</div>
-        <div class="popup-sub">${ap} · ${sess.date}</div>
-        <div class="es-hero">
-          <div class="es-count">${s?s.total:0}</div>
-          <div class="es-label">PITCHES THROWN</div>
-        </div>
-        <div class="es-quick">
-          <div class="es-stat">
-            <div class="es-stat-val" style="color:var(--red)">${s?s.strikes:0}</div>
-            <div class="es-stat-lbl">STRIKES</div>
-          </div>
-          <div class="es-stat">
-            <div class="es-stat-val" style="color:var(--blue)">${s?s.balls:0}</div>
-            <div class="es-stat-lbl">BALLS</div>
-          </div>
-          <div class="es-stat">
-            <div class="es-stat-val" style="color:var(--green)">${s?s.strikePct:0}%</div>
-            <div class="es-stat-lbl">STR%</div>
-          </div>
-        </div>
-        <button class="es-expand-btn ${state.endSessionExpanded?'open':''}" onclick="toggleEndExpand()">
-          <span>${state.endSessionExpanded?'Hide full stats':'Show full stats'}</span>
-          <span class="arrow">▼</span>
-        </button>
-        <div class="es-full-stats ${state.endSessionExpanded?'open':''}">
-          ${fullStats}
-        </div>
-        <div class="es-note-section">
-          <div class="es-note-label"><span class="pen-icon">✏️</span> SESSION NOTES</div>
-          <textarea class="es-note-inp" id="esNoteInp" placeholder="How did it feel? Any notes on mechanics, pitch movement, fatigue…">${state.endSessionNote}</textarea>
-        </div>
-        <button class="es-done-btn" onclick="finalizeEndSession()">Save &amp; Start New Session</button>
-      </div>
-    </div>`;
+    ${state.activeTab==='zone'?`<div class="action-row">
+      <button class="btn-undo" onclick="undoPitch()">↩ UNDO</button>
+      <button class="btn-clear" onclick="clearPitches()">CLEAR</button>
+      <button class="btn-export" onclick="exportCSV()">⬇ CSV</button>
+    </div>`:''}
+  `;
 }
 
-function buildZoneTab(ap) {
-  if(!ap) return `
-    <div class="empty-state">
-      <div class="empty-icon">⚾</div>
-      <div class="empty-title">No Pitcher Selected</div>
-      <div class="empty-sub">Add a pitcher in the Roster tab, then select them above to start tracking.</div>
-    </div>`;
-  return `
+function buildGamePage(){
+  const ap=state.activeGamePitcher;
+  const gs=ap?getCurrentGameSession(ap):null;
+  const gp=gs?gs.pitches:[];
+  const fps=state.gameFPSAttempts>0?((state.gameFPS/state.gameFPSAttempts)*100).toFixed(0):0;
+  return`
+    <div class="pitcher-bar">
+      <select class="pitcher-select" id="gamePitcherSel" onchange="selectGamePitcher(this.value)">
+        <option value="">— Select Pitcher —</option>
+        ${state.pitchers.map(p=>`<option value="${p.name}" ${ap===p.name?'selected':''}>${p.name} #${p.num||'—'}</option>`).join('')}
+      </select>
+      <button class="btn-sm btn-teal" onclick="state.showAddPopup=true;render()">+ Add</button>
+    </div>
+    <div class="count-bar">
+      <div class="count-seg"><div class="count-lbl">BALLS</div><div class="count-val cv-b">${state.gameBalls}</div></div>
+      <div class="count-seg"><div class="count-lbl">STRIKES</div><div class="count-val cv-s">${state.gameStrikes}</div></div>
+      <div class="count-seg"><div class="count-lbl">OUTS</div><div class="count-val" style="color:var(--orange)">${state.gameOuts}</div></div>
+      <div class="count-seg"><div class="count-lbl">INNING</div><div class="count-val cv-p">${state.gameInning}</div></div>
+    </div>
+    <div class="count-bar" style="border-top:none">
+      <div class="count-seg"><div class="count-lbl">PITCHES</div><div class="count-val cv-p">${state.gamePitches}</div></div>
+      <div class="count-seg"><div class="count-lbl">K</div><div class="count-val" style="color:var(--red)">${state.gameStrikeouts}</div></div>
+      <div class="count-seg"><div class="count-lbl">BB</div><div class="count-val cv-b">${state.gameWalks}</div></div>
+      <div class="count-seg"><div class="count-lbl">FPS%</div><div class="count-val cv-v">${fps}</div></div>
+    </div>
+    <div class="scroll">
+      <div class="zone-wrap">
+        <canvas id="gameZoneCanvas" width="${ZONE_W}" height="380" aria-label="Game zone"></canvas>
+      </div>
+      <div class="pitch-ctrl">
+        <div class="ctrl-row">
+          <div class="ctrl-label">PITCH</div>
+          <div class="pitch-type-grid">
+            ${GAME_PITCH_TYPES.map(pt=>`
+              <button class="pt-btn" onclick="state.gamePitchType='${pt.code}';render()"
+                style="background:${(state.gamePitchType||'FB')===pt.code?pt.color+'22':'var(--card)'};border-color:${(state.gamePitchType||'FB')===pt.code?pt.color:'var(--border)'};color:${(state.gamePitchType||'FB')===pt.code?pt.color:'var(--muted)'}">${pt.code}</button>`).join('')}
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-label">VEL</div>
+          <input class="vel-inp" id="gameVelInp" type="number" min="40" max="105" placeholder="--" value="${state.velocity}" oninput="state.velocity=this.value">
+          <span class="vel-unit">MPH</span>
+        </div>
+      </div>
+      <div class="end-session-row">
+        <button class="btn-end-session" onclick="endGameSession()">END GAME</button>
+      </div>
+      ${gp.length?`
+      <div style="padding:0 12px 12px">
+        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">PITCH LOG</div>
+        <div class="pitch-log">
+          <div class="pl-header"><span class="pl-num">#</span><span class="pl-type">TYPE</span><span class="pl-loc">ZONE</span><span class="pl-vel">VEL</span><span class="pl-result" style="text-align:right">RESULT</span></div>
+          ${gp.slice().reverse().slice(0,15).map((p,i)=>{
+            const idx=gp.length-i;
+            const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
+            const badge=p.swingMiss?'<span class="badge badge-swm">SWM</span>':p.foul?'<span class="badge badge-foul">FOUL</span>':p.isStrike?'<span class="badge badge-str">STR</span>':'<span class="badge badge-bal">BALL</span>';
+            return`<div class="pl-row"><span class="pl-num">${idx}</span><span class="pl-type" style="color:${pt.color}">${pt.code}</span><span class="pl-loc">Z${getZoneNum(p.x,p.y)}</span><span class="pl-vel">${p.vel||'—'}</span><span class="pl-result">${badge}</span></div>`;
+          }).join('')}
+        </div>
+      </div>`:''}
+      ${!ap?`<div class="empty-state"><div class="empty-icon">🏟️</div><div class="empty-title">Select a Pitcher</div><div class="empty-sub">Choose a pitcher above to start tracking the game.</div></div>`:''}
+    </div>
+    <div class="action-row">
+      <button class="btn-undo" onclick="undoGamePitch()">↩ UNDO</button>
+      <button class="btn-clear" onclick="clearGame()">CLEAR</button>
+      <button class="btn-export" onclick="exportCSV()">⬇ CSV</button>
+    </div>
+  `;
+}
+
+function buildArmCarePage(){
+  return`
+    <div class="page-hero">
+      <div class="page-hero-label">Recovery</div>
+      <div class="page-hero-title">💪 Arm Care Routine</div>
+      <div class="page-hero-sub">Complete this after every bullpen or pitching outing. Takes 15–20 min. Non-negotiable for arm health all season.</div>
+    </div>
+    <div class="full-page" id="armCareScroll">
+      <div class="content-page">
+        ${ARM_CARE.map((ex,i)=>buildExerciseCard(ex,`ac_${i}`))}
+      </div>
+    </div>
+  `;
+}
+
+function buildStrengthPage(){
+  if(state.strengthCat){
+    const cat=state.strengthCat;
+    const exercises=STRENGTH_CATS[cat];
+    const labels={upper:'Upper Body',lower:'Lower Body',speed:'Speed Work',band:'Band Work',mobility:'Mobility'};
+    const icons={upper:'💪',lower:'🦵',speed:'⚡',band:'🔄',mobility:'🧘'};
+    return`
+      <div class="page-hero">
+        <div class="page-hero-label">Strength Training</div>
+        <div class="page-hero-title">${icons[cat]} ${labels[cat]}</div>
+        <div class="page-hero-sub">MLB-caliber exercises for pitchers. Focus on form over weight. Always warm up first.</div>
+      </div>
+      <div class="full-page">
+        <div class="content-page">
+          <button class="back-btn" onclick="state.strengthCat=null;render()">← Back to categories</button>
+          ${exercises.map((ex,i)=>buildExerciseCard(ex,`st_${cat}_${i}`))}
+        </div>
+      </div>
+    `;
+  }
+  return`
+    <div class="page-hero">
+      <div class="page-hero-label">Training</div>
+      <div class="page-hero-title">🏋️ Strength Training</div>
+      <div class="page-hero-sub">Select a training category. All programs are designed for pitchers to build velocity, durability, and longevity.</div>
+    </div>
+    <div class="full-page">
+      <div class="content-page">
+        <div class="strength-grid">
+          <div class="strength-cat" onclick="state.strengthCat='upper';render()">
+            <div class="strength-cat-icon">💪</div>
+            <div class="strength-cat-name">Upper Body</div>
+            <div class="strength-cat-sub">Shoulder, back, arms</div>
+          </div>
+          <div class="strength-cat" onclick="state.strengthCat='lower';render()">
+            <div class="strength-cat-icon">🦵</div>
+            <div class="strength-cat-name">Lower Body</div>
+            <div class="strength-cat-sub">Glutes, quads, hips</div>
+          </div>
+          <div class="strength-cat" onclick="state.strengthCat='speed';render()">
+            <div class="strength-cat-icon">⚡</div>
+            <div class="strength-cat-name">Speed Work</div>
+            <div class="strength-cat-sub">Explosiveness & power</div>
+          </div>
+          <div class="strength-cat" onclick="state.strengthCat='band';render()">
+            <div class="strength-cat-icon">🔄</div>
+            <div class="strength-cat-name">Band Work</div>
+            <div class="strength-cat-sub">Arm care & activation</div>
+          </div>
+        </div>
+        <div class="strength-cat" style="margin-top:0" onclick="state.strengthCat='mobility';render()">
+          <div class="strength-cat-icon">🧘</div>
+          <div class="strength-cat-name">Mobility</div>
+          <div class="strength-cat-sub">Flexibility & range of motion for pitchers</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildExerciseCard(ex,id){
+  const isOpen=state.expandedExercise===id;
+  return`
+    <div class="exercise-card">
+      <div class="exercise-header" onclick="state.expandedExercise=state.expandedExercise==='${id}'?null:'${id}';render()">
+        <div class="exercise-icon" style="background:rgba(0,200,150,.1)">${ex.icon}</div>
+        <div class="exercise-info">
+          <div class="exercise-name">${ex.name}</div>
+          <div class="exercise-meta">${ex.sets}</div>
+        </div>
+        <div class="exercise-chevron ${isOpen?'open':''}">▼</div>
+      </div>
+      ${isOpen?`<div class="exercise-body open">
+        <div class="exercise-desc">${ex.desc}</div>
+        <a class="video-btn" href="${ex.url}" target="_blank">
+          <div class="video-btn-icon">▶</div>
+          <span>Watch tutorial on YouTube</span>
+        </a>
+      </div>`:''}
+    </div>
+  `;
+}
+
+function buildThrowingPage(){
+  return`
+    <div class="page-hero">
+      <div class="page-hero-label">Arm Development</div>
+      <div class="page-hero-title">🎯 Throwing Program</div>
+      <div class="page-hero-sub">8-week progressive program to build arm strength safely. Follow rest days exactly. Never throw through pain.</div>
+    </div>
+    <div class="full-page">
+      <div class="content-page">
+        ${THROWING_PROGRAM.map((w,i)=>{
+          const isOpen=state.expandedWeek===i;
+          return`
+            <div class="week-card">
+              <div class="week-header" onclick="state.expandedWeek=state.expandedWeek===i?null:i;render()">
+                <div class="week-badge">${w.week}</div>
+                <div class="week-title">${w.title}</div>
+                <div style="color:var(--muted);font-size:14px">${isOpen?'▲':'▼'}</div>
+              </div>
+              ${isOpen?`<div class="week-body open">
+                ${w.days.map(d=>`
+                  <div class="day-row">
+                    <div class="day-label">${d.day}</div>
+                    <div class="day-desc">${d.desc}</div>
+                  </div>
+                `).join('')}
+              </div>`:''}
+            </div>
+          `;
+        }).join('')}
+        <div class="exercise-card" style="margin-top:4px">
+          <div class="exercise-header" style="cursor:default">
+            <div class="exercise-icon" style="background:rgba(255,77,77,.1)">⚠️</div>
+            <div class="exercise-info">
+              <div class="exercise-name">Important Notes</div>
+              <div class="exercise-meta">Read before starting</div>
+            </div>
+          </div>
+          <div class="exercise-body open" style="display:block">
+            <div class="exercise-desc">
+              • Stop immediately if you feel sharp or stabbing pain in the elbow or shoulder<br><br>
+              • Soreness and fatigue are normal — sharp pain is not<br><br>
+              • Always complete arm care band work on rest days<br><br>
+              • Hydrate and sleep 8+ hours — recovery happens overnight<br><br>
+              • Progress can be faster or slower depending on your arm — listen to your body<br><br>
+              • Track every session in Chaser to monitor progress over the program
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildGameDayPage(){
+  return`
+    <div class="page-hero">
+      <div class="page-hero-label">Performance</div>
+      <div class="page-hero-title">🌅 Game Day Routine</div>
+      <div class="page-hero-sub">What MLB starters do before and after every outing. Follow this exactly for peak performance and arm longevity.</div>
+    </div>
+    <div class="full-page">
+      <div class="content-page">
+        ${GAMEDAY_PHASES.map((phase,i)=>{
+          const isOpen=state.expandedPhase===i;
+          return`
+            <div class="phase-card">
+              <div class="phase-header" onclick="state.expandedPhase=state.expandedPhase===i?null:i;render()">
+                <div class="phase-icon" style="background:${phase.iconBg}">${phase.icon}</div>
+                <div class="phase-title">${phase.title}</div>
+                <div style="color:var(--muted);font-size:14px">${isOpen?'▲':'▼'}</div>
+              </div>
+              ${isOpen?`<div class="phase-body open">
+                ${phase.steps.map((s,si)=>`
+                  <div class="routine-step">
+                    <div class="step-num">${si+1}</div>
+                    <div class="step-text"><span class="step-title">${s.title}</span>${s.text}</div>
+                  </div>
+                `).join('')}
+              </div>`:''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function buildAIPage(){
+  return`
+    <div class="ai-page">
+      <div style="background:var(--panel);border-bottom:1px solid var(--border);padding:10px 14px;flex-shrink:0">
+        <div style="font-size:15px;font-weight:800;color:var(--teal)">🤖 AI Pitching Coach</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">Ask anything about pitching, training, or arm care</div>
+      </div>
+      <div class="ai-messages" id="aiMessages">
+        ${state.aiMessages.map(m=>`
+          <div class="ai-msg ${m.role==='user'?'user':'ai'}">${m.text.replace(/\n/g,'<br>')}</div>
+        `).join('')}
+        ${state.aiLoading?`<div class="ai-msg ai thinking">Coach is thinking…</div>`:''}
+      </div>
+      <div class="ai-input-row">
+        <input class="ai-inp" id="aiInp" placeholder="Ask your pitching coach…" onkeydown="if(event.key==='Enter'){const v=this.value;this.value='';sendAIMessage(v);}">
+        <button class="ai-send" onclick="const inp=document.getElementById('aiInp');const v=inp.value;inp.value='';sendAIMessage(v);">SEND</button>
+      </div>
+    </div>
+  `;
+}
+
+function buildZoneTab(ap){
+  if(!ap)return`<div class="empty-state"><div class="empty-icon">⚾</div><div class="empty-title">No Pitcher Selected</div><div class="empty-sub">Select a pitcher above or go to the Roster tab to add one.</div></div>`;
+  return`
     <div class="zone-wrap">
-      <canvas id="zoneCanvas" width="${ZONE_W}" height="${ZONE_H}" aria-label="Strike zone pitch tracker"></canvas>
+      <canvas id="zoneCanvas" width="${ZONE_W}" height="380" aria-label="Strike zone"></canvas>
     </div>
     <div class="pitch-ctrl">
       <div class="ctrl-row">
         <div class="ctrl-label">PITCH</div>
         <div class="pitch-type-grid">
-          ${PITCH_TYPES.map(pt=>`
+          ${PITCH_TYPES.filter(p=>p.code!=='?').map(pt=>`
             <button class="pt-btn" onclick="state.pitchType='${pt.code}';render()"
               style="background:${state.pitchType===pt.code?pt.color+'22':'var(--card)'};border-color:${state.pitchType===pt.code?pt.color:'var(--border)'};color:${state.pitchType===pt.code?pt.color:'var(--muted)'}">${pt.code}</button>`).join('')}
         </div>
       </div>
       <div class="ctrl-row">
         <div class="ctrl-label">VEL</div>
-        <input class="vel-inp" id="velInp" type="number" min="40" max="105" placeholder="--"
-          value="${state.velocity}" oninput="state.velocity=this.value">
+        <input class="vel-inp" id="velInp" type="number" min="40" max="105" placeholder="--" value="${state.velocity}" oninput="state.velocity=this.value">
         <span class="vel-unit">MPH</span>
-        <div style="flex:1"></div>
-        <div class="swing-tog" onclick="state.swingMiss=!state.swingMiss;render()">
-          <div class="tog-box ${state.swingMiss?'on':''}"><div class="tog-dot"></div></div>
-          <span class="tog-lbl">SWING &amp; MISS</span>
-        </div>
       </div>
-    </div>`;
+    </div>
+    <div class="end-session-row">
+      <button class="btn-end-session" onclick="endSession()">END SESSION</button>
+    </div>
+  `;
 }
 
-function buildHeatTab(ap) {
-  const pitchTypes=['ALL',...PITCH_TYPES.map(p=>p.code)];
-  return `
+function buildHeatTab(ap){
+  const pitchTypes=['ALL',...PITCH_TYPES.filter(p=>p.code!=='?').map(p=>p.code)];
+  return`
     <div class="heat-section">
       <div class="heat-filters">
-        ${['session','alltime'].map(f=>`
-          <button class="hf-btn ${state.heatFilter===f?'active':''}" onclick="state.heatFilter='${f}';render()">${f==='session'?'This Session':'All Time'}</button>
-        `).join('')}
+        ${['session','alltime'].map(f=>`<button class="hf-btn ${state.heatFilter===f?'active':''}" onclick="state.heatFilter='${f}';render()">${f==='session'?'This Session':'All Time'}</button>`).join('')}
       </div>
       <div class="heat-filters">
-        ${pitchTypes.map(t=>`
-          <button class="hf-btn ${state.heatPitchType===t?'active':''}" onclick="state.heatPitchType='${t}';render()">${t}</button>
-        `).join('')}
+        ${pitchTypes.map(t=>`<button class="hf-btn ${state.heatPitchType===t?'active':''}" onclick="state.heatPitchType='${t}';render()">${t}</button>`).join('')}
       </div>
-      <canvas id="heatCanvas" width="${ZONE_W}" height="${ZONE_H}" aria-label="Pitch location heat map"></canvas>
-      <div class="heat-legend">
-        <span class="legend-lbl">FEW</span>
-        <div class="legend-grad"></div>
-        <span class="legend-lbl">HOT ZONE</span>
+      <canvas id="heatCanvas" width="${ZONE_W}" height="380"></canvas>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;justify-content:center">
+        <span class="legend-lbl">FEW</span><div class="legend-grad"></div><span class="legend-lbl">HOT ZONE</span>
       </div>
-      ${!ap?'<div class="empty-state" style="margin-top:12px"><div class="empty-sub">Select a pitcher to see their heat map</div></div>':''}
-    </div>`;
+      ${!ap?`<div class="empty-state" style="margin-top:12px"><div class="empty-sub">Select a pitcher to see their heat map</div></div>`:''}
+    </div>
+  `;
 }
 
-function buildStatsTab(ap, pitches, stats) {
-  if(!ap||!stats||!pitches.length) return `
-    <div class="empty-state">
-      <div class="empty-icon">📊</div>
-      <div class="empty-title">No Data Yet</div>
-      <div class="empty-sub">Throw some pitches in the Zone tab to see stats here.</div>
-    </div>`;
+function buildStatsTab(ap,pitches,stats){
+  if(!ap||!stats||!pitches.length)return`<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">No Data Yet</div><div class="empty-sub">Throw some pitches in the Zone tab to see stats here.</div></div>`;
   const allStats=calcStats(getSession(ap).allTime);
   const pastSessions=getSession(ap).sessions.slice(0,-1).reverse().slice(0,5);
-  return `
+  return`
     <div class="stats-section">
-      <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">THIS SESSION</div>
+      <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px">THIS SESSION</div>
       <div class="stat-grid">
         <div class="stat-card"><div class="stat-lbl">PITCHES</div><div class="stat-val" style="color:var(--teal)">${stats.total}</div><div class="stat-sub">${stats.strikes}K / ${stats.balls}BB</div></div>
         <div class="stat-card"><div class="stat-lbl">STRIKE %</div><div class="stat-val" style="color:${parseFloat(stats.strikePct)>=65?'var(--green)':parseFloat(stats.strikePct)>=55?'var(--amber)':'var(--red)'}">${stats.strikePct}%</div><div class="stat-sub">MLB avg ~65%</div></div>
@@ -680,49 +1246,32 @@ function buildStatsTab(ap, pitches, stats) {
           </div>`).join('')}
       </div>
       ${allStats&&getSession(ap).allTime.length>pitches.length?`
-        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;margin-top:4px">ALL TIME — ${getSession(ap).allTime.length} pitches</div>
+        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px;margin-top:3px">ALL TIME — ${getSession(ap).allTime.length} pitches</div>
         <div class="stat-grid">
           <div class="stat-card"><div class="stat-lbl">STRIKE %</div><div class="stat-val" style="color:var(--teal)">${allStats.strikePct}%</div></div>
           <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${allStats.avgVel}</div><div class="stat-sub">MPH all-time</div></div>
         </div>`:''}
       ${pastSessions.length?`
-        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;margin-top:4px">PAST SESSIONS</div>
+        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px;margin-top:3px">PAST SESSIONS</div>
         <div class="session-history">
-          <div class="sh-header">DATE · PITCHES · STRIKE% · NOTES</div>
-          ${pastSessions.map(s=>{
-            const st=calcStats(s.pitches);
-            return `<div class="sh-item">
-              <div class="sh-date">${s.date}</div>
-              <div class="sh-stats">${st?`${st.total} pitches · ${st.strikePct}% strikes · ${st.avgVel} MPH avg`:'No data'}</div>
-              ${s.note?`<div class="sh-note">"${s.note}"</div>`:''}
-            </div>`;
-          }).join('')}
+          <div class="sh-header">DATE · PITCHES · STRIKE % · NOTES</div>
+          ${pastSessions.map(s=>{const st=calcStats(s.pitches);return`<div class="sh-item"><div class="sh-date">${s.date}</div><div class="sh-stats">${st?`${st.total} pitches · ${st.strikePct}% strikes · ${st.avgVel} MPH avg`:'No data'}</div>${s.note?`<div class="sh-note">"${s.note}"</div>`:''}</div>`;}).join('')}
         </div>`:''}
       <div class="pitch-log">
-        <div class="pl-header">
-          <span class="pl-num">#</span><span class="pl-type">TYPE</span><span class="pl-loc">ZONE</span><span class="pl-vel">VEL</span><span class="pl-result" style="text-align:right">RESULT</span>
-        </div>
+        <div class="pl-header"><span class="pl-num">#</span><span class="pl-type">TYPE</span><span class="pl-loc">ZONE</span><span class="pl-vel">VEL</span><span class="pl-result" style="text-align:right">RESULT</span></div>
         ${pitches.slice().reverse().slice(0,20).map((p,i)=>{
           const idx=pitches.length-i;
           const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
-          const badge=p.swingMiss?'<span class="badge badge-swm">SWM</span>'
-            :p.foul?'<span class="badge badge-foul">FOUL</span>'
-            :p.isStrike?'<span class="badge badge-str">STRIKE</span>'
-            :'<span class="badge badge-bal">BALL</span>';
-          return `<div class="pl-row">
-            <span class="pl-num">${idx}</span>
-            <span class="pl-type" style="color:${pt.color}">${pt.code}</span>
-            <span class="pl-loc">Z${getZoneNum(p.x,p.y)}</span>
-            <span class="pl-vel">${p.vel||'—'}</span>
-            <span class="pl-result">${badge}</span>
-          </div>`;
+          const badge=p.swingMiss?'<span class="badge badge-swm">SWM</span>':p.foul?'<span class="badge badge-foul">FOUL</span>':p.isStrike?'<span class="badge badge-str">STRIKE</span>':'<span class="badge badge-bal">BALL</span>';
+          return`<div class="pl-row"><span class="pl-num">${idx}</span><span class="pl-type" style="color:${pt.color}">${pt.code}</span><span class="pl-loc">Z${getZoneNum(p.x,p.y)}</span><span class="pl-vel">${p.vel||'—'}</span><span class="pl-result">${badge}</span></div>`;
         }).join('')}
       </div>
-    </div>`;
+    </div>
+  `;
 }
 
-function buildRosterTab() {
-  return `
+function buildRosterTab(){
+  return`
     <div class="roster-section">
       <div class="roster-add">
         <input class="roster-inp" placeholder="Pitcher name…" id="quickAdd" onkeydown="if(event.key==='Enter')quickAddPitcher()">
@@ -730,86 +1279,166 @@ function buildRosterTab() {
       </div>
       <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">${state.pitchers.length} PITCHER${state.pitchers.length!==1?'S':''} ON ROSTER</div>
       <div class="roster-list">
-        ${state.pitchers.length===0?`
-          <div class="empty-state">
-            <div class="empty-icon">👥</div>
-            <div class="empty-title">No Pitchers Yet</div>
-            <div class="empty-sub">Add pitchers above to start tracking their bullpen sessions.</div>
-          </div>`:
+        ${state.pitchers.length===0?`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No Pitchers Yet</div><div class="empty-sub">Add pitchers above to start tracking.</div></div>`:
         state.pitchers.map((p,i)=>{
-          const s=getSession(p.name);
-          const allT=s.allTime||[];
-          const st=calcStats(allT);
+          const s=getSession(p.name);const allT=s.allTime||[];const st=calcStats(allT);
           const avColor=AVATAR_COLORS[i%AVATAR_COLORS.length];
           const initials=p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-          return `<div class="roster-item ${state.activePitcher===p.name?'active-p':''}" onclick="selectPitcher('${p.name}');state.activeTab='zone';render()">
+          return`<div class="roster-item ${state.activePitcher===p.name?'active-p':''}" onclick="selectPitcher('${p.name}');state.activeTab='zone';render()">
             <div class="roster-avatar" style="background:${avColor}22;color:${avColor}">${initials}</div>
             <div class="roster-info">
-              <div class="roster-name">${p.name} <span style="color:var(--muted);font-size:12px;font-weight:400">#${p.num||'—'}</span></div>
-              <div class="roster-meta">${allT.length} pitches · ${s.sessions.filter(ss=>ss.pitches.length).length} sessions${st?` · ${st.strikePct}% str · ${st.avgVel} MPH`:''}</div>
+              <div class="roster-name">${p.name} <span style="color:var(--muted);font-size:11px;font-weight:400">#${p.num||'—'}</span></div>
+              <div class="roster-meta">${allT.length} pitches · ${s.sessions.filter(ss=>ss.pitches.length).length} sessions${st?` · ${st.strikePct}% str · ${st.avgVel}mph`:''}</div>
             </div>
             <button class="roster-del" onclick="event.stopPropagation();deletePitcher('${p.name}')">×</button>
           </div>`;
         }).join('')}
       </div>
-    </div>`;
+    </div>
+  `;
 }
 
+function buildEndSessionSheet(ap,sess,s){
+  const fullStats=s?`
+    <div class="stat-grid" style="margin-bottom:9px">
+      <div class="stat-card"><div class="stat-lbl">ZONE %</div><div class="stat-val" style="color:var(--blue)">${s.zonePct}%</div><div class="stat-sub">${s.inZone} in zone</div></div>
+      <div class="stat-card"><div class="stat-lbl">SWM %</div><div class="stat-val" style="color:var(--purple)">${s.swmPct}%</div></div>
+      <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${s.avgVel}</div><div class="stat-sub">MPH avg</div></div>
+      <div class="stat-card"><div class="stat-lbl">MAX VELO</div><div class="stat-val" style="color:var(--amber)">${s.maxVel}</div><div class="stat-sub">MPH top</div></div>
+    </div>
+    <div class="pitch-breakdown" style="margin-bottom:0">
+      <div class="pb-title">PITCH MIX</div>
+      ${Object.entries(s.byType).map(([code,d])=>`
+        <div class="pb-row"><div class="pb-name" style="color:${d.color}">${d.name}</div>
+        <div class="pb-bar-wrap"><div class="pb-bar" style="width:${d.pct}%;background:${d.color}88"></div></div>
+        <div class="pb-stats">${d.pct}% · ${d.avgVel}mph</div></div>`).join('')}
+    </div>`:'';
+  return`
+    <div class="popup-overlay">
+      <div class="popup-sheet">
+        <div class="popup-drag"></div>
+        <div class="popup-title">Session Complete</div>
+        <div class="popup-sub">${ap} · ${sess.date}</div>
+        <div class="es-hero">
+          <div class="es-count">${s?s.total:0}</div>
+          <div class="es-label">PITCHES THROWN</div>
+        </div>
+        <div class="es-quick">
+          <div class="es-stat"><div class="es-stat-val" style="color:var(--red)">${s?s.strikes:0}</div><div class="es-stat-lbl">STRIKES</div></div>
+          <div class="es-stat"><div class="es-stat-val" style="color:var(--blue)">${s?s.balls:0}</div><div class="es-stat-lbl">BALLS</div></div>
+          <div class="es-stat"><div class="es-stat-val" style="color:var(--green)">${s?s.strikePct:0}%</div><div class="es-stat-lbl">STR%</div></div>
+        </div>
+        <button class="es-expand-btn ${state.endSessionExpanded?'open':''}" onclick="toggleEndExpand()">
+          <span>${state.endSessionExpanded?'Hide full stats':'Show full stats'}</span> <span>${state.endSessionExpanded?'▲':'▼'}</span>
+        </button>
+        <div class="es-full-stats ${state.endSessionExpanded?'open':''}">${fullStats}</div>
+        <div class="es-note-label">✏️ SESSION NOTES</div>
+        <textarea class="es-note-inp" id="esNoteInp" placeholder="How did it feel? Mechanics, movement, fatigue…">${state.endSessionNote}</textarea>
+        <button class="es-done-btn" onclick="finalizeEndSession()">Save &amp; Start New Session</button>
+      </div>
+    </div>
+  `;
+}
+
+// GLOBAL FUNCTIONS
 window.selectPitcher=function(name){
   state.activePitcher=name||null;
   state.balls=0;state.strikes=0;state.pitches=0;
-  if(name) state.pitches=getCurrentSession(name).pitches.length;
+  if(name)state.pitches=getCurrentSession(name).pitches.length;
   render();
-  setTimeout(()=>{
-    if(state.activeTab==='zone'){
-      const zc=document.getElementById('zoneCanvas');
-      if(zc&&state.activePitcher) drawZoneCanvas(zc,getCurrentSession(state.activePitcher).pitches,true);
-    }
-  },50);
+  setTimeout(()=>{const zc=document.getElementById('zoneCanvas');if(zc&&state.activePitcher)drawZoneCanvas(zc,getCurrentSession(state.activePitcher).pitches,true);},50);
+};
+window.selectGamePitcher=function(name){
+  state.activeGamePitcher=name||null;
+  state.gameBalls=0;state.gameStrikes=0;state.gameOuts=0;state.gameInning=1;
+  state.gamePitches=0;state.gameStrikeouts=0;state.gameWalks=0;state.gameFPS=0;state.gameFPSAttempts=0;
+  if(name){const gs=getCurrentGameSession(name);state.gamePitches=gs.pitches.length;}
+  render();
+  setTimeout(()=>{const zc=document.getElementById('gameZoneCanvas');if(zc&&state.activeGamePitcher)drawZoneCanvas(zc,getCurrentGameSession(state.activeGamePitcher).pitches,true);},50);
 };
 window.addPitcher=function(){
   const name=state.newPitcherName.trim();
   const num=document.getElementById('newPitcherNum')?.value?.trim()||'';
-  if(!name) return;
-  if(state.pitchers.find(p=>p.name===name)){showToast('Pitcher already exists');return;}
-  state.pitchers.push({name,num});
-  save(); state.showAddPitcher=false; state.newPitcherName='';
-  showToast('Added '+name); selectPitcher(name);
+  if(!name)return;
+  if(state.pitchers.find(p=>p.name===name)){showToast('Already exists');return;}
+  state.pitchers.push({name,num});save();
+  state.showAddPopup=false;state.newPitcherName='';
+  showToast('Added '+name);selectPitcher(name);
 };
 window.quickAddPitcher=function(){
   const inp=document.getElementById('quickAdd');
-  if(!inp||!inp.value.trim()) return;
+  if(!inp||!inp.value.trim())return;
   const name=inp.value.trim();
   if(state.pitchers.find(p=>p.name===name)){showToast('Already exists');return;}
-  state.pitchers.push({name,num:''}); save(); showToast('Added '+name); render();
+  state.pitchers.push({name,num:''});save();showToast('Added '+name);render();
 };
 window.deletePitcher=function(name){
-  if(!confirm('Remove '+name+' from roster?')) return;
+  if(!confirm('Remove '+name+'?'))return;
   state.pitchers=state.pitchers.filter(p=>p.name!==name);
   if(state.activePitcher===name){state.activePitcher=null;state.balls=0;state.strikes=0;state.pitches=0;}
-  save(); render();
+  save();render();
 };
 window.toggleEndExpand=function(){
   const noteEl=document.getElementById('esNoteInp');
-  if(noteEl) state.endSessionNote=noteEl.value;
-  state.endSessionExpanded=!state.endSessionExpanded;
-  render();
+  if(noteEl)state.endSessionNote=noteEl.value;
+  state.endSessionExpanded=!state.endSessionExpanded;render();
+};
+window.endGameSession=function(){
+  if(!state.activeGamePitcher)return;
+  const gs=getCurrentGameSession(state.activeGamePitcher);
+  if(!gs.pitches.length){showToast('No pitches tracked');return;}
+  const fps=state.gameFPSAttempts>0?((state.gameFPS/state.gameFPSAttempts)*100).toFixed(0):'0';
+  alert(`Game Summary — ${state.activeGamePitcher}\n\nPitches: ${state.gamePitches}\nStrikeouts: ${state.gameStrikeouts}\nWalks: ${state.gameWalks}\nFPS%: ${fps}%\nInnings: ${state.gameInning}`);
+  state.gameSessions[state.activeGamePitcher].push({date:new Date().toLocaleDateString(),pitches:[],note:''});
+  state.gameBalls=0;state.gameStrikes=0;state.gameOuts=0;state.gameInning=1;
+  state.gamePitches=0;state.gameStrikeouts=0;state.gameWalks=0;state.gameFPS=0;state.gameFPSAttempts=0;
+  save();render();
+};
+window.undoGamePitch=function(){
+  if(!state.activeGamePitcher)return;
+  const gs=getCurrentGameSession(state.activeGamePitcher);
+  if(!gs.pitches.length)return;
+  const last=gs.pitches.pop();
+  if(last.isStrike&&!last.foul)state.gameStrikes=Math.max(0,state.gameStrikes-1);
+  else if(!last.isStrike&&!last.foul)state.gameBalls=Math.max(0,state.gameBalls-1);
+  state.gamePitches=Math.max(0,state.gamePitches-1);
+  save();showToast('Pitch removed');render();
+  setTimeout(()=>{const zc=document.getElementById('gameZoneCanvas');if(zc)drawZoneCanvas(zc,getCurrentGameSession(state.activeGamePitcher).pitches,true);},50);
+};
+window.clearGame=function(){
+  if(!state.activeGamePitcher)return;
+  if(!confirm('Clear game session?'))return;
+  const gs=getGameSession(state.activeGamePitcher);
+  if(gs.length)gs[gs.length-1].pitches=[];
+  state.gameBalls=0;state.gameStrikes=0;state.gameOuts=0;state.gameInning=1;
+  state.gamePitches=0;state.gameStrikeouts=0;state.gameWalks=0;state.gameFPS=0;state.gameFPSAttempts=0;
+  save();showToast('Cleared');render();
+  setTimeout(()=>{const zc=document.getElementById('gameZoneCanvas');if(zc)drawZoneCanvas(zc,[],false);},50);
 };
 window.confirmOutcome=confirmOutcome;
+window.confirmGameOutcome=confirmGameOutcome;
 window.undoPitch=undoPitch;
 window.clearPitches=clearPitches;
 window.endSession=endSession;
 window.finalizeEndSession=finalizeEndSession;
 window.exportCSV=exportCSV;
+window.sendAIMessage=sendAIMessage;
 
 function attachEvents(){
   const zc=document.getElementById('zoneCanvas');
   if(zc){
-    zc.addEventListener('click',handleZoneClick);
-    zc.addEventListener('touchstart',(e)=>{e.preventDefault();handleZoneClick(e);},{passive:false});
+    zc.addEventListener('click',e=>handleZoneClick(e,false));
+    zc.addEventListener('touchstart',e=>{e.preventDefault();handleZoneClick(e,false);},{passive:false});
+  }
+  const gz=document.getElementById('gameZoneCanvas');
+  if(gz){
+    gz.addEventListener('click',e=>handleZoneClick(e,true));
+    gz.addEventListener('touchstart',e=>{e.preventDefault();handleZoneClick(e,true);},{passive:false});
   }
   const vel=document.getElementById('velInp');
-  if(vel) vel.addEventListener('change',()=>{state.velocity=vel.value;});
+  if(vel)vel.addEventListener('change',()=>{state.velocity=vel.value;});
+  const gvel=document.getElementById('gameVelInp');
+  if(gvel)gvel.addEventListener('change',()=>{state.velocity=gvel.value;});
 }
 
 render();
