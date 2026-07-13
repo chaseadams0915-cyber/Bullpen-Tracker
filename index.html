@@ -1,440 +1,818 @@
-python3 - << 'PYEOF'
-import os
-
-# We'll write the full file in one python string written to disk
-# Breaking into sections to stay under per-statement limits
-
-sections = []
-
-sections.append("""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Chaser — Pitcher Development</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Bullpen Tracker Pro</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--navy:#07101E;--panel:#0E1929;--card:#182338;--border:#223050;--teal:#00C896;--teal-dim:#00785A;--red:#FF4D4D;--blue:#4A9EFF;--amber:#FFAA33;--purple:#A78BFA;--green:#4ADE80;--orange:#FF7A3D;--text:#EEF2FF;--muted:#6B80A8;--dim:#2E3F5C;}
-html,body{height:100%;background:var(--navy);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;font-size:13px;overflow:hidden}
-#root{height:100vh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative}
-.hdr{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10;position:relative}
-.hdr-left{display:flex;align-items:center;gap:10px}
-.menu-btn{background:none;border:none;color:var(--text);cursor:pointer;padding:4px;display:flex;flex-direction:column;gap:4px}
-.menu-btn span{display:block;width:20px;height:2px;background:var(--text);border-radius:1px}
-.hdr-logo{font-size:18px;font-weight:800;letter-spacing:1px;color:var(--teal)}
-.ai-btn{background:rgba(0,200,150,.1);border:1px solid var(--teal);color:var(--teal);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer}
-.menu-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5)}
-.menu-drawer{position:fixed;top:0;left:0;bottom:0;width:265px;background:var(--panel);border-right:1px solid var(--border);z-index:201;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .25s ease}
-.menu-drawer.open{transform:translateX(0)}
-.menu-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
-.menu-logo-text{font-size:20px;font-weight:800;letter-spacing:1px;color:var(--teal)}
-.menu-logo-sub{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-top:2px}
-.menu-items{flex:1;overflow-y:auto;padding:8px 0}
-.menu-item{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;border-left:3px solid transparent}
-.menu-item:hover{background:rgba(255,255,255,.04)}
-.menu-item.active{background:rgba(0,200,150,.08);border-left-color:var(--teal)}
-.menu-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.menu-label{font-size:13px;font-weight:700}
-.menu-sub{font-size:10px;color:var(--muted);margin-top:1px}
-.menu-divider{height:1px;background:var(--border);margin:6px 16px}
-.pitcher-bar{background:var(--panel);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;align-items:center;flex-shrink:0}
-.pitcher-select{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600;flex:1;outline:none;appearance:none;cursor:pointer}
-.btn-sm{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap;font-weight:600}
-.btn-teal{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
-.count-bar{background:var(--navy);display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
-.count-seg{flex:1;padding:7px 4px;text-align:center;border-right:1px solid var(--border)}
-.count-seg:last-child{border-right:none}
-.count-lbl{font-size:8px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
-.count-val{font-size:20px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;line-height:1.1}
-.cv-b{color:var(--blue)}.cv-s{color:var(--red)}.cv-p{color:var(--teal)}.cv-v{color:var(--amber)}
-.tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
-.tab{flex:1;padding:9px 4px;text-align:center;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
-.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
-.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-.scroll::-webkit-scrollbar{width:3px}
-.scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.zone-wrap{padding:10px 12px 4px;display:flex;flex-direction:column;align-items:center}
-#zoneCanvas,#gameZoneCanvas{border-radius:10px;cursor:crosshair;touch-action:none;display:block;width:100%;max-width:340px}
-.pitch-ctrl{padding:6px 12px 4px;display:flex;flex-direction:column;gap:7px}
-.ctrl-row{display:flex;gap:8px;align-items:center}
-.ctrl-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;min-width:38px}
-.pitch-type-grid{display:flex;gap:5px;flex-wrap:wrap;flex:1}
-.pt-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap}
-.vel-inp{background:var(--card);border:1px solid var(--border);color:var(--teal);border-radius:8px;padding:6px 10px;font-size:16px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;width:76px;outline:none;text-align:center}
-.vel-unit{color:var(--muted);font-size:11px;font-weight:700}
-.end-session-row{padding:5px 12px 8px}
-.btn-end-session{width:100%;padding:10px;border-radius:10px;background:rgba(0,200,150,.08);border:1px solid var(--teal);color:var(--teal);font-size:13px;font-weight:700;cursor:pointer}
-.action-row{display:flex;gap:6px;padding:6px 12px;flex-shrink:0}
-.action-row button{flex:1;padding:9px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid}
-.btn-undo{background:rgba(255,170,51,.1);border-color:var(--amber);color:var(--amber)}
-.btn-clear{background:rgba(255,77,77,.08);border-color:var(--red);color:var(--red)}
-.btn-export{background:rgba(123,141,176,.08);border-color:var(--muted);color:var(--muted)}
-.heat-section{padding:10px 12px}
-.heat-filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px;align-items:center}
-.hf-label{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;margin-right:2px}
-.hf-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer}
-.hf-btn.active{border-color:var(--teal);color:var(--teal);background:rgba(0,200,150,.08)}
-#heatCanvas{border-radius:10px;display:block;width:100%;max-width:340px;margin:0 auto}
-.heat-banner{background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.18);border-radius:8px;padding:8px 11px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
-.heat-banner-label{font-size:9px;font-weight:700;color:var(--teal);letter-spacing:.8px;text-transform:uppercase}
-.heat-banner-val{font-size:12px;font-weight:700;margin-top:1px}
-.heat-banner-count{font-size:10px;color:var(--muted)}
-.stats-section{padding:10px 12px}
-.section-heading{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px;margin-top:4px;display:flex;align-items:center;gap:6px}
-.section-badge{font-size:8px;font-weight:700;padding:2px 7px;border-radius:5px}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 11px}
-.stat-lbl{font-size:8px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px}
-.stat-val{font-size:20px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
-.stat-sub{font-size:10px;color:var(--muted);margin-top:1px}
-.pitch-breakdown{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:7px}
-.pb-title{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px}
-.pb-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
-.pb-name{font-size:10px;font-weight:700;min-width:55px}
-.pb-bar-wrap{flex:1;height:5px;background:var(--navy);border-radius:3px;overflow:hidden}
-.pb-bar{height:100%;border-radius:3px}
-.pb-stats{font-size:9px;color:var(--muted);font-family:'SF Mono','Fira Mono',monospace;min-width:68px;text-align:right}
-.pitch-log{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px}
-.pl-header{display:flex;padding:6px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:8px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
-.pl-row{display:flex;padding:5px 12px;border-bottom:1px solid var(--border);align-items:center;font-size:10px}
-.pl-row:last-child{border-bottom:none}
-.pl-num{min-width:26px;color:var(--muted);font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
-.pl-type{min-width:52px;font-weight:700}
-.pl-loc{min-width:44px;color:var(--muted);font-family:'SF Mono','Fira Mono',monospace;font-size:9px}
-.pl-vel{min-width:42px;color:var(--amber);font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
-.pl-result{flex:1;text-align:right}
-.badge{font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px}
-.badge-str{background:rgba(255,77,77,.15);color:var(--red)}
-.badge-bal{background:rgba(74,158,255,.15);color:var(--blue)}
-.badge-swm{background:rgba(167,139,250,.15);color:var(--purple)}
-.badge-foul{background:rgba(255,170,51,.15);color:var(--amber)}
-.roster-section{padding:12px}
-.roster-add{display:flex;gap:8px;margin-bottom:12px}
-.roster-inp{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:13px;flex:1;outline:none}
-.roster-inp:focus{border-color:var(--teal)}
-.roster-inp::placeholder{color:var(--dim)}
-.roster-list{display:flex;flex-direction:column;gap:6px}
-.roster-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
-.roster-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-.roster-info{flex:1}
-.roster-name{font-size:14px;font-weight:700}
-.roster-meta{font-size:10px;color:var(--muted);margin-top:1px}
-.roster-del{background:none;border:none;color:var(--red);cursor:pointer;padding:4px;font-size:18px;line-height:1}
-.roster-item.active-p{border-color:var(--teal);background:rgba(0,200,150,.05)}
-.session-history{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px}
-.sh-header{padding:7px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:8px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
-.sh-item{padding:9px 12px;border-bottom:1px solid var(--border)}
-.sh-item:last-child{border-bottom:none}
-.sh-date{font-size:10px;font-weight:700;color:var(--teal);margin-bottom:2px}
-.sh-stats{font-size:10px;color:var(--muted);margin-bottom:3px;font-family:'SF Mono','Fira Mono',monospace}
-.sh-note{font-size:11px;color:var(--text);font-style:italic;opacity:.8}
-.full-page{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
-.full-page::-webkit-scrollbar{width:3px}
-.full-page::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.page-hero{background:var(--panel);border-bottom:1px solid var(--border);padding:14px;flex-shrink:0}
-.page-hero-label{font-size:9px;font-weight:700;color:var(--teal);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:3px}
-.page-hero-title{font-size:19px;font-weight:800;margin-bottom:3px}
-.page-hero-sub{font-size:11px;color:var(--muted);line-height:1.5}
-.content-page{padding:12px}
-.exercise-card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden}
-.exercise-header{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
-.exercise-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:rgba(0,200,150,.1)}
-.exercise-info{flex:1}
-.exercise-name{font-size:13px;font-weight:700}
-.exercise-meta{font-size:10px;color:var(--muted);margin-top:1px}
-.exercise-chevron{color:var(--muted);font-size:13px;flex-shrink:0}
-.exercise-body{padding:0 14px 12px;border-top:1px solid var(--border)}
-.exercise-desc{font-size:12px;color:var(--muted);line-height:1.65;margin-top:10px;margin-bottom:10px}
-.video-btn{display:flex;align-items:center;gap:8px;background:rgba(74,158,255,.1);border:1px solid rgba(74,158,255,.3);border-radius:8px;padding:8px 12px;cursor:pointer;color:var(--blue);font-size:11px;font-weight:700;text-decoration:none;width:100%}
-.video-icon{width:26px;height:26px;border-radius:5px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:#fff}
-.strength-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.strength-cat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer}
-.strength-cat:hover{border-color:var(--teal)}
-.strength-cat-icon{font-size:24px;margin-bottom:5px}
-.strength-cat-name{font-size:12px;font-weight:700}
-.strength-cat-sub{font-size:10px;color:var(--muted);margin-top:2px}
-.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;padding:0;margin-bottom:12px}
-.week-card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden}
-.week-header{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
-.week-badge{background:var(--teal-dim);color:var(--teal);font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap}
-.week-title{font-size:13px;font-weight:700;flex:1}
-.week-body{border-top:1px solid var(--border);padding:12px 14px}
-.day-row{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start}
-.day-row:last-child{margin-bottom:0}
-.day-label{font-size:9px;font-weight:700;color:var(--teal);min-width:28px;padding-top:2px;text-transform:uppercase}
-.day-inner{flex:1}
-.day-drill{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
-.day-desc{font-size:11px;color:var(--muted);line-height:1.55}
-.phase-card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden}
-.phase-header{padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
-.phase-icon-wrap{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.phase-title{font-size:13px;font-weight:700;flex:1;line-height:1.3}
-.phase-body{border-top:1px solid var(--border);padding:12px 14px}
-.routine-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
-.routine-step:last-child{margin-bottom:0}
-.step-num{width:22px;height:22px;border-radius:50%;background:var(--teal-dim);color:var(--teal);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.step-content{flex:1}
-.step-title{font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:3px}
-.step-text{font-size:11px;color:var(--muted);line-height:1.6}
-.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:flex-end;justify-content:center;z-index:100}
-.popup-sheet{background:var(--panel);border:1px solid var(--border);border-radius:18px 18px 0 0;padding:18px 16px 30px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto}
-.popup-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;width:calc(100% - 40px);max-width:320px;margin:auto;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:102}
-.popup-drag{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
-.popup-title{font-size:17px;font-weight:700;margin-bottom:4px}
-.popup-inp{background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-size:14px;width:100%;outline:none;margin-bottom:10px}
-.popup-inp:focus{border-color:var(--teal)}
-.popup-btns{display:flex;gap:8px;margin-top:4px}
-.popup-btns button{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid}
-.es-hero{text-align:center;padding:6px 0 14px}
-.es-count{font-size:50px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;color:var(--teal);line-height:1}
-.es-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
-.es-quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:14px}
-.es-stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 5px;text-align:center}
-.es-stat-val{font-size:17px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
-.es-stat-lbl{font-size:8px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-top:2px}
-.es-expand-btn{width:100%;padding:9px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:11px}
-.es-full-stats{display:none;margin-bottom:11px}
-.es-full-stats.open{display:block}
-.es-note-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px}
-.es-note-inp{background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 12px;font-size:13px;width:100%;outline:none;resize:none;font-family:inherit;line-height:1.5;min-height:75px}
-.es-note-inp:focus{border-color:var(--teal)}
-.es-note-inp::placeholder{color:var(--dim)}
-.es-done-btn{width:100%;padding:11px;border-radius:10px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);font-size:14px;font-weight:700;cursor:pointer;margin-top:11px}
-.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 15px;font-size:12px;font-weight:700;z-index:300;pointer-events:none;white-space:nowrap}
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;gap:8px;color:var(--muted);text-align:center}
-.empty-icon{font-size:38px;margin-bottom:4px}
-.empty-title{font-size:15px;font-weight:700;color:var(--text)}
-.empty-sub{font-size:12px;line-height:1.5}
-.ai-page{display:flex;flex-direction:column;flex:1;overflow:hidden}
-.ai-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
-.ai-msg{max-width:88%;padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.55}
-.ai-msg.user{background:var(--teal-dim);color:var(--text);align-self:flex-end;border-bottom-right-radius:3px}
-.ai-msg.ai{background:var(--card);border:1px solid var(--border);color:var(--text);align-self:flex-start;border-bottom-left-radius:3px}
-.ai-msg.thinking{color:var(--muted);font-style:italic}
-.ai-input-row{padding:10px 12px;background:var(--panel);border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
-.ai-inp{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:9px 14px;font-size:13px;outline:none;font-family:inherit}
-.ai-inp:focus{border-color:var(--teal)}
-.ai-inp::placeholder{color:var(--muted)}
-.ai-send{background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);border-radius:20px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer}
-.info-note{background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.18);border-radius:8px;padding:10px 12px;margin:0 12px 4px;font-size:11px;color:var(--muted);line-height:1.5}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --navy:#08101F;--panel:#0F1A2E;--card:#1A2640;--border:#253352;
+    --teal:#00C896;--teal-dim:#007A5A;--red:#FF4D4D;--red-dim:#8B1A1A;
+    --blue:#4A9EFF;--amber:#FFAA33;--purple:#A78BFA;--green:#4ADE80;
+    --text:#F0F4FF;--muted:#7B8DB0;--dim:#3A4A6B;
+  }
+  html,body{height:100%;background:var(--navy);color:var(--text);font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;overflow:hidden}
+  #root{height:100vh;display:flex;flex-direction:column;max-width:420px;margin:0 auto}
+  .hdr{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .hdr-title{font-size:15px;font-weight:700;letter-spacing:.5px}
+  .hdr-title span{color:var(--teal)}
+  .hdr-badge{background:var(--teal-dim);color:var(--teal);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.5px}
+  .pitcher-bar{background:var(--panel);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;align-items:center;flex-shrink:0}
+  .pitcher-select{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600;flex:1;outline:none;appearance:none;cursor:pointer}
+  .btn-sm{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap;font-weight:600}
+  .btn-sm:active{opacity:.7}
+  .btn-teal{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+  .count-bar{background:var(--navy);display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+  .count-seg{flex:1;padding:7px 4px;text-align:center;border-right:1px solid var(--border)}
+  .count-seg:last-child{border-right:none}
+  .count-lbl{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+  .count-val{font-size:22px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;line-height:1.1}
+  .cv-b{color:var(--blue)}.cv-s{color:var(--red)}.cv-p{color:var(--teal)}.cv-v{color:var(--amber)}
+  .tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+  .tab{flex:1;padding:10px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;letter-spacing:.3px;border-bottom:2px solid transparent}
+  .tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+  .scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+  .scroll::-webkit-scrollbar{width:3px}
+  .scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .zone-wrap{padding:10px 12px 6px;display:flex;flex-direction:column;align-items:center}
+  #zoneCanvas{border-radius:10px;cursor:crosshair;touch-action:none;display:block;width:100%;max-width:340px}
+  .pitch-ctrl{padding:8px 12px;display:flex;flex-direction:column;gap:8px}
+  .ctrl-row{display:flex;gap:8px;align-items:center}
+  .ctrl-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;min-width:40px}
+  .pitch-type-grid{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+  .pt-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .vel-inp{background:var(--card);border:1px solid var(--border);color:var(--teal);border-radius:8px;padding:6px 10px;font-size:16px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;width:80px;outline:none;text-align:center}
+  .vel-unit{color:var(--muted);font-size:11px;font-weight:700}
+  .swing-tog{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+  .tog-box{width:32px;height:18px;border-radius:9px;background:var(--card);border:1px solid var(--border);position:relative;transition:background .15s}
+  .tog-box.on{background:var(--teal-dim);border-color:var(--teal)}
+  .tog-dot{width:12px;height:12px;border-radius:50%;background:var(--muted);position:absolute;top:2px;left:2px;transition:left .15s,background .15s}
+  .tog-box.on .tog-dot{left:16px;background:var(--teal)}
+  .tog-lbl{font-size:11px;font-weight:700;color:var(--muted)}
+  .tog-box.on + .tog-lbl{color:var(--teal)}
+  .action-row{display:flex;gap:6px;padding:6px 12px;flex-shrink:0}
+  .action-row button{flex:1;padding:9px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;letter-spacing:.3px}
+  .btn-undo{background:rgba(255,170,51,.1);border-color:var(--amber);color:var(--amber)}
+  .btn-clear{background:rgba(255,77,77,.08);border-color:var(--red);color:var(--red)}
+  .btn-end{background:rgba(0,200,150,.08);border-color:var(--teal);color:var(--teal)}
+  .heat-section{padding:10px 12px}
+  .heat-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .hf-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer}
+  .hf-btn.active{border-color:var(--teal);color:var(--teal);background:rgba(0,200,150,.08)}
+  #heatCanvas{border-radius:10px;display:block;width:100%;max-width:340px;margin:0 auto}
+  .heat-legend{display:flex;align-items:center;gap:8px;margin-top:6px;justify-content:center}
+  .legend-grad{width:100px;height:8px;border-radius:4px;background:linear-gradient(to right,rgba(74,158,255,.2),rgba(255,77,77,.9))}
+  .legend-lbl{font-size:10px;color:var(--muted);font-weight:700}
+  .stats-section{padding:10px 12px}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+  .stat-lbl{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px}
+  .stat-val{font-size:21px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+  .stat-sub{font-size:10px;color:var(--muted);margin-top:1px}
+  .pitch-breakdown{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  .pb-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
+  .pb-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .pb-name{font-size:11px;font-weight:700;min-width:58px}
+  .pb-bar-wrap{flex:1;height:6px;background:var(--navy);border-radius:3px;overflow:hidden}
+  .pb-bar{height:100%;border-radius:3px}
+  .pb-stats{font-size:10px;color:var(--muted);font-family:'SF Mono','Fira Mono',monospace;min-width:70px;text-align:right}
+  .pitch-log{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px}
+  .pl-header{display:flex;padding:7px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+  .pl-row{display:flex;padding:6px 12px;border-bottom:1px solid var(--border);align-items:center;font-size:11px}
+  .pl-row:last-child{border-bottom:none}
+  .pl-num{min-width:28px;color:var(--muted);font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+  .pl-type{min-width:58px;font-weight:700}
+  .pl-loc{min-width:50px;color:var(--muted);font-family:'SF Mono','Fira Mono',monospace;font-size:10px}
+  .pl-vel{min-width:46px;color:var(--amber);font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+  .pl-result{flex:1;text-align:right}
+  .badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;letter-spacing:.5px}
+  .badge-str{background:rgba(255,77,77,.15);color:var(--red)}
+  .badge-bal{background:rgba(74,158,255,.15);color:var(--blue)}
+  .badge-swm{background:rgba(167,139,250,.15);color:var(--purple)}
+  .badge-foul{background:rgba(255,170,51,.15);color:var(--amber)}
+  .roster-section{padding:12px}
+  .roster-add{display:flex;gap:8px;margin-bottom:12px}
+  .roster-inp{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:13px;flex:1;outline:none}
+  .roster-inp:focus{border-color:var(--teal)}
+  .roster-inp::placeholder{color:var(--dim)}
+  .roster-list{display:flex;flex-direction:column;gap:6px}
+  .roster-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
+  .roster-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+  .roster-info{flex:1}
+  .roster-name{font-size:14px;font-weight:700}
+  .roster-meta{font-size:10px;color:var(--muted);margin-top:1px}
+  .roster-del{background:none;border:none;color:var(--red);cursor:pointer;padding:4px;font-size:18px;line-height:1}
+  .roster-item.active-p{border-color:var(--teal);background:rgba(0,200,150,.05)}
+  .session-history{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px}
+  .sh-header{padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--border);font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+  .sh-item{padding:10px 12px;border-bottom:1px solid var(--border)}
+  .sh-item:last-child{border-bottom:none}
+  .sh-date{font-size:10px;font-weight:700;color:var(--teal);margin-bottom:3px}
+  .sh-stats{font-size:10px;color:var(--muted);margin-bottom:4px;font-family:'SF Mono','Fira Mono',monospace}
+  .sh-note{font-size:11px;color:var(--text);font-style:italic;opacity:.8}
+  .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:flex-end;justify-content:center;z-index:100}
+  .popup-sheet{background:var(--panel);border:1px solid var(--border);border-radius:18px 18px 0 0;padding:20px 16px 32px;width:100%;max-width:420px;max-height:88vh;overflow-y:auto}
+  .popup-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;width:calc(100% - 40px);max-width:320px;margin:auto;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)}
+  .popup-drag{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+  .popup-title{font-size:17px;font-weight:700;margin-bottom:4px}
+  .popup-sub{font-size:11px;color:var(--muted);margin-bottom:16px}
+  .popup-inp{background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-size:14px;width:100%;outline:none;margin-bottom:10px}
+  .popup-inp:focus{border-color:var(--teal)}
+  .popup-btns{display:flex;gap:8px;margin-top:4px}
+  .popup-btns button{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid}
+  .es-hero{text-align:center;padding:8px 0 16px}
+  .es-count{font-size:52px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace;color:var(--teal);line-height:1}
+  .es-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+  .es-quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+  .es-stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center}
+  .es-stat-val{font-size:18px;font-weight:700;font-family:'SF Mono','Fira Mono',monospace}
+  .es-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-top:2px}
+  .es-expand-btn{width:100%;padding:10px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:12px}
+  .es-expand-btn .arrow{display:inline-block;transition:transform .2s;font-size:14px}
+  .es-expand-btn.open .arrow{transform:rotate(180deg)}
+  .es-full-stats{display:none;margin-bottom:12px}
+  .es-full-stats.open{display:block}
+  .es-note-section{margin-top:4px}
+  .es-note-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .pen-icon{font-size:13px}
+  .es-note-inp{background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 12px;font-size:13px;width:100%;outline:none;resize:none;font-family:inherit;line-height:1.5;min-height:80px}
+  .es-note-inp:focus{border-color:var(--teal)}
+  .es-note-inp::placeholder{color:var(--dim)}
+  .es-done-btn{width:100%;padding:12px;border-radius:10px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);font-size:14px;font-weight:700;cursor:pointer;margin-top:12px;letter-spacing:.3px}
+  .outcome-picker{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--panel);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:16px 14px 24px;z-index:50}
+  .op-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;text-align:center}
+  .op-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .op-btn{padding:13px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid;text-align:center;letter-spacing:.3px}
+  .op-cancel{margin-top:8px;width:100%;padding:10px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer}
+  .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:12px;font-weight:700;z-index:200;pointer-events:none;white-space:nowrap}
+  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;gap:8px;color:var(--muted);text-align:center}
+  .empty-icon{font-size:40px;margin-bottom:4px}
+  .empty-title{font-size:15px;font-weight:700;color:var(--text)}
+  .empty-sub{font-size:12px;line-height:1.5}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script>
-""")
-
-print(f"Section 0 CSS done: {len(sections[0])} bytes")
-
-sections.append("""
-const PT=[{code:'FB',name:'4-Seam',color:'#FF4D4D'},{code:'SI',name:'Sinker',color:'#FFB347'},{code:'CU',name:'Curveball',color:'#7EB5FF'},{code:'CH',name:'Changeup',color:'#98FF98'},{code:'SL',name:'Slider',color:'#DA70D6'},{code:'SP',name:'Splitter',color:'#F0E68C'},{code:'KN',name:'Knuckle',color:'#C0C0C0'},{code:'?',name:'Unknown',color:'#94A3B8'}];
-const AV=['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#F4A460','#87CEEB'];
-const MI=[{id:'bullpen',icon:'\\u26be',label:'Bullpen',sub:'Track throwing sessions',color:'#00C896'},{id:'game',icon:'\\ud83c\\udfd7\\ufe0f',label:'Game Tracker',sub:'Live game pitch tracking',color:'#4A9EFF'},{id:'armcare',icon:'\\ud83d\\udcaa',label:'Arm Care',sub:'Post-bullpen recovery',color:'#FF7A3D'},{id:'strength',icon:'\\ud83c\\udfd7\\ufe0f',label:'Strength Training',sub:'MLB pitcher workouts',color:'#A78BFA'},{id:'throwing',icon:'\\ud83c\\udfaf',label:'Throwing Program',sub:'Build arm strength',color:'#FFAA33'},{id:'gameday',icon:'\\ud83c\\udf05',label:'Game Day Routine',sub:'Pre & post game',color:'#4ADE80'},{id:'ai',icon:'\\ud83e\\udd16',label:'Ask AI Coach',sub:'Get instant answers',color:'#FF4D4D'}];
-""")
-
-print(f"Section 1 constants: {len(sections[1])} bytes")
-
-sections.append("""
-const AC=[
-{n:'Foam Roll — Lats & Upper Back',s:'60 sec each side',i:'\\ud83e\\uddca',d:'Lie on your side with the foam roller under your armpit and lat. Roll slowly from armpit to mid-back, pausing on tight spots 20-30 seconds. Then move to upper thoracic spine and breathe into each segment. Releases the lat — largest deceleration muscle — and opens the thoracic spine for better arm path. Do this FIRST before all other arm care.',u:'https://www.youtube.com/results?search_query=foam+roll+lats+pitcher'},
-{n:'Foam Roll — Quads & Hip Flexors',s:'90 sec each leg',i:'\\ud83e\\uddb5',d:'Face down, roller under one quad. Roll slowly from hip to just above knee. Angle slightly inward to hit the rectus femoris (hip flexor portion of the quad). Then shift to the TFL just below the hip. Tight quads pull the pelvis into anterior tilt — compresses the low back and limits hip extension during push-off, a primary velocity killer.',u:'https://www.youtube.com/results?search_query=quad+foam+roll+hip+flexor+pitcher'},
-{n:'Foam Roll — Glutes & Piriformis',s:'90 sec each side',i:'\\ud83e\\udd9a',d:'Sit on the roller, shift weight to one glute, cross same ankle over opposite knee (figure-4 position). Roll through the glute and piriformis finding tight spots. The piriformis and deep hip rotators are chronically tight in pitchers and directly limit hip internal rotation — the primary torque-generating movement in pitching.',u:'https://www.youtube.com/results?search_query=foam+roll+glutes+piriformis+pitcher'},
-{n:'Foam Roll — Thoracic Spine',s:'2 min total',i:'\\ud83d\\udd04',d:'Sit on floor, roller at mid-back, hands behind head. Extend over the roller segment by segment from T6 to T12. Pause and breathe into each segment. Thoracic restriction is the single biggest mechanical limiter for youth pitchers — it forces shoulder compensation, kills arm path efficiency, and is a primary cause of youth elbow and shoulder injuries.',u:'https://www.youtube.com/results?search_query=thoracic+spine+foam+roll+baseball+pitcher'},
-{n:'Lacrosse Ball — Posterior Shoulder',s:'90 sec each side',i:'\\u26be',d:'Place lacrosse ball between your throwing shoulder and a wall. Lean in and find the meaty posterior deltoid and infraspinatus. Make small circles, then slowly move the arm in different directions while maintaining pressure. Breaks up adhesions that accumulate after every throwing session. Critical for pitchers who experience posterior shoulder tightness.',u:'https://www.youtube.com/results?search_query=lacrosse+ball+posterior+shoulder+pitcher'},
-{n:'Band Pull-Aparts',s:'3 x 20 reps',i:'\\u2194\\ufe0f',d:'Hold a light band in front at shoulder height palms down. Pull apart until band touches chest squeezing shoulder blades together. Hold 1 sec. Return under control. Trains rear delt and lower trap — most responsible for scapular stability during the arm path. Do every single day you throw and every rest day. This is non-negotiable.',u:'https://www.youtube.com/results?search_query=band+pull+aparts+pitcher+arm+care'},
-{n:'External Rotation (ER) — Band',s:'3 x 15 each arm',i:'\\ud83d\\udd01',d:'Anchor band at elbow height. Stand sideways, elbow bent 90 degrees pinned at your side. Rotate forearm outward against resistance. Pause at end range 1 second. Return slowly. This is the single most important rotator cuff exercise for pitchers. Targets infraspinatus and teres minor — the muscles that decelerate your arm after release and prevent labrum tears.',u:'https://www.youtube.com/results?search_query=external+rotation+band+pitcher'},
-{n:'Internal Rotation (IR) — Band',s:'3 x 15 each arm',i:'\\ud83d\\udd04',d:'Same setup as ER but rotate forearm inward toward your body against resistance. Most programs skip IR — do not. Pitchers naturally develop dominant IR strength. Training it at equal volume to ER maintains the muscular balance that prevents anterior instability and anterior capsule breakdown. Keep elbow pinned.',u:'https://www.youtube.com/results?search_query=internal+rotation+band+pitcher'},
-{n:'W-T-Y Raises',s:'2 x 12 each position',i:'\\u2708\\ufe0f',d:'Stand bent forward 45 degrees or lie face down on bench. Form W: elbows bent 90, squeeze shoulder blades, hold 2 sec. Form T: arms straight out to sides thumbs up, hold 2 sec. Form Y: arms diagonal overhead thumbs up, hold 2 sec. Use 2-3 lbs max or bodyweight only. Directly activates lower and middle trapezius — essential for scapular control on every pitch.',u:'https://www.youtube.com/results?search_query=WTY+raises+pitcher+shoulder+health'},
-{n:'PNF Diagonal Patterns D1 & D2',s:'3 x 12 each direction',i:'\\u2716\\ufe0f',d:'D1 pattern: Start with hand across and below opposite hip, sweep diagonally up and out to shoulder height while externally rotating (like drawing a sword from a scabbard). D2 pattern: Start below same side hip, sweep diagonally up and across to opposite shoulder. These mimic the exact neuromuscular patterns of throwing across all planes. Used by every MLB strength staff daily.',u:'https://www.youtube.com/results?search_query=PNF+diagonal+pattern+pitcher+band'},
-{n:'Sleeper Stretch',s:'3 x 30 sec each side',i:'\\ud83d\\ude34',d:'Lie on your throwing side with shoulder flat on ground and arm at 90 degrees. Use your other hand to gently push your forearm toward the floor — shoulder internally rotating. Stop at mild tension. This stretches the posterior capsule which tightens from repeated throwing. A tight posterior capsule is directly linked to labrum tears. The single most important stretch for pitchers.',u:'https://www.youtube.com/results?search_query=sleeper+stretch+pitcher+posterior+capsule'},
-{n:'Cross-Body Shoulder Stretch',s:'3 x 30 sec each side',i:'\\ud83e\\udd38',d:'Pull your throwing arm across your chest at shoulder height using your other arm. Keep the shoulder depressed — do not let it shrug upward. Hold at point of stretch. Stretches the posterior deltoid and capsule. Always pair with the sleeper stretch as a complete posterior shoulder recovery routine.',u:'https://www.youtube.com/results?search_query=cross+body+shoulder+stretch+pitcher'},
-{n:'Forearm Flexor & Extensor Stretch',s:'3 x 30 sec each',i:'\\ud83d\\udd90\\ufe0f',d:'Extend arm forward palm up, use opposite hand to pull fingers back toward you (flexor stretch). Then rotate to palm down and pull fingers back (extensor stretch). Do both sides. Critical for pitchers who spin the ball — reduces UCL stress and forearm inflammation. Do after every single outing without exception.',u:'https://www.youtube.com/results?search_query=forearm+stretch+pitcher+elbow+UCL'},
-{n:'Wrist Circles & Strengthening',s:'2 x 20 reps each',i:'\\ud83d\\udd90\\ufe0f',d:'Full wrist circles both directions 10 reps each. Flex and extend against light resistance or bodyweight 10 reps each. Add rice bucket work 2x per week for grip and wrist strength. Wrist flexibility and strength directly affect backspin rate, spin efficiency, and offspeed pitch movement.',u:'https://www.youtube.com/results?search_query=wrist+exercises+pitcher+spin+rate'},
-{n:'Ice Protocol',s:'15-20 min after outings of 30+ pitches',i:'\\ud83e\\udde7',d:'After any outing of 30 or more pitches: ice the shoulder and elbow for 15 minutes, let warm 5 minutes, ice again 5 minutes if possible. Never apply ice directly to skin. Never ice before throwing — only after. Track your recovery: if soreness lasts beyond 48 hours, rest another day before your next throwing session.',u:'https://www.youtube.com/results?search_query=icing+arm+pitcher+recovery+protocol'}
+const PITCH_TYPES = [
+  {code:'FB',name:'4-Seam',color:'#FF4D4D'},
+  {code:'SI',name:'Sinker',color:'#FFB347'},
+  {code:'CU',name:'Curveball',color:'#7EB5FF'},
+  {code:'CH',name:'Changeup',color:'#98FF98'},
+  {code:'SL',name:'Slider',color:'#DA70D6'},
+  {code:'SP',name:'Splitter',color:'#F0E68C'},
+  {code:'KN',name:'Knuckle',color:'#C0C0C0'},
 ];
-""")
+const AVATAR_COLORS = ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#F4A460','#87CEEB'];
 
-print(f"Section 2 arm care: {len(sections[2])} bytes")
-
-sections.append("""
-const SC={
-upper:[
-{n:'Dumbbell Row',s:'4 x 10 each side',i:'\\ud83d\\udcaa',d:'One hand and knee on a bench. Row the dumbbell to your hip leading with your elbow — not your hand. Pause at the top, then lower slowly over 3 seconds. The slow eccentric builds the deceleration strength that protects your shoulder during follow-through. Most important pulling movement for pitchers. Do NOT use momentum.',u:'https://www.youtube.com/results?search_query=dumbbell+row+pitcher+strength'},
-{n:'Chin-Up',s:'4 x 6-8',i:'\\u2b06\\ufe0f',d:'Dead hang start, pull until chin clears the bar, lower slowly over 3 full seconds. Full dead hang every rep — no kipping. Chin-ups beat lat pulldown for sport-specificity because they require true scapular depression under load, exactly what happens during arm deceleration. Work up to sets of 10 bodyweight before adding weight.',u:'https://www.youtube.com/results?search_query=chin+ups+pitcher+lat+strength'},
-{n:'Landmine Press',s:'3 x 10 each side',i:'\\ud83d\\udcd0',d:'One hand on the end of a barbell anchored in a corner. Press from shoulder height in a natural arcing motion. The angled press path mimics the pitching arm path more closely than any flat bench or overhead press. Activates serratus anterior and lower trapezius simultaneously. Critical for arm path development and long-term shoulder health.',u:'https://www.youtube.com/results?search_query=landmine+press+baseball+pitcher'},
-{n:'Face Pulls',s:'4 x 15',i:'\\ud83c\\udfaf',d:'Cable or band at face height. Pull toward your forehead with elbows flaring high and wide, finishing with hands beside ears in external rotation. Combines rowing and external rotation in one movement — uniquely valuable for pitchers. Directly trains the posterior deltoid and external rotators in a functional pattern. Do these every single training session all year.',u:'https://www.youtube.com/results?search_query=face+pulls+pitcher+shoulder+health'},
-{n:'Push-Up to Serratus Push',s:'3 x 12',i:'\\ud83e\\udd32',d:'Standard push-up to the top position. Then push your upper back toward the ceiling — scapular protraction — and hold 2 seconds. This activates the serratus anterior which wraps around the ribs and holds the scapula to the thorax. Weak serratus is the number one cause of shoulder winging and impingement in pitchers.',u:'https://www.youtube.com/results?search_query=serratus+push+up+anterior+pitcher'},
-{n:'Rotator Cuff Circuit',s:'3 rounds, 12 reps each exercise',i:'\\ud83d\\udd04',d:'Perform in sequence with 3-5 lb dumbbells: (1) side-lying ER x 12 each, (2) prone T-raise x 12, (3) prone Y-raise x 12, (4) scaption x 12, (5) empty can x 12. Rest 60 sec between rounds. Done 3 times per week this circuit is the single greatest investment in long-term pitching arm health. Takes only 15 minutes.',u:'https://www.youtube.com/results?search_query=rotator+cuff+circuit+pitcher'},
-{n:'Pallof Press',s:'3 x 12 each side',i:'\\ud83d\\udd30',d:'Cable or band anchored at chest height to your side. Hold handle at chest, press straight out and hold 2 seconds, then return. Resist the rotational pull throughout the movement. Builds the obliques and deep core that stabilize the delivery side. Pitchers must generate rotation AND resist it on the front side — this trains both.',u:'https://www.youtube.com/results?search_query=pallof+press+baseball+pitcher+core'},
-{n:'TRX Row / Inverted Row',s:'3 x 12',i:'\\ud83d\\udd01',d:'Feet elevated, body in a straight line, pull chest to bar or handles squeezing shoulder blades at the top. Highly scalable by adjusting foot height. The scapular retraction and depression pattern at peak contraction directly mimics what the lower trapezius does as the arm accelerates forward on every pitch.',u:'https://www.youtube.com/results?search_query=inverted+row+pitcher+training'}
-],
-lower:[
-{n:'Trap Bar Deadlift',s:'4 x 5-6 heavy',i:'\\u26a1',d:'Neutral grip handles, chest up, hips down, drive through the floor with maximum force. Has the highest correlation of any single exercise to pitch velocity in the research. Trains triple extension at the ankle, knee, and hip with minimal spinal loading. Work up to 1.5 to 2 times bodyweight. Form is everything — never round the lower back.',u:'https://www.youtube.com/results?search_query=trap+bar+deadlift+baseball+velocity'},
-{n:'Romanian Deadlift',s:'4 x 8',i:'\\ud83c\\udfd7\\ufe0f',d:'Hip hinge with soft knees, push hips back, lower bar along your legs until you feel a deep hamstring stretch, then drive hips forward to return. The eccentric phase — lowering — is as important as the lift. Control it over 3 seconds. Builds the posterior chain that generates the initial drive force in the pitching motion.',u:'https://www.youtube.com/results?search_query=romanian+deadlift+pitcher+hamstrings'},
-{n:'Bulgarian Split Squat',s:'3 x 10 each leg',i:'\\ud83e\\uddb5',d:'Rear foot elevated on a bench, step forward so your front knee tracks over mid-foot. Lower until front thigh is parallel to the ground. Drive through the heel of the front foot to return. Trains both the drive leg eccentrically and the landing leg for stability simultaneously. Single-leg strength is far more specific to pitching than bilateral squats.',u:'https://www.youtube.com/results?search_query=bulgarian+split+squat+pitcher'},
-{n:'Hip Thrust',s:'4 x 12',i:'\\ud83c\udfa2',d:'Shoulders on bench, loaded bar across hips with pad. Drive hips up until your body forms a straight line, squeeze glutes hard at the top and hold 1 second. The glutes are the primary power source in pitching — they extend the hip during push-off and stabilize the pelvis at landing. Most youth pitchers have chronically underactivated glutes.',u:'https://www.youtube.com/results?search_query=hip+thrust+pitcher+glutes+velocity'},
-{n:'Lateral Band Walk',s:'3 x 20 each direction',i:'\\u2194\\ufe0f',d:'Band above knees, quarter-squat position, step laterally maintaining band tension, keep toes forward throughout. Activates the glute medius responsible for hip abduction and pelvic stability on the landing leg. When the glute med is weak the pelvis drops at landing which kills velocity and significantly increases elbow valgus stress.',u:'https://www.youtube.com/results?search_query=lateral+band+walk+pitcher+hip+stability'},
-{n:'Single-Leg Romanian Deadlift',s:'3 x 8 each leg',i:'\\u2696\\ufe0f',d:'Stand on one leg, hinge forward pushing hips back, opposite leg extends behind for balance. Lower until you feel a strong hamstring stretch then return. The balance and proprioceptive demand is as important as the strength — trains the same neuromuscular control required to land and brace on the front leg during delivery.',u:'https://www.youtube.com/results?search_query=single+leg+rdl+pitcher+landing+leg'},
-{n:'Goblet Squat',s:'3 x 12',i:'\\ud83c\\udfd7\\ufe0f',d:'Hold a kettlebell or dumbbell at your chest, feet shoulder width, sit between your legs into a deep squat then drive up. The goblet position naturally creates an upright torso and hip external rotation. For pitchers learning to properly load the hips in the wind-up, this squat pattern directly transfers to hip loading mechanics.',u:'https://www.youtube.com/results?search_query=goblet+squat+pitcher+hip+loading'}
-],
-speed:[
-{n:'Med Ball Rotational Throw — Wall',s:'4 x 6 each side',i:'\\ud83d\\udca5',d:'Stand 3 feet from a solid wall perpendicular to it. Load into the hip away from the wall, then violently rotate and throw the med ball into the wall. Catch and reload immediately. Use an 8-12 lb ball. This is the single best power transfer exercise for pitchers — it trains the exact kinetic chain sequence of throwing at high velocity. Maximum effort every rep.',u:'https://www.youtube.com/results?search_query=med+ball+rotational+throw+pitcher+wall'},
-{n:'Med Ball Overhead Slam',s:'4 x 6',i:'\\u2b07\\ufe0f',d:'Stand with a 10-15 lb ball overhead. Aggressively slam it into the floor directly in front of you. Catch and repeat. Trains the lat and core in a high-velocity eccentric-concentric pattern identical to the arm deceleration and re-acceleration cycle. Also conditions the abdominals to brace under ballistic loading.',u:'https://www.youtube.com/results?search_query=med+ball+overhead+slam+pitcher+core'},
-{n:'Box Jump',s:'4 x 5',i:'\\u2b06\\ufe0f',d:'Stand facing a 20-24 inch box. Dip, swing arms explosively, jump and land softly with bent knees absorbing the impact. Always step down — never jump down. Trains maximum rate of force development in the lower body. Perform BEFORE lifting, never when fatigued. Explosive vertical power predicts fastball velocity better than most other physical assessments.',u:'https://www.youtube.com/results?search_query=box+jump+pitcher+explosiveness+velocity'},
-{n:'Broad Jump',s:'4 x 5',i:'\\u2197\\ufe0f',d:'Squat down, load the hips, swing arms aggressively, jump as far forward as possible, land on two feet absorbing the impact. Horizontal power is more specific to pitching than vertical power because the push-off phase is primarily horizontal. Track your distance every session — as it improves velocity typically follows within 4-6 weeks.',u:'https://www.youtube.com/results?search_query=broad+jump+pitcher+horizontal+power+velocity'},
-{n:'Sprint Acceleration',s:'8 x 20 yards, full rest between',i:'\\ud83c\\udfc3',d:'From a dead stop, sprint 20 yards at absolute maximum effort. Take 2 full minutes of rest between every rep. Pitchers with faster sprint times consistently have higher velocities — this is well established in baseball research. Sprint training recruits fast-twitch muscle fibers throughout the lower body that are directly used in the pitching motion.',u:'https://www.youtube.com/results?search_query=sprint+training+pitcher+velocity+fast+twitch'},
-{n:'Lateral Bound',s:'3 x 8 each direction',i:'\\u2194\\ufe0f',d:'Stand on one foot, push explosively to the side, land on the opposite foot and stick the landing for 1 full second before bounding back. The stick-landing trains the frontal plane stability required on the landing leg. Progress to consecutive bounds once you can stick each one cleanly. Use a mirror to check that your landing knee stays aligned over your foot.',u:'https://www.youtube.com/results?search_query=lateral+bound+pitcher+frontal+plane'},
-{n:'Kettlebell Swing',s:'4 x 15',i:'\\ud83d\\udd14',d:'Feet shoulder width, hinge at hips, swing bell back between legs then snap hips forward powerfully. The swing is driven entirely by the hips — not the arms. The hip hinge and hip snap pattern is biomechanically similar to hip extension during pitch delivery. Builds glutes, hamstrings, and core simultaneously under ballistic loading.',u:'https://www.youtube.com/results?search_query=kettlebell+swing+pitcher+power+hip+snap'}
-],
-band:[
-{n:'Full Daily Arm Care Circuit',s:'Every day — 15 reps each exercise',i:'\\ud83d\\udd04',d:'Complete every day you throw and every rest day. Takes 8-10 minutes: (1) Pull-aparts x15, (2) External rotation x15 each, (3) Internal rotation x15 each, (4) W raise x12, (5) T raise x12, (6) Y raise x12, (7) D1 diagonal x12 each, (8) D2 diagonal x12 each, (9) Scapular retraction and depression x15. Missing even 2 days per week significantly increases injury risk over a season.',u:'https://www.youtube.com/results?search_query=pitcher+band+arm+care+circuit+daily'},
-{n:'External Rotation (ER)',s:'3 x 15 each arm',i:'\\ud83d\\udd01',d:'Elbow bent 90 degrees pinned at your side, rotate forearm away from body against band resistance. Pause at end range. Return slowly. Targets the infraspinatus and teres minor — the primary decelerators of the throwing arm. Imbalance between ER and IR strength is the leading predictor of throwing arm injuries in youth and high school pitchers.',u:'https://www.youtube.com/results?search_query=external+rotation+band+pitcher+infraspinatus'},
-{n:'Internal Rotation (IR)',s:'3 x 15 each arm',i:'\\ud83d\\udd04',d:'Same setup as ER but rotate forearm toward your body. Do at exactly equal volume to ER. Pitchers naturally develop dominant IR strength in the throwing arm. Training it maintains the muscular balance that prevents anterior instability and anterior capsule breakdown. Most arm care programs neglect this. Do not.',u:'https://www.youtube.com/results?search_query=internal+rotation+band+pitcher'},
-{n:'Scapular Retraction & Depression',s:'3 x 15',i:'\\u2b07\\ufe0f',d:'Band anchored in front at chest height. Pull elbows back AND downward feeling your shoulder blades squeeze together AND slide down toward your back pockets. Trains the lower trapezius — often the weakest muscle in youth pitchers. Lower trap weakness causes the shoulder to elevate during the arm path which creates impingement and limits velocity.',u:'https://www.youtube.com/results?search_query=scapular+retraction+depression+lower+trap+pitcher'},
-{n:'PNF Diagonal Patterns D1 & D2',s:'3 x 12 each pattern each side',i:'\\u2716\\ufe0f',d:'D1: Start hand across and below opposite hip, sweep diagonally up and out to shoulder while externally rotating — like drawing a sword from a scabbard. D2: Start below same side hip, sweep diagonally up and across to opposite shoulder. These PNF patterns train the neuromuscular coordination of the entire throwing complex across all movement planes simultaneously.',u:'https://www.youtube.com/results?search_query=PNF+D1+D2+diagonal+pitcher+band'},
-{n:'Hip Flexor Band March',s:'3 x 20 steps each direction',i:'\\ud83e\\uddb5',d:'Band around ankles. Stand tall and march in place driving high knees against resistance. Then march forward and backward. Builds hip flexor and abductor strength for the leg lift phase and stride control. Use before every bullpen as a lower half activation drill. Takes 3 minutes.',u:'https://www.youtube.com/results?search_query=hip+flexor+band+march+pitcher'},
-{n:'Monster Walks',s:'3 x 20 each direction',i:'\\ud83d\\udc7e',d:'Band above knees, maintain a quarter-squat position, walk forward and backward then laterally. Keep knees actively pushed out against the band throughout. Pre-activates the glute medius before every bullpen or game. This 3-minute exercise dramatically improves lower half mechanics when done consistently.',u:'https://www.youtube.com/results?search_query=monster+walks+band+pitcher+glute+med'}
-],
-mobility:[
-{n:'Foam Roll Full Body Protocol',s:'8-10 min total',i:'\\ud83d\\udd04',d:'Complete in this order every session: (1) Calves 60 sec each — roll from ankle to knee, (2) Hamstrings 60 sec each, (3) Quads 90 sec each — face down, from hip to knee, angle inward for rectus femoris, (4) IT band 60 sec each — side lying, (5) Glutes and piriformis 60 sec each in figure-4 position, (6) Thoracic spine 2 min — extend over roller segment by segment, (7) Lats 60 sec each. Pause on tight spots 20-30 seconds. This is therapeutic treatment, not a warm-up formality.',u:'https://www.youtube.com/results?search_query=foam+rolling+full+body+protocol+baseball'},
-{n:'Quad Roll & Hip Flexor Release',s:'90 sec each leg',i:'\\ud83e\\uddb5',d:'Face down, roller under one quad. Slowly work from just above the knee to the hip crease. Angle slightly inward to target the rectus femoris which is also a hip flexor. Then shift to the TFL just below the hip bone. Tight quads pull the pelvis into anterior tilt — this compresses the lumbar spine and limits hip extension during push-off, costing velocity on every pitch.',u:'https://www.youtube.com/results?search_query=quad+roll+hip+flexor+release+pitcher'},
-{n:'Glute & Piriformis — Lacrosse Ball',s:'90 sec each side',i:'\\ud83e\\udd4a',d:'Sit on a lacrosse ball placed just outside your sitting bone. Cross the same ankle over the opposite knee in a figure-4 position to increase the stretch. Rotate slightly to find the tightest spots and hold. The piriformis and deep hip rotators are chronically tight in pitchers and contribute to hip impingement and limited hip internal rotation — a direct velocity limiter.',u:'https://www.youtube.com/results?search_query=piriformis+lacrosse+ball+pitcher'},
-{n:'Hip 90/90 Stretch',s:'3 x 60 sec each side',i:'\\ud83e\\uddd8',d:'Sit with both knees at 90 degrees — front leg in front of you, back leg to the side. Work to get both sides of your pelvis flat on the floor. Lean forward over the front shin then rotate to the back shin. Pitchers need elite hip mobility in both internal and external rotation to generate lower-half torque without compensating at the spine or knee.',u:'https://www.youtube.com/results?search_query=90+90+hip+stretch+baseball+pitcher'},
-{n:'Thoracic Rotation with Reach',s:'3 x 10 each side',i:'\\ud83c\\udf00',d:'Lie on your side with knees stacked at 90 degrees. Place top hand behind your head. Rotate your upper back open as far as possible reaching your elbow toward the ceiling. Let your eyes follow. Hold 2 sec at end range. The single most important mobility exercise for pitchers. Restricted thoracic rotation forces the shoulder and elbow to compensate causing the majority of overuse injuries in youth pitchers.',u:'https://www.youtube.com/results?search_query=thoracic+rotation+side+lying+pitcher'},
-{n:"World's Greatest Stretch",s:'5 each side',i:'\\ud83c\\udf0d',d:"Lunge forward with your right foot. Place your right hand inside your right foot on the floor. Rotate your left arm to the ceiling and look up. Hold 2 sec. Return. Then reach your right arm to the ceiling. This single movement simultaneously addresses ankle dorsiflexion, hip flexor stretch, thoracic rotation, and shoulder mobility. It should be in every pitcher's warm-up routine every day.",u:"https://www.youtube.com/results?search_query=worlds+greatest+stretch+baseball+pitcher"},
-{n:'Hip Flexor Kneeling Lunge Stretch',s:'3 x 45 sec each side',i:'\\ud83e\\udd38',d:'In a kneeling lunge position push your hips forward until you feel a deep stretch in the front hip. Posteriorly tilt your pelvis — tuck your tailbone under. Then reach the arm on the kneeling side overhead and lean slightly away. The hip flexors shorten progressively over a season of pitching. This stretch maintains the full hip extension and stride length needed for maximum velocity.',u:'https://www.youtube.com/results?search_query=hip+flexor+kneeling+stretch+pitcher'},
-{n:'Ankle Dorsiflexion Mobilization',s:'2 x 15 each ankle',i:'\\ud83e\\uddb6',d:'Face a wall with your foot 4 inches away. Drive your knee forward over your foot keeping your heel completely flat on the floor. Gradually increase range over multiple sets. Landing leg ankle dorsiflexion directly determines landing leg bracing efficiency. Limited ankle mobility forces the knee to internally rotate at landing which stresses the MCL and limits force absorption.',u:'https://www.youtube.com/results?search_query=ankle+dorsiflexion+mobilization+landing+leg'},
-{n:'Sleeper Stretch + Cross-Body Combo',s:'3 rounds x 30 sec each',i:'\\ud83d\\ude34',d:'Sleeper stretch 30 sec then immediately transition to cross-body stretch 30 sec. Together they address the entire posterior shoulder capsule. MLB athletic trainers perform this combination on starting pitchers before and after every single outing. Do both without resting between for maximum benefit.',u:'https://www.youtube.com/results?search_query=sleeper+stretch+cross+body+pitcher+combo'},
-{n:'Doorway Pec Minor Stretch',s:'3 x 30 sec each side',i:'\\ud83d\\udeaa',d:'Place your forearm on a doorway or wall at 90 degrees. Step through until you feel a stretch across your chest and front shoulder. The pec minor is chronically tight in pitchers and pulls the scapula into a downwardly rotated position. This restricts arm elevation and creates sub-acromial impingement. Stretch it every single day.',u:'https://www.youtube.com/results?search_query=pec+minor+stretch+pitcher+impingement'},
-{n:"Lat Stretch — Child's Pose",s:'3 x 30 sec',i:'\\ud83d\\ude47',d:"Kneel and sit your hips back toward your heels while extending both arms overhead on the floor. Walk your hands slightly to each side to bias each lat individually. The lat is the primary decelerator of the arm after ball release — when tight it compresses the humeral head against the glenoid during follow-through. Release it after every single outing.",u:"https://www.youtube.com/results?search_query=lat+stretch+childs+pose+pitcher"},
-{n:'Wrist & Forearm Mobility Circuit',s:'2 min total',i:'\\ud83d\\udd90\\ufe0f',d:'Full wrist circles in both directions 10 reps each. Prayer stretch — palms together pushing down — hold 20 sec. Reverse prayer — backs of hands together pushing down — hold 20 sec. Individual finger extensions pulling each finger back gently. Forearm supination and pronation with elbow bent 90 degrees. Wrist mobility and forearm strength directly affect spin rate, axis tilt, and offspeed movement.',u:'https://www.youtube.com/results?search_query=wrist+forearm+mobility+pitcher+spin+rate'}
-]
+let state = {
+  pitchers: JSON.parse(localStorage.getItem('bp_pitchers') || '[]'),
+  sessions: JSON.parse(localStorage.getItem('bp_sessions') || '{}'),
+  activePitcher: null,
+  activeTab: 'zone',
+  pitchType: 'FB',
+  velocity: '',
+  swingMiss: false,
+  balls: 0, strikes: 0, pitches: 0,
+  pendingPitch: null,
+  heatFilter: 'session',
+  heatPitchType: 'ALL',
+  showAddPitcher: false,
+  newPitcherName: '',
+  showEndSession: false,
+  endSessionNote: '',
+  endSessionExpanded: false,
+  toast: null, toastTimer: null,
 };
-""")
 
-print(f"Section 3 strength cats: {len(sections[3])} bytes")
+function save() {
+  localStorage.setItem('bp_pitchers', JSON.stringify(state.pitchers));
+  localStorage.setItem('bp_sessions', JSON.stringify(state.sessions));
+}
 
-sections.append("""
-const TP=[
-{w:'Week 1',t:'Foundation — Easy Catch Play',days:[
-{l:'MON',d:'Easy Toss',x:'45 ft, 50% effort, 10-15 min. No intent whatsoever. Focus purely on loose arm action, natural wrist snap, and comfortable arm circle. Stop at any tightness. 25-30 pitches maximum.'},
-{l:'TUE',d:'Rest + Band Work',x:'Full daily arm care circuit. Foam rolling. No throwing at all.'},
-{l:'WED',d:'Easy Toss',x:'45 ft, 50-55% effort, 15 min. Same focus as Monday. Add 5-8 throws at 60% letting the ball carry naturally. 30-35 pitches.'},
-{l:'THU',d:'Rest + Mobility',x:'Full mobility protocol. Hip 90/90, thoracic rotation, hip flexor work, foam rolling. 20 min minimum.'},
-{l:'FRI',d:'Easy Toss Extension',x:'45 ft warmup x15 throws. Move back to 60 ft x15 throws at 60%. Focus on wrist snap and loose finish. 30 pitches total.'},
-{l:'SAT',d:'Optional Light Toss',x:'If arm feels good, 10 min easy toss at 45 ft. Otherwise rest — your body will tell you.'},
-{l:'SUN',d:'Full Rest',x:'Ice if any soreness. Foam roll. Review the week: any tightness? Any compensations? Write it in Chaser notes.'}
-]},
-{w:'Week 2',t:'Distance Building — Out to 75 ft',days:[
-{l:'MON',d:'Progressive Toss + Flat Ground',x:'45 ft x10 throws to warm up. 60 ft x10. 75 ft x15 at 65-70%. Then flat ground: 20 pitches from set position focusing on hip-to-shoulder separation. No mound yet.'},
-{l:'TUE',d:'Rest + Band Work',x:'Full arm care circuit. Extra ER and IR volume today — 4 sets each instead of 3.'},
-{l:'WED',d:'Rocker Drill Day',x:'Rocker drill from 45 ft: from a rocking position practice hip loading and hip-to-shoulder sequence x20 throws. Then 60 ft x15 focusing on hip lead. No effort — all mechanics focus.'},
-{l:'THU',d:'Rest + Strength',x:'Lower body session: RDL, hip thrust, lateral band walk, goblet squat. No throwing.'},
-{l:'FRI',d:'Progressive Toss with Intent',x:'45 to 60 to 75 ft progression. Take 8-10 throws at 75% intent from 75 ft. Feel the arm extend through the ball. 40 total throws max.'},
-{l:'SAT',d:'Flat Ground Session',x:'30 pitches flat ground from the stretch. Focus on front hip driving toward target. 65-70% effort. Track every pitch location in Chaser.'},
-{l:'SUN',d:'Rest',x:'Full rest. Ice if needed. Log your soreness level 1-10 in Chaser session notes.'}
-]},
-{w:'Week 3',t:'Mechanics — Drill Intensive Week',days:[
-{l:'MON',d:'Balance Point Drill',x:'From the stretch, pause at balance point for 2 full seconds before delivering. x20 throws from 45 ft. Trains proprioception and balance at the top of delivery. Then 15 throws at 60 ft with full delivery focusing on what you felt.'},
-{l:'TUE',d:'Rest + Full Arm Care',x:'Full arm care circuit with extra sleeper stretch and cross-body work — 4 rounds each.'},
-{l:'WED',d:'Hip-To-Shoulder Separation Drill',x:'Towel drill: hold towel instead of ball, drive hip toward target, feel the separation between hip rotation and shoulder rotation. x20 reps. Then 60 ft catch play focusing on intentional hip lead x25 throws at 65%.'},
-{l:'THU',d:'Rest + Strength',x:'Upper body: chin-ups, face pulls, landmine press, rotator cuff circuit.'},
-{l:'FRI',d:'Flat Ground to 90 ft',x:'Full progressive warm-up to 90 ft. 15 throws at 90 ft at 70%. Focus: consistent release point every single throw. Track locations in Chaser.'},
-{l:'SAT',d:'First Mound Session',x:'25-30 pitches from the mound. ALL fastballs only. 65-70% effort. No concern about location yet — feel the mound, find your balance point, establish your stride direction and landing spot.'},
-{l:'SUN',d:'Rest + Recovery',x:'Complete arm care protocol, full foam rolling, ice if any soreness at all.'}
-]},
-{w:'Week 4',t:'Mound Work — Location Focus',days:[
-{l:'MON',d:'Mound — Quadrant Fastballs',x:'35 pitches from the windup at 70% intent. Target the four quadrants of the zone. Work FB down-away, down-in, up-away, up-in. Use Chaser to track exact locations. Goal for today: 60% or better strikes.'},
-{l:'TUE',d:'Rest + Recovery',x:'Full arm care circuit. Extra forearm and wrist work if any elbow area tightness.'},
-{l:'WED',d:'Bullpen — First Offspeed',x:'30 pitches from the stretch. Introduce your first offspeed pitch — changeup or curveball — 5-8 of them at 60% effort. Primary focus: same arm speed as the fastball. Track pitch type in Chaser.'},
-{l:'THU',d:'Flat Ground — Spin Work',x:'From flat ground, work on your offspeed grip and release x20 throws. Focus on feeling the spin come off your fingers at 45-60 ft before worrying about breaking action.'},
-{l:'FRI',d:'Mound — Two-Pitch Combo',x:'35-40 pitches. Alternate fastball and your best offspeed. Work from both windup and stretch. Track each pitch type separately in Chaser to compare strike percentages.'},
-{l:'SAT',d:'Rest or Light Toss',x:'Active recovery if arm is tired. Otherwise 20 min easy toss at 45-60 ft.'},
-{l:'SUN',d:'Data Review',x:'Open Chaser. What was your strike %? Which zone did you miss to? What was the velocity difference between FB and offspeed? Write your observations in session notes for next week.'}
-]},
-{w:'Week 5',t:'Velocity Building — Long Toss & Pull-Downs',days:[
-{l:'MON',d:'Long Toss Distance PR',x:'Warm up to 90 ft then extend out 10 ft every 5 throws as far as you can maintain carry — not air mailing. Most high school pitchers can reach 120-150 ft when healthy. This distance work builds arm strength like nothing else.'},
-{l:'TUE',d:'Rest + Full Strength',x:'Full lower body session: trap bar deadlift, Bulgarian split squat, hip thrust, lateral band walk, single-leg RDL.'},
-{l:'WED',d:'Pull-Down Work',x:'Warm up to 90 ft long toss. Then pull down: throw at 85-90% intent from 60 ft on a tight line to your partner. 10-12 pull-down throws. This is where velocity gains happen — the pull-down teaches the body to throw with carry at maximum effort.'},
-{l:'THU',d:'Full Rest',x:'Higher intensity week. Rest completely. Full arm care circuit only.'},
-{l:'FRI',d:'Mound — Intent Fastballs',x:'40 pitches. First 15 at 75%, next 15 at 85%, last 10 at 90-plus% intent. Have someone clock velocity if possible. Track in Chaser. Note your best velo in session notes.'},
-{l:'SAT',d:'Full Sequence Bullpen',x:'45 pitches total. Work a complete game sequence: first pitch strikes, all quadrants, change speeds, both sides of the plate. Pretend there is a hitter. Track everything in Chaser.'},
-{l:'SUN',d:'Rest + Deload',x:'Full rest. This is a critical recovery day after your highest intensity week. Ice, foam roll, extra sleep, extra hydration.'}
-]},
-{w:'Week 6',t:'Pitch Development — Offspeed Refinement',days:[
-{l:'MON',d:'Flat Ground — All Pitches',x:'Flat ground work on every pitch in your repertoire. For each pitch: start by feeling the grip and spin without worrying about velocity. 15-20 reps of each pitch type from 45 ft. Focus on understanding what makes each pitch move.'},
-{l:'TUE',d:'Rest + Band + Mobility',x:'Full band circuit plus full mobility protocol. Extra thoracic rotation and hip 90/90 work today.'},
-{l:'WED',d:'Bullpen — Offspeed Emphasis',x:'40 pitches. Throw a 50/50 fastball to offspeed ratio. For each offspeed pitch focus on consistent release point and maintaining the same arm speed as your fastball. Track pitch mix percentage in Chaser.'},
-{l:'THU',d:'Power Training',x:'Med ball rotational throws 4x6, box jumps 4x5, trap bar deadlift 4x5. Power emphasis session.'},
-{l:'FRI',d:'Two-Seam or Sinker Work',x:'35 pitches. If you have a two-seam or sinker, work it today — grip slightly on the left seam for righties, focus on slight pronation at release. Track it separately from your four-seam in Chaser.'},
-{l:'SAT',d:'Simulated Inning',x:'50 pitches. Work batters 1-9 imagining real hitters with counts and situations. Mix pitches, work counts, challenge yourself. Have a partner call balls and strikes. Full Chaser tracking.'},
-{l:'SUN',d:'Rest',x:'Complete recovery. Note in Chaser which pitches felt best and which need more work heading into the final two weeks.'}
-]},
-{w:'Week 7',t:'Competition Prep — Game Scenarios',days:[
-{l:'MON',d:'Long Toss PR Attempt',x:'Max distance long toss — try to exceed your Week 5 distance. Pull down 10-12 throws at maximum intent from 60 ft. This is your final major velocity stimulus before the season begins.'},
-{l:'TUE',d:'Rest',x:'Full arm care protocol. Extra rotator cuff work. Complete rest from throwing.'},
-{l:'WED',d:'Situational Bullpen',x:'50 pitches. Work specific scenarios with full intent: bases loaded two outs, first pitch of the game, 3-2 count to a lefty, man on third one out. Choose the right pitch for each situation and execute it. This mental rehearsal separates pitchers.'},
-{l:'THU',d:'Strength Maintenance',x:'Full body moderate weight session. Not maxing out — maintaining strength and staying fresh. Upper and lower in one combined session.'},
-{l:'FRI',d:'Day-Before Sharpener',x:'30 pitches at 75% effort. Sharpen all pitches and work your best stuff. No maximum effort today. Focus entirely on feel and command — getting everything grooved.'},
-{l:'SAT',d:'Simulated Game or Live BP',x:'60-70 pitches against live hitters if possible, or a full-sequence bullpen at game pace. Game intent, game focus, game mindset. Full Chaser tracking including pitch count by inning simulation.'},
-{l:'SUN',d:'Recovery + Data Review',x:'Complete arm care protocol. Open Chaser and review your full program data. What improved from Week 1? Where are you still missing? Set specific goals for opening day.'}
-]},
-{w:'Week 8',t:'Peak — Season Ready',days:[
-{l:'MON',d:'Maintenance Long Toss',x:'75-90 ft long toss only. Easy, fluid, focus entirely on arm feel. 20 min. No pull-downs this week — preserve arm freshness for the season.'},
-{l:'TUE',d:'Full Rest',x:'Rest. Optional moderate strength work if you want to maintain — nothing new, nothing heavy.'},
-{l:'WED',d:'Final Confidence Bullpen',x:'45 pitches. Your absolute best stuff at full intent. Work your best go-to sequence. Get locked into your rhythm. This is your confidence-builder for opening day — leave the mound feeling dominant.'},
-{l:'THU',d:'Rest',x:'Rest. Full arm care. Visualization: spend 15 minutes picturing yourself executing in a game. First pitch fastball for a strike. Backdoor curve to freeze a lefty. Changeup to get a weak swing.'},
-{l:'FRI',d:'Light Toss',x:'15 min easy toss at 45-60 ft. Stay loose. No effort at all. Just feel your arm moving freely and naturally.'},
-{l:'SAT',d:'GAME DAY',x:'Follow the Game Day Routine in Chaser exactly. Track your game with the Game Tracker. This is what the entire 8-week program was building toward.'},
-{l:'SUN',d:'Post-Game Recovery',x:'Full arm care protocol immediately after the game. Ice the shoulder and elbow. Review your game stats in Chaser. Log session notes while the game is still fresh. Start recovery for next week.'}
-]}
-];
-""")
+function getSession(pid) {
+  if (!state.sessions[pid]) state.sessions[pid] = {allTime:[], sessions:[]};
+  return state.sessions[pid];
+}
 
-print(f"Section 4 throwing program: {len(sections[4])} bytes")
+function getCurrentSession(pid) {
+  const s = getSession(pid);
+  if (!s.sessions.length) s.sessions.push({date: new Date().toLocaleDateString(), pitches:[], note:''});
+  return s.sessions[s.sessions.length - 1];
+}
 
-sections.append("""
-const GD=[
-{t:'3-4 Hours Before First Pitch',i:'\\ud83c\\udf05',bg:'rgba(255,170,51,.15)',steps:[
-{h:'Hydration Protocol',b:'Drink 16-24 oz of water immediately upon waking or arriving at the field. Follow with 16 oz every hour until first pitch. Add a pinch of salt or an electrolyte tablet to your water. Even 2% dehydration measurably reduces muscle strength and reaction time — do not underestimate this.'},
-{h:'Pre-Game Nutrition',b:'Eat 3 hours before first pitch: 40-60g complex carbohydrates like oatmeal, rice, or pasta, 25-30g lean protein like chicken or eggs, minimal fat and fiber which slow digestion. Avoid dairy, greasy food, or anything new. This is not the day to experiment with food. Bring a banana and peanut butter crackers for a snack 60-90 min before game time.'},
-{h:'Mental Preparation',b:'Review any scouting notes on the lineup if available. Spend 10-15 min on visualization: see yourself executing your first-pitch fastball for a strike, your changeup getting a weak swing, your curve buckling a tough hitter. MLB starters begin their mental preparation during the opposing team batting practice the day before they pitch.'},
-{h:'Light Walk or Easy Bike',b:'10-15 min brisk walk or 10 min easy stationary bike. Raises body temperature, increases blood flow, loosens joints. Many pro pitchers prefer this to static stretching as the first activity of the day — it prepares the nervous system without reducing muscle activation.'}
-]},
-{t:'90 Minutes Before — Dynamic Warm-Up',i:'\\ud83e\\udd38',bg:'rgba(74,158,255,.12)',steps:[
-{h:'Foam Roll Protocol (8-10 min)',b:'In this order: thoracic spine 2 min, lats 60 sec each side, quads and hip flexors 60 sec each leg, glutes and piriformis 60 sec each side, calves 30 sec each. Move slowly — this is tissue preparation not just rolling fast. Get the body warm and supple before the dynamic movement work.'},
-{h:'Dynamic Warm-Up Sequence (12 min)',b:'Leg swings front-to-back x15 each leg. Leg swings lateral x15 each leg. Hip circles x10 each direction. Arm circles progressive from small to large x20 both directions. Torso rotations x15 each direction. High knees x20 yards. A-skips x20 yards. Carioca x20 yards each direction. Inchworm x10 yards. Reverse lunge with thoracic rotation x10 each side.'},
-{h:'Hip & Thoracic Mobility (8 min)',b:"World's greatest stretch x5 each side. 90/90 hip stretch x45 sec each side. Hip flexor lunge stretch x45 sec each side. Thoracic rotation with reach x8 each side. Ankle dorsiflexion mobilization x15 each ankle. This mobility work is what separates pitchers who start sharp from those who find their mechanics in the second inning."},
-{h:'Rotator Cuff Activation — Bands (6 min)',b:'Band pull-aparts x15. External rotation x12 each side. Internal rotation x12 each side. W raise x10. T raise x10. Y raise x10. D1 diagonal x10 each side. 1-2 rounds. Shoulders should feel warm and activated — not pumped or fatigued. Stop immediately if anything feels pinchy or sharp.'}
-]},
-{t:'40 Minutes Before — Throwing Warm-Up',i:'\\u26be',bg:'rgba(0,200,150,.1)',steps:[
-{h:'Easy Toss — 40-60 ft (5 min)',b:'Start at 40 ft completely loose and easy at 50% effort. No grip, no intent, no velocity. After 15-20 throws move to 60 ft and let the ball carry naturally. This phase is NON-NEGOTIABLE — never skip it even if you are running late. The arm needs to go through easy range of motion before any intensity increase.'},
-{h:'Extension Phase — 80-100 ft (5 min)',b:'Move to 80 ft and gradually increase to 75-80% effort over 15-20 throws. Feel the weight of the ball, the wrist snap, the shoulder external rotation at layback. This is when you identify any unusual tightness or sensations — before the mound. If something feels wrong here, tell your coach before you touch the rubber.'},
-{h:'Mound Warm-Up — Fastballs (8 min)',b:'10-12 fastballs building from 75% to 90-plus% intent. First few from the stretch, then mix in the windup. Focus entirely on consistent release point and finishing the same way every pitch. By pitch 10 you should be at full game effort and feeling your rhythm.'},
-{h:'Offspeed Sharpening (5 min)',b:'4-6 reps of each offspeed pitch you plan to use in the game. Not just spinning them — throw them with intent and feel the full spin and movement. Your last few warm-up pitches should be your sharpest, most confident pitches. End with your best go-to combination sequence. Have your catcher receive the last 8-10 pitches.'}
-]},
-{t:'During the Game — Inning-to-Inning',i:'\\ud83c\\udfaf',bg:'rgba(255,77,77,.1)',steps:[
-{h:'Between Innings — Stay Warm',b:'Light jogging or walking in the dugout between every inning — never sit completely still. Keep your throwing arm warm under your jacket in cool weather. Eat a banana or crackers if you are going deep into the game. Sip water or electrolytes every inning without exception.'},
-{h:'Count Management Philosophy',b:'Get ahead in the count. First pitch strikes are the single highest correlation to pitching success at every level of baseball. A pitcher who throws first pitch strikes 65% or more of the time gives up roughly half the runs of a pitcher at 45%. This is why Chaser tracks first pitch strike percentage — it is your most important single statistic.'},
-{h:'Pitch Count Awareness',b:'Follow your state pitch count rules. General guideline: 1-30 pitches requires no mandatory rest, 31-60 requires 1 day rest, 61-80 requires 2 days rest, 81-105 requires 3 days rest. These rules exist because the UCL and growth plates in your elbow are still developing. No single game is worth an injury that costs you a month or your career.'}
-]},
-{t:'After the Game — Arm Care (Within 30 Min)',i:'\\u2744\\ufe0f',bg:'rgba(167,139,250,.12)',steps:[
-{h:'Immediate Light Toss — Optional',b:'After an outing of 50 or more pitches, some MLB starters throw easy light toss for 5-10 minutes while still warm. This flushes lactic acid before the muscles cool and can reduce next-day soreness. Only do this if the arm still feels warm and loose — never if there is any pain.'},
-{h:'Stretch While Warm — Critical (12 min)',b:'Do this BEFORE icing: sleeper stretch x30 sec each side, cross-body stretch x30 sec each side, forearm flexor and extensor stretch x30 sec each, thoracic rotation x10 each side, hip flexor stretch x30 sec each side, quad stretch x30 sec each leg. You will not stretch effectively after icing because the tissue becomes rigid.'},
-{h:'Full Foam Roll + Lacrosse Ball (8 min)',b:'Thoracic spine, lats, posterior shoulder with lacrosse ball, quads and hip flexors, glutes. Spend extra time on whatever felt tight during the game. Recovery begins the moment your last pitch crosses the plate.'},
-{h:'Ice Protocol (15-20 min)',b:'Ice the shoulder — posterior first then anterior — and the elbow for 15 minutes. Elevate slightly. If you threw 80 or more pitches extend to 20 minutes. Always place a cloth between ice and skin. After icing: no more throwing, no heat, no vigorous activity. Let the tissue cool and recover.'},
-{h:'Post-Game Nutrition & Hydration',b:'20-40g of protein within 45 minutes of finishing — protein shake, chocolate milk, or chicken. Rehydrate with 24 oz of water or electrolyte drink within 30 minutes. Protein synthesis for recovery peaks in this post-exercise window. Consistently skipping this meaningfully slows your recovery across a full season.'},
-{h:'Log Everything in Chaser',b:'Open the Chaser Game Tracker and review your pitch count, K, BB, and FPS%. Add a session note with how your arm felt, what worked, what did not, and any mechanical cues to remember. This data compounds. By mid-season you will have patterns and trends that no coach can see with the naked eye.'}
-]}
-];
-""")
+function showToast(msg, color='var(--teal)') {
+  clearTimeout(state.toastTimer);
+  state.toast = {msg, color};
+  render();
+  state.toastTimer = setTimeout(() => { state.toast = null; render(); }, 2200);
+}
 
-print(f"Section 5 game day: {len(sections[5])} bytes")
+const ZONE_W = 340, ZONE_H = 420;
+const ZX = 60, ZY = 80, ZW = 220, ZH = 280;
 
-total = sum(len(s) for s in sections)
-print(f"Total so far: {total} bytes")
+function drawZoneCanvas(canvas, pitches, highlightLast) {
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = ZONE_W * dpr; canvas.height = ZONE_H * dpr;
+  canvas.style.width = ZONE_W + 'px'; canvas.style.height = ZONE_H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#0A1628';
+  ctx.roundRect(0,0,ZONE_W,ZONE_H,10); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.03)';
+  ctx.beginPath(); ctx.arc(ZONE_W-28,ZY+30,14,0,Math.PI*2); ctx.fill();
+  ctx.fillRect(ZONE_W-34,ZY+44,12,60);
+  ctx.save(); ctx.strokeStyle='rgba(255,255,255,.04)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(ZONE_W-28,ZY+54); ctx.lineTo(ZONE_W-70,ZY+20); ctx.stroke(); ctx.restore();
+  ctx.shadowColor='#00C896'; ctx.shadowBlur=12;
+  ctx.strokeStyle='rgba(0,200,150,.7)'; ctx.lineWidth=2;
+  ctx.strokeRect(ZX,ZY,ZW,ZH); ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(0,200,150,.25)'; ctx.lineWidth=1;
+  const cw=ZW/3, ch=ZH/3;
+  for(let i=1;i<3;i++){
+    ctx.beginPath(); ctx.moveTo(ZX+i*cw,ZY); ctx.lineTo(ZX+i*cw,ZY+ZH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ZX,ZY+i*ch); ctx.lineTo(ZX+ZW,ZY+i*ch); ctx.stroke();
+  }
+  const labels=[['1','2','3'],['4','5','6'],['7','8','9']];
+  ctx.font='10px SF Mono,monospace'; ctx.fillStyle='rgba(123,141,176,.3)';
+  for(let r=0;r<3;r++) for(let c=0;c<3;c++) ctx.fillText(labels[r][c],ZX+c*cw+4,ZY+r*ch+13);
+  ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(123,141,176,.12)'; ctx.lineWidth=1;
+  ctx.strokeRect(ZX-40,ZY-40,ZW+80,ZH+80); ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,255,.08)';
+  const px=ZX+ZW/2, py=ZY+ZH+50;
+  ctx.beginPath(); ctx.moveTo(px-22,py-12); ctx.lineTo(px+22,py-12); ctx.lineTo(px+22,py+2);
+  ctx.lineTo(px,py+16); ctx.lineTo(px-22,py+2); ctx.closePath(); ctx.fill();
+  if(pitches) pitches.forEach((p,i)=>{
+    const isLast=highlightLast&&i===pitches.length-1;
+    const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
+    if(!isLast) ctx.globalAlpha=0.55;
+    ctx.shadowColor=pt.color; ctx.shadowBlur=isLast?10:4;
+    ctx.beginPath(); ctx.arc(p.x,p.y,isLast?9:7,0,Math.PI*2); ctx.fillStyle=pt.color; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x,p.y,isLast?4:3,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+    ctx.shadowBlur=0; ctx.globalAlpha=1;
+    if(isLast){ctx.font='bold 10px SF Mono,monospace';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(p.type,p.x,p.y-14);ctx.textAlign='left';}
+  });
+  if(pitches&&pitches.length>0) pitches.forEach((p,i)=>{
+    ctx.font='7px SF Mono,monospace'; ctx.fillStyle='rgba(255,255,255,.4)';
+    ctx.textAlign='center'; ctx.fillText(i+1,p.x,p.y+3); ctx.textAlign='left';
+  });
+}
 
-with open('/home/claude/sections.py', 'w') as f:
-    f.write("SECTIONS = " + repr(sections))
-print("Saved sections to file")
-PYEOF
+function drawHeatCanvas(canvas, pitches) {
+  if(!canvas) return;
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=ZONE_W*dpr; canvas.height=ZONE_H*dpr;
+  canvas.style.width=ZONE_W+'px'; canvas.style.height=ZONE_H+'px';
+  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  ctx.fillStyle='#080E1C'; ctx.roundRect(0,0,ZONE_W,ZONE_H,10); ctx.fill();
+  if(pitches&&pitches.length>0) pitches.forEach(p=>{
+    const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
+    const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,32);
+    grd.addColorStop(0,pt.color+'AA'); grd.addColorStop(0.4,pt.color+'44'); grd.addColorStop(1,pt.color+'00');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(p.x,p.y,32,0,Math.PI*2); ctx.fill();
+  });
+  ctx.strokeStyle='rgba(0,200,150,.5)'; ctx.lineWidth=1.5; ctx.strokeRect(ZX,ZY,ZW,ZH);
+  ctx.strokeStyle='rgba(0,200,150,.18)'; ctx.lineWidth=.8;
+  const cw=ZW/3,ch=ZH/3;
+  for(let i=1;i<3;i++){
+    ctx.beginPath(); ctx.moveTo(ZX+i*cw,ZY); ctx.lineTo(ZX+i*cw,ZY+ZH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ZX,ZY+i*ch); ctx.lineTo(ZX+ZW,ZY+i*ch); ctx.stroke();
+  }
+  ctx.fillStyle='rgba(255,255,255,.06)';
+  const px=ZX+ZW/2,py=ZY+ZH+50;
+  ctx.beginPath(); ctx.moveTo(px-22,py-12); ctx.lineTo(px+22,py-12); ctx.lineTo(px+22,py+2);
+  ctx.lineTo(px,py+16); ctx.lineTo(px-22,py+2); ctx.closePath(); ctx.fill();
+}
+
+function handleZoneClick(e) {
+  if(!state.activePitcher){showToast('Select a pitcher first');return;}
+  const canvas=document.getElementById('zoneCanvas');
+  if(!canvas) return;
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=ZONE_W/rect.width, scaleY=ZONE_H/rect.height;
+  const ex=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+  const ey=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+  state.pendingPitch={x:ex*scaleX,y:ey*scaleY,type:state.pitchType,vel:state.velocity,ts:Date.now()};
+  render();
+}
+
+function confirmOutcome(outcome) {
+  if(!state.pendingPitch) return;
+  const p=state.pendingPitch;
+  const inZone=p.x>=ZX&&p.x<=ZX+ZW&&p.y>=ZY&&p.y<=ZY+ZH;
+  let isStrike=false;
+  if(outcome==='strike') isStrike=true;
+  else if(outcome==='swm'){isStrike=true;p.swingMiss=true;}
+  else if(outcome==='foul'){isStrike=state.strikes<2;p.foul=true;}
+  p.result=outcome; p.inZone=inZone; p.isStrike=isStrike;
+  const sess=getCurrentSession(state.activePitcher);
+  const allTime=getSession(state.activePitcher);
+  sess.pitches.push(p); allTime.allTime.push(p);
+  state.sessions[state.activePitcher]=allTime; save();
+  if(isStrike) state.strikes++;
+  else if(outcome!=='foul') state.balls++;
+  state.pitches++;
+  let msg=null;
+  if(state.strikes>=3){msg='STRIKEOUT!';state.strikes=0;state.balls=0;}
+  else if(state.balls>=4){msg='WALK!';state.strikes=0;state.balls=0;}
+  state.pendingPitch=null;
+  if(msg) showToast(msg,'#00C896');
+  render();
+  setTimeout(()=>{
+    const zc=document.getElementById('zoneCanvas');
+    drawZoneCanvas(zc,getCurrentSession(state.activePitcher).pitches,true);
+  },50);
+}
+
+function undoPitch() {
+  if(!state.activePitcher) return;
+  const sess=getCurrentSession(state.activePitcher);
+  const allTime=getSession(state.activePitcher);
+  if(!sess.pitches.length) return;
+  const last=sess.pitches.pop(); allTime.allTime.pop();
+  if(last.isStrike&&!last.foul) state.strikes=Math.max(0,state.strikes-1);
+  else if(!last.isStrike&&!last.foul) state.balls=Math.max(0,state.balls-1);
+  state.pitches=Math.max(0,state.pitches-1);
+  save(); showToast('Pitch removed'); render();
+  setTimeout(()=>{drawZoneCanvas(document.getElementById('zoneCanvas'),getCurrentSession(state.activePitcher).pitches,true);},50);
+}
+
+function clearPitches() {
+  if(!state.activePitcher) return;
+  if(!confirm('Clear all pitches for this session?')) return;
+  const s=getSession(state.activePitcher);
+  if(s.sessions.length) s.sessions[s.sessions.length-1].pitches=[];
+  s.allTime=s.sessions.flatMap(ss=>ss.pitches);
+  state.balls=0; state.strikes=0; state.pitches=0;
+  save(); showToast('Pitches cleared'); render();
+  setTimeout(()=>{drawZoneCanvas(document.getElementById('zoneCanvas'),[],false);},50);
+}
+
+function endSession() {
+  if(!state.activePitcher) return;
+  const sess=getCurrentSession(state.activePitcher);
+  if(!sess.pitches.length){showToast('No pitches this session');return;}
+  state.showEndSession=true;
+  state.endSessionNote='';
+  state.endSessionExpanded=false;
+  render();
+}
+
+function finalizeEndSession() {
+  const noteEl=document.getElementById('esNoteInp');
+  const note=noteEl?noteEl.value.trim():'';
+  const s=getSession(state.activePitcher);
+  if(s.sessions.length) s.sessions[s.sessions.length-1].note=note;
+  s.sessions.push({date:new Date().toLocaleDateString(),pitches:[],note:''});
+  state.balls=0; state.strikes=0; state.pitches=0;
+  state.showEndSession=false;
+  state.endSessionNote='';
+  save(); showToast('Session saved'); render();
+  setTimeout(()=>{drawZoneCanvas(document.getElementById('zoneCanvas'),[],false);},50);
+}
+
+function exportCSV() {
+  let csv='Pitcher,Session Date,#,Type,Velocity,X,Y,InZone,Result\n';
+  for(const pid in state.sessions){
+    state.sessions[pid].sessions.forEach(sess=>{
+      sess.pitches.forEach((p,i)=>{
+        csv+=`${pid},${sess.date},${i+1},${p.type},${p.vel||''},${p.x.toFixed(1)},${p.y.toFixed(1)},${p.inZone},${p.result}\n`;
+      });
+    });
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='bullpen_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+function calcStats(pitches) {
+  if(!pitches||!pitches.length) return null;
+  const total=pitches.length;
+  const strikes=pitches.filter(p=>p.isStrike).length;
+  const balls=pitches.filter(p=>!p.isStrike&&!p.foul).length;
+  const inZone=pitches.filter(p=>p.inZone).length;
+  const swm=pitches.filter(p=>p.swingMiss).length;
+  const vels=pitches.filter(p=>p.vel&&!isNaN(p.vel)).map(p=>parseFloat(p.vel));
+  const avgVel=vels.length?(vels.reduce((a,b)=>a+b,0)/vels.length).toFixed(1):'--';
+  const maxVel=vels.length?Math.max(...vels):'--';
+  const byType={};
+  PITCH_TYPES.forEach(pt=>{
+    const pts=pitches.filter(p=>p.type===pt.code);
+    if(pts.length){
+      const pv=pts.filter(p=>p.vel&&!isNaN(p.vel)).map(p=>parseFloat(p.vel));
+      byType[pt.code]={count:pts.length,pct:((pts.length/total)*100).toFixed(0),
+        strikes:pts.filter(p=>p.isStrike).length,
+        avgVel:pv.length?(pv.reduce((a,b)=>a+b,0)/pv.length).toFixed(1):'--',
+        name:pt.name,color:pt.color};
+    }
+  });
+  return{total,strikes,balls,inZone,swm,
+    strikePct:((strikes/total)*100).toFixed(1),
+    zonePct:((inZone/total)*100).toFixed(1),
+    swmPct:((swm/total)*100).toFixed(1),
+    avgVel,maxVel,byType};
+}
+
+function getZoneNum(x,y){
+  if(x<ZX||x>ZX+ZW||y<ZY||y>ZY+ZH) return '--';
+  return Math.floor((y-ZY)/(ZH/3))*3+Math.floor((x-ZX)/(ZW/3))+1;
+}
+
+function render() {
+  document.getElementById('root').innerHTML=buildHTML();
+  attachEvents();
+  setTimeout(()=>{
+    if(state.activeTab==='zone'){
+      const zc=document.getElementById('zoneCanvas');
+      if(zc) drawZoneCanvas(zc,state.activePitcher?getCurrentSession(state.activePitcher).pitches:[],true);
+    }
+    if(state.activeTab==='heat'){
+      const hc=document.getElementById('heatCanvas');
+      if(hc){
+        let pitches=[];
+        if(state.activePitcher){
+          const s=getSession(state.activePitcher);
+          pitches=state.heatFilter==='session'?getCurrentSession(state.activePitcher).pitches:s.allTime;
+          if(state.heatPitchType!=='ALL') pitches=pitches.filter(p=>p.type===state.heatPitchType);
+        }
+        drawHeatCanvas(hc,pitches);
+      }
+    }
+  },30);
+}
+
+function buildHTML() {
+  const ap=state.activePitcher;
+  const sess=ap?getCurrentSession(ap):null;
+  const pitches=sess?sess.pitches:[];
+  const stats=ap?calcStats(pitches):null;
+
+  let html=`
+    <div class="hdr">
+      <div class="hdr-title">BULLPEN <span>PRO</span></div>
+      <div class="hdr-badge">MLB CALIBER</div>
+    </div>
+    <div class="pitcher-bar">
+      <select class="pitcher-select" id="pitcherSel" onchange="selectPitcher(this.value)">
+        <option value="">— Select Pitcher —</option>
+        ${state.pitchers.map(p=>`<option value="${p.name}" ${ap===p.name?'selected':''}>${p.name} #${p.num||'—'}</option>`).join('')}
+      </select>
+      <button class="btn-sm btn-teal" onclick="state.showAddPitcher=true;render()">+ Add</button>
+    </div>
+    <div class="count-bar">
+      <div class="count-seg"><div class="count-lbl">BALLS</div><div class="count-val cv-b">${state.balls}</div></div>
+      <div class="count-seg"><div class="count-lbl">STRIKES</div><div class="count-val cv-s">${state.strikes}</div></div>
+      <div class="count-seg"><div class="count-lbl">PITCHES</div><div class="count-val cv-p">${state.pitches}</div></div>
+      <div class="count-seg"><div class="count-lbl">LAST VEL</div><div class="count-val cv-v">${pitches.length&&pitches[pitches.length-1].vel?pitches[pitches.length-1].vel:'—'}</div></div>
+    </div>
+    <div class="tabs">
+      ${[['zone','⚾ ZONE'],['heat','🔥 HEAT'],['stats','📊 STATS'],['roster','👥 ROSTER']].map(([k,l])=>`
+        <div class="tab ${state.activeTab===k?'active':''}" onclick="state.activeTab='${k}';render()">${l}</div>
+      `).join('')}
+    </div>
+    <div class="scroll">
+  `;
+
+  if(state.activeTab==='zone') html+=buildZoneTab(ap);
+  else if(state.activeTab==='heat') html+=buildHeatTab(ap);
+  else if(state.activeTab==='stats') html+=buildStatsTab(ap,pitches,stats);
+  else if(state.activeTab==='roster') html+=buildRosterTab();
+  html+=`</div>`;
+
+  if(state.activeTab==='zone'){
+    html+=`
+      <div class="action-row">
+        <button class="btn-undo" onclick="undoPitch()">↩ UNDO</button>
+        <button class="btn-clear" onclick="clearPitches()">CLEAR</button>
+        <button class="btn-end" onclick="endSession()">END SESSION</button>
+      </div>`;
+  }
+
+  if(state.toast){
+    html+=`<div class="toast" style="color:${state.toast.color};border-color:${state.toast.color}20">${state.toast.msg}</div>`;
+  }
+
+  if(state.pendingPitch){
+    const inZ=state.pendingPitch.x>=ZX&&state.pendingPitch.x<=ZX+ZW&&state.pendingPitch.y>=ZY&&state.pendingPitch.y<=ZY+ZH;
+    html+=`
+      <div class="outcome-picker">
+        <div class="op-title">PITCH ${state.pitches+1} — ${inZ?'IN ZONE':'OFF PLATE'}</div>
+        <div class="op-grid">
+          <button class="op-btn" style="background:rgba(255,77,77,.12);border-color:#FF4D4D;color:#FF4D4D" onclick="confirmOutcome('strike')">STRIKE</button>
+          <button class="op-btn" style="background:rgba(74,158,255,.12);border-color:#4A9EFF;color:#4A9EFF" onclick="confirmOutcome('ball')">BALL</button>
+          <button class="op-btn" style="background:rgba(167,139,250,.12);border-color:#A78BFA;color:#A78BFA" onclick="confirmOutcome('swm')">SWING &amp; MISS</button>
+          <button class="op-btn" style="background:rgba(255,170,51,.12);border-color:#FFAA33;color:#FFAA33" onclick="confirmOutcome('foul')">FOUL</button>
+        </div>
+        <button class="op-cancel" onclick="state.pendingPitch=null;render()">Cancel</button>
+      </div>`;
+  }
+
+  if(state.showEndSession&&ap){
+    const sess2=getCurrentSession(ap);
+    const s=calcStats(sess2.pitches);
+    html+=buildEndSessionSheet(ap,sess2,s);
+  }
+
+  if(state.showAddPitcher){
+    html+=`
+      <div class="popup-overlay" onclick="if(event.target===this){state.showAddPitcher=false;state.newPitcherName='';render()}">
+        <div class="popup-box">
+          <div class="popup-title">Add Pitcher</div>
+          <input class="popup-inp" id="newPitcherName" placeholder="Full name" value="${state.newPitcherName}" oninput="state.newPitcherName=this.value">
+          <input class="popup-inp" id="newPitcherNum" placeholder="# Jersey number" style="margin-bottom:12px">
+          <div class="popup-btns">
+            <button style="background:var(--card);border-color:var(--border);color:var(--muted)" onclick="state.showAddPitcher=false;state.newPitcherName='';render()">Cancel</button>
+            <button style="background:rgba(0,200,150,.12);border-color:var(--teal);color:var(--teal)" onclick="addPitcher()">Add</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  return html;
+}
+
+function buildEndSessionSheet(ap, sess, s) {
+  const fullStats = s ? `
+    <div class="stat-grid" style="margin-bottom:10px">
+      <div class="stat-card"><div class="stat-lbl">ZONE %</div><div class="stat-val" style="color:var(--blue)">${s.zonePct}%</div><div class="stat-sub">${s.inZone} in zone</div></div>
+      <div class="stat-card"><div class="stat-lbl">SWM %</div><div class="stat-val" style="color:var(--purple)">${s.swmPct}%</div><div class="stat-sub">Swing & miss</div></div>
+      <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${s.avgVel}</div><div class="stat-sub">MPH avg</div></div>
+      <div class="stat-card"><div class="stat-lbl">MAX VELO</div><div class="stat-val" style="color:var(--amber)">${s.maxVel}</div><div class="stat-sub">MPH top</div></div>
+    </div>
+    <div class="pitch-breakdown" style="margin-bottom:0">
+      <div class="pb-title">PITCH MIX</div>
+      ${Object.entries(s.byType).map(([code,d])=>`
+        <div class="pb-row">
+          <div class="pb-name" style="color:${d.color}">${d.name}</div>
+          <div class="pb-bar-wrap"><div class="pb-bar" style="width:${d.pct}%;background:${d.color}88"></div></div>
+          <div class="pb-stats">${d.pct}% · ${d.avgVel}mph</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  return `
+    <div class="popup-overlay">
+      <div class="popup-sheet">
+        <div class="popup-drag"></div>
+        <div class="popup-title">Session Complete</div>
+        <div class="popup-sub">${ap} · ${sess.date}</div>
+        <div class="es-hero">
+          <div class="es-count">${s?s.total:0}</div>
+          <div class="es-label">PITCHES THROWN</div>
+        </div>
+        <div class="es-quick">
+          <div class="es-stat">
+            <div class="es-stat-val" style="color:var(--red)">${s?s.strikes:0}</div>
+            <div class="es-stat-lbl">STRIKES</div>
+          </div>
+          <div class="es-stat">
+            <div class="es-stat-val" style="color:var(--blue)">${s?s.balls:0}</div>
+            <div class="es-stat-lbl">BALLS</div>
+          </div>
+          <div class="es-stat">
+            <div class="es-stat-val" style="color:var(--green)">${s?s.strikePct:0}%</div>
+            <div class="es-stat-lbl">STR%</div>
+          </div>
+        </div>
+        <button class="es-expand-btn ${state.endSessionExpanded?'open':''}" onclick="toggleEndExpand()">
+          <span>${state.endSessionExpanded?'Hide full stats':'Show full stats'}</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="es-full-stats ${state.endSessionExpanded?'open':''}">
+          ${fullStats}
+        </div>
+        <div class="es-note-section">
+          <div class="es-note-label"><span class="pen-icon">✏️</span> SESSION NOTES</div>
+          <textarea class="es-note-inp" id="esNoteInp" placeholder="How did it feel? Any notes on mechanics, pitch movement, fatigue…">${state.endSessionNote}</textarea>
+        </div>
+        <button class="es-done-btn" onclick="finalizeEndSession()">Save &amp; Start New Session</button>
+      </div>
+    </div>`;
+}
+
+function buildZoneTab(ap) {
+  if(!ap) return `
+    <div class="empty-state">
+      <div class="empty-icon">⚾</div>
+      <div class="empty-title">No Pitcher Selected</div>
+      <div class="empty-sub">Add a pitcher in the Roster tab, then select them above to start tracking.</div>
+    </div>`;
+  return `
+    <div class="zone-wrap">
+      <canvas id="zoneCanvas" width="${ZONE_W}" height="${ZONE_H}" aria-label="Strike zone pitch tracker"></canvas>
+    </div>
+    <div class="pitch-ctrl">
+      <div class="ctrl-row">
+        <div class="ctrl-label">PITCH</div>
+        <div class="pitch-type-grid">
+          ${PITCH_TYPES.map(pt=>`
+            <button class="pt-btn" onclick="state.pitchType='${pt.code}';render()"
+              style="background:${state.pitchType===pt.code?pt.color+'22':'var(--card)'};border-color:${state.pitchType===pt.code?pt.color:'var(--border)'};color:${state.pitchType===pt.code?pt.color:'var(--muted)'}">${pt.code}</button>`).join('')}
+        </div>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-label">VEL</div>
+        <input class="vel-inp" id="velInp" type="number" min="40" max="105" placeholder="--"
+          value="${state.velocity}" oninput="state.velocity=this.value">
+        <span class="vel-unit">MPH</span>
+        <div style="flex:1"></div>
+        <div class="swing-tog" onclick="state.swingMiss=!state.swingMiss;render()">
+          <div class="tog-box ${state.swingMiss?'on':''}"><div class="tog-dot"></div></div>
+          <span class="tog-lbl">SWING &amp; MISS</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildHeatTab(ap) {
+  const pitchTypes=['ALL',...PITCH_TYPES.map(p=>p.code)];
+  return `
+    <div class="heat-section">
+      <div class="heat-filters">
+        ${['session','alltime'].map(f=>`
+          <button class="hf-btn ${state.heatFilter===f?'active':''}" onclick="state.heatFilter='${f}';render()">${f==='session'?'This Session':'All Time'}</button>
+        `).join('')}
+      </div>
+      <div class="heat-filters">
+        ${pitchTypes.map(t=>`
+          <button class="hf-btn ${state.heatPitchType===t?'active':''}" onclick="state.heatPitchType='${t}';render()">${t}</button>
+        `).join('')}
+      </div>
+      <canvas id="heatCanvas" width="${ZONE_W}" height="${ZONE_H}" aria-label="Pitch location heat map"></canvas>
+      <div class="heat-legend">
+        <span class="legend-lbl">FEW</span>
+        <div class="legend-grad"></div>
+        <span class="legend-lbl">HOT ZONE</span>
+      </div>
+      ${!ap?'<div class="empty-state" style="margin-top:12px"><div class="empty-sub">Select a pitcher to see their heat map</div></div>':''}
+    </div>`;
+}
+
+function buildStatsTab(ap, pitches, stats) {
+  if(!ap||!stats||!pitches.length) return `
+    <div class="empty-state">
+      <div class="empty-icon">📊</div>
+      <div class="empty-title">No Data Yet</div>
+      <div class="empty-sub">Throw some pitches in the Zone tab to see stats here.</div>
+    </div>`;
+  const allStats=calcStats(getSession(ap).allTime);
+  const pastSessions=getSession(ap).sessions.slice(0,-1).reverse().slice(0,5);
+  return `
+    <div class="stats-section">
+      <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">THIS SESSION</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-lbl">PITCHES</div><div class="stat-val" style="color:var(--teal)">${stats.total}</div><div class="stat-sub">${stats.strikes}K / ${stats.balls}BB</div></div>
+        <div class="stat-card"><div class="stat-lbl">STRIKE %</div><div class="stat-val" style="color:${parseFloat(stats.strikePct)>=65?'var(--green)':parseFloat(stats.strikePct)>=55?'var(--amber)':'var(--red)'}">${stats.strikePct}%</div><div class="stat-sub">MLB avg ~65%</div></div>
+        <div class="stat-card"><div class="stat-lbl">ZONE %</div><div class="stat-val" style="color:var(--blue)">${stats.zonePct}%</div><div class="stat-sub">${stats.inZone} in zone</div></div>
+        <div class="stat-card"><div class="stat-lbl">SWM %</div><div class="stat-val" style="color:var(--purple)">${stats.swmPct}%</div><div class="stat-sub">Swing & miss</div></div>
+        <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${stats.avgVel}</div><div class="stat-sub">MPH</div></div>
+        <div class="stat-card"><div class="stat-lbl">MAX VELO</div><div class="stat-val" style="color:var(--amber)">${stats.maxVel}</div><div class="stat-sub">MPH top</div></div>
+      </div>
+      <div class="pitch-breakdown">
+        <div class="pb-title">PITCH MIX</div>
+        ${Object.entries(stats.byType).map(([code,d])=>`
+          <div class="pb-row">
+            <div class="pb-name" style="color:${d.color}">${d.name}</div>
+            <div class="pb-bar-wrap"><div class="pb-bar" style="width:${d.pct}%;background:${d.color}88"></div></div>
+            <div class="pb-stats">${d.pct}% · ${d.avgVel}mph</div>
+          </div>`).join('')}
+      </div>
+      ${allStats&&getSession(ap).allTime.length>pitches.length?`
+        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;margin-top:4px">ALL TIME — ${getSession(ap).allTime.length} pitches</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-lbl">STRIKE %</div><div class="stat-val" style="color:var(--teal)">${allStats.strikePct}%</div></div>
+          <div class="stat-card"><div class="stat-lbl">AVG VELO</div><div class="stat-val" style="color:var(--amber)">${allStats.avgVel}</div><div class="stat-sub">MPH all-time</div></div>
+        </div>`:''}
+      ${pastSessions.length?`
+        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;margin-top:4px">PAST SESSIONS</div>
+        <div class="session-history">
+          <div class="sh-header">DATE · PITCHES · STRIKE% · NOTES</div>
+          ${pastSessions.map(s=>{
+            const st=calcStats(s.pitches);
+            return `<div class="sh-item">
+              <div class="sh-date">${s.date}</div>
+              <div class="sh-stats">${st?`${st.total} pitches · ${st.strikePct}% strikes · ${st.avgVel} MPH avg`:'No data'}</div>
+              ${s.note?`<div class="sh-note">"${s.note}"</div>`:''}
+            </div>`;
+          }).join('')}
+        </div>`:''}
+      <div class="pitch-log">
+        <div class="pl-header">
+          <span class="pl-num">#</span><span class="pl-type">TYPE</span><span class="pl-loc">ZONE</span><span class="pl-vel">VEL</span><span class="pl-result" style="text-align:right">RESULT</span>
+        </div>
+        ${pitches.slice().reverse().slice(0,20).map((p,i)=>{
+          const idx=pitches.length-i;
+          const pt=PITCH_TYPES.find(t=>t.code===p.type)||PITCH_TYPES[0];
+          const badge=p.swingMiss?'<span class="badge badge-swm">SWM</span>'
+            :p.foul?'<span class="badge badge-foul">FOUL</span>'
+            :p.isStrike?'<span class="badge badge-str">STRIKE</span>'
+            :'<span class="badge badge-bal">BALL</span>';
+          return `<div class="pl-row">
+            <span class="pl-num">${idx}</span>
+            <span class="pl-type" style="color:${pt.color}">${pt.code}</span>
+            <span class="pl-loc">Z${getZoneNum(p.x,p.y)}</span>
+            <span class="pl-vel">${p.vel||'—'}</span>
+            <span class="pl-result">${badge}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function buildRosterTab() {
+  return `
+    <div class="roster-section">
+      <div class="roster-add">
+        <input class="roster-inp" placeholder="Pitcher name…" id="quickAdd" onkeydown="if(event.key==='Enter')quickAddPitcher()">
+        <button class="btn-sm btn-teal" onclick="quickAddPitcher()">+ Add</button>
+      </div>
+      <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">${state.pitchers.length} PITCHER${state.pitchers.length!==1?'S':''} ON ROSTER</div>
+      <div class="roster-list">
+        ${state.pitchers.length===0?`
+          <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <div class="empty-title">No Pitchers Yet</div>
+            <div class="empty-sub">Add pitchers above to start tracking their bullpen sessions.</div>
+          </div>`:
+        state.pitchers.map((p,i)=>{
+          const s=getSession(p.name);
+          const allT=s.allTime||[];
+          const st=calcStats(allT);
+          const avColor=AVATAR_COLORS[i%AVATAR_COLORS.length];
+          const initials=p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          return `<div class="roster-item ${state.activePitcher===p.name?'active-p':''}" onclick="selectPitcher('${p.name}');state.activeTab='zone';render()">
+            <div class="roster-avatar" style="background:${avColor}22;color:${avColor}">${initials}</div>
+            <div class="roster-info">
+              <div class="roster-name">${p.name} <span style="color:var(--muted);font-size:12px;font-weight:400">#${p.num||'—'}</span></div>
+              <div class="roster-meta">${allT.length} pitches · ${s.sessions.filter(ss=>ss.pitches.length).length} sessions${st?` · ${st.strikePct}% str · ${st.avgVel} MPH`:''}</div>
+            </div>
+            <button class="roster-del" onclick="event.stopPropagation();deletePitcher('${p.name}')">×</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+window.selectPitcher=function(name){
+  state.activePitcher=name||null;
+  state.balls=0;state.strikes=0;state.pitches=0;
+  if(name) state.pitches=getCurrentSession(name).pitches.length;
+  render();
+  setTimeout(()=>{
+    if(state.activeTab==='zone'){
+      const zc=document.getElementById('zoneCanvas');
+      if(zc&&state.activePitcher) drawZoneCanvas(zc,getCurrentSession(state.activePitcher).pitches,true);
+    }
+  },50);
+};
+window.addPitcher=function(){
+  const name=state.newPitcherName.trim();
+  const num=document.getElementById('newPitcherNum')?.value?.trim()||'';
+  if(!name) return;
+  if(state.pitchers.find(p=>p.name===name)){showToast('Pitcher already exists');return;}
+  state.pitchers.push({name,num});
+  save(); state.showAddPitcher=false; state.newPitcherName='';
+  showToast('Added '+name); selectPitcher(name);
+};
+window.quickAddPitcher=function(){
+  const inp=document.getElementById('quickAdd');
+  if(!inp||!inp.value.trim()) return;
+  const name=inp.value.trim();
+  if(state.pitchers.find(p=>p.name===name)){showToast('Already exists');return;}
+  state.pitchers.push({name,num:''}); save(); showToast('Added '+name); render();
+};
+window.deletePitcher=function(name){
+  if(!confirm('Remove '+name+' from roster?')) return;
+  state.pitchers=state.pitchers.filter(p=>p.name!==name);
+  if(state.activePitcher===name){state.activePitcher=null;state.balls=0;state.strikes=0;state.pitches=0;}
+  save(); render();
+};
+window.toggleEndExpand=function(){
+  const noteEl=document.getElementById('esNoteInp');
+  if(noteEl) state.endSessionNote=noteEl.value;
+  state.endSessionExpanded=!state.endSessionExpanded;
+  render();
+};
+window.confirmOutcome=confirmOutcome;
+window.undoPitch=undoPitch;
+window.clearPitches=clearPitches;
+window.endSession=endSession;
+window.finalizeEndSession=finalizeEndSession;
+window.exportCSV=exportCSV;
+
+function attachEvents(){
+  const zc=document.getElementById('zoneCanvas');
+  if(zc){
+    zc.addEventListener('click',handleZoneClick);
+    zc.addEventListener('touchstart',(e)=>{e.preventDefault();handleZoneClick(e);},{passive:false});
+  }
+  const vel=document.getElementById('velInp');
+  if(vel) vel.addEventListener('change',()=>{state.velocity=vel.value;});
+}
+
+render();
+</script>
+</body>
+</html>
